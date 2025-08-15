@@ -1,3 +1,4 @@
+from datetime import timedelta
 from pathlib import Path
 import environ
 
@@ -24,6 +25,27 @@ else:
 
 ALLOWED_HOSTS = ["*"]
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+}
+
 
 # Application definition
 
@@ -40,6 +62,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -120,3 +143,50 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Remove CORS_ALLOW_ALL_ORIGINS when using credentials
+# CORS_ALLOW_ALL_ORIGINS = True
+
+# Additional CORS settings for file uploads
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
+# Additional CORS settings to ensure proper handling
+CORS_EXPOSE_HEADERS = [
+    "content-type",
+    "content-disposition",
+]
+
+# Allow credentials
+CORS_ALLOW_CREDENTIALS = True
+
+# Handle preflight requests
+CORS_PREFLIGHT_MAX_AGE = 86400
+
+# File upload settings
+FILE_UPLOAD_HANDLERS = [
+    "django.core.files.uploadhandler.MemoryFileUploadHandler",
+    "django.core.files.uploadhandler.TemporaryFileUploadHandler",
+]
+
+# Maximum file size (10MB)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 10
+FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 10

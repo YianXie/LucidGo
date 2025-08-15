@@ -1,0 +1,10 @@
+main {
+    display: block;
+    position: relative;
+    text-align: center;
+}
+
+input,
+button {
+    display: block;
+}
