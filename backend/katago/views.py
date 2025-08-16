@@ -22,7 +22,7 @@ class AnalyzeView(APIView):
 
         analysis_request = json.loads(analysis_request)
         print(analysis_request)
-        return Response({"message": "Analysis request received"}, status=200)
+        return Response({"message": "Analysis request received!"}, status=200)
 
 
 class GetGameDataView(APIView):
@@ -58,6 +58,6 @@ class GetGameDataView(APIView):
         }
 
         return Response(
-            {"message": "SGF file data parsed successfully", "game_data": game_data},
+            {"message": "SGF file data parsed successfully!", "game_data": game_data},
             status=200,
         )

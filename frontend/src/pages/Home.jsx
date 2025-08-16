@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
 import api from "../api";
 import Board from "../components/Board";
 import styles from "../styles/Home.module.css";
@@ -19,10 +20,11 @@ function Home() {
             api.post("/katago/get-game-data/", { sgf_file_data: fileContent })
                 .then((res) => res.data)
                 .then((data) => {
-                    console.log("data:", data);
+                    toast.success(data.message);
                     setGameData(data.game_data);
                 })
                 .catch((error) => {
+                    toast.error("Invalid .sgf file");
                     console.error("error:", error);
                 });
         };
@@ -40,7 +42,7 @@ function Home() {
                 }}
             />
             <button onClick={handleSubmit}>Upload file</button>
-            <Board moves={gameData?.moves} size={gameData?.size} />
+            <Board data={gameData} size={gameData?.size} />
         </>
     );
 }
