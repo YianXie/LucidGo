@@ -1,0 +1,59 @@
+header {
+    position: fixed;
+    width: 100%;
+    padding: 1rem 2rem;
+    background-color: var(--background-secondary);
+    z-index: 10;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+nav span {
+    position: relative;
+}
+
+nav span a {
+    position: relative;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+nav span:has(svg) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+nav span:has(svg) svg {
+    color: var(--text-primary);
+}
+
+nav > .logo {
+    margin-right: auto;
+    font-weight: bold;
+}
+
+nav span:not(.logo)::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background-color: white;
+    transition: width 0.3s;
+}
+
+nav span:not(.logo):hover a {
+    color: var(--text-secondary);
+}
+
+nav span:not(.logo):hover::after {
+    width: 100%;
+}

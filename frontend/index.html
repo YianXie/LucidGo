@@ -12,8 +12,8 @@
         <title>KataGo Visualization</title>
         <style>
             :root {
-                --color-primary: #ffffffe4;
-                --color-secondary: #00adb5;
+                --text-primary: #ffffffe4;
+                --text-secondary: #ffffffc0;
 
                 --background-primary: #222831;
                 --background-secondary: #393e46;
@@ -29,13 +29,17 @@
             html,
             body {
                 height: 100%;
-                width: 100%;
                 font-family: "Poppins", sans-serif;
             }
 
+            body {
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
             #root {
-                height: 100%;
-                background-color: var(--background-primary);
+                flex: 1;
                 color: var(--color-primary);
             }
         </style>

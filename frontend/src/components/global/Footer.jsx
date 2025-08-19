@@ -1,7 +1,9 @@
-function Footer() {
+import styles from "../../styles/components/global/Footer.module.css";
+
+function Footer({ show }) {
     return (
-        <footer>
-            <span>KataGo Visualization</span>
+        <footer className={show ? styles.show : ""}>
+            <p>&copy; 2025 KataGo Visualization</p>
         </footer>
     );
 }

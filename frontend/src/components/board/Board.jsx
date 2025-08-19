@@ -1,20 +1,34 @@
 import { useRef, useEffect, useState } from "react";
-import { toast } from "react-toastify";
-import { GTPLetters } from "../constants";
-import board_bg from "../assets/images/board/board-bg.png";
-import styles from "../styles/Board.module.css";
+import { GTPLetters } from "../../constants";
+import board_bg from "../../assets/images/board/board-bg.png";
+import place_stone_sound from "../../assets/sounds/board/place-stone.wav";
+import styles from "../../styles/components/board/Board.module.css";
 
-function Board({ data, size = 19 }) {
-    const canvasRef = useRef(null);
-    const [currentMove, setCurrentMove] = useState(0);
-    const [currentBoard, setCurrentBoard] = useState(
-        Array(size).fill(Array(size).fill(null))
-    );
+/**
+ * Draws a Weiqi board with Pixi.js
+ * @param {object} data - The data object containing the game data
+ * @returns {JSX.Element} - The board component
+ */
+function Board({ data, moveIndex }) {
+    // Canvas variables
+    const size = data?.size || 19;
     const canvasSize = 800;
     const fontSize = 15;
     const padding = 50;
     const margin = (canvasSize - padding * 2) / (size - 1);
     const stoneRadius = margin / 2;
+
+    // React variables
+    const canvasRef = useRef(null);
+    const [emptyBoard, setEmptyBoard] = useState(null);
+    const [currentBoard, setCurrentBoard] = useState(
+        Array(size)
+            .fill()
+            .map(() => Array(size).fill(null))
+    );
+
+    // Assets
+    const placeStoneSound = new Audio(place_stone_sound);
 
     useEffect(() => {
         if (size > 19 || size < 2) {
@@ -23,6 +37,7 @@ function Board({ data, size = 19 }) {
             );
         }
 
+        // Adjust the canvas' size based on the screen
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
         const dpr = window.devicePixelRatio || 1;
@@ -30,6 +45,7 @@ function Board({ data, size = 19 }) {
         canvas.height = canvasSize * dpr;
         ctx.scale(dpr, dpr);
 
+        // The background image
         const boardBg = new Image();
         boardBg.src = board_bg;
 
@@ -37,8 +53,37 @@ function Board({ data, size = 19 }) {
             ctx.drawImage(boardBg, 0, 0, canvasSize, canvasSize);
             drawBoard();
             drawCoords();
+            setEmptyBoard(
+                ctx.getImageData(0, 0, canvasSize * dpr, canvasSize * dpr)
+            );
         };
-    }, []);
+    }, [size]);
+
+    useEffect(() => {
+        if (!moveIndex) {
+            return;
+        }
+
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
+        ctx.putImageData(emptyBoard, 0, 0);
+        const newArray = Array(size)
+            .fill()
+            .map(() => Array(size).fill(null));
+        setCurrentBoard(newArray);
+        placeStoneSound.play();
+
+        for (let i = 0; i <= moveIndex; i++) {
+            const move = data.moves[i];
+
+            if (move.includes(null)) {
+                continue;
+            }
+
+            const [color, [row, col]] = move;
+            placeStone(row, col, color, i === moveIndex ? true : false);
+        }
+    }, [moveIndex]);
 
     const drawBoard = () => {
         const canvas = canvasRef.current;
@@ -111,7 +156,7 @@ function Board({ data, size = 19 }) {
         }
     };
 
-    const placeStone = (row, col, color) => {
+    const placeStone = (row, col, color, highlight = false) => {
         const newBoard = [...currentBoard];
         newBoard[row][col] = color;
         setCurrentBoard(newBoard);
@@ -130,82 +175,30 @@ function Board({ data, size = 19 }) {
         ctx.stroke();
         ctx.fill();
         ctx.closePath();
-    };
 
-    const removeStone = (row, col) => {
-        if (currentBoard[row][col] === null) {
-            toast.warn("No stone to remove");
-            return;
-        }
-
-        const newBoard = [...currentBoard];
-        newBoard[row][col] = null;
-        setCurrentBoard(newBoard);
-
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
-        ctx.clearRect(
-            padding + margin * col,
-            canvasSize - padding - margin * row,
-            stoneRadius,
-            stoneRadius
-        );
-    };
-
-    const updateCurrentMove = (amount) => {
-        if (!data) {
-            toast.warn("No .sgf file uploaded");
-            return;
-        }
-        if (currentMove + amount < 0) {
-            toast.warn("Already at the start");
-            return;
-        }
-        if (currentMove + amount > data.moves.length) {
-            toast.warn("Already at the end");
-            return;
-        }
-        setCurrentMove(currentMove + amount);
-
-        if (amount === 1) {
-            const move = data.moves[currentMove + amount];
-            const [color, [row, col]] = move;
-            placeStone(row, col, color);
-        } else {
-            const move = data.moves[currentMove + amount];
-            const [color, [row, col]] = move;
-            removeStone(row, col);
+        if (highlight) {
+            ctx.beginPath();
+            ctx.arc(
+                padding + margin * col,
+                canvasSize - padding - margin * row,
+                stoneRadius / 3,
+                0,
+                2 * Math.PI
+            );
+            ctx.stroke();
+            ctx.fillStyle = "red";
+            ctx.fill();
+            ctx.closePath();
         }
     };
 
     return (
-        <div className={styles.container}>
-            <canvas
-                ref={canvasRef}
-                id="board"
-                className={styles.board}
-                width={canvasSize}
-                height={canvasSize}
-            >
-                <p>Your browser does not support the canvas tag.</p>
-            </canvas>
-            <div className={styles.controls}>
-                <button
-                    onClick={() => {
-                        updateCurrentMove(-1);
-                    }}
-                >
-                    Previous
-                </button>
-                <button
-                    onClick={() => {
-                        updateCurrentMove(1);
-                    }}
-                >
-                    Next
-                </button>
-            </div>
-        </div>
+        <canvas
+            ref={canvasRef}
+            className={styles.board}
+            width={canvasSize}
+            height={canvasSize}
+        />
     );
 }
 
