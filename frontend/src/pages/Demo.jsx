@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../api";
 import Upload from "../components/board/Upload";
-import Board from "../components/board/Board";
+import GameBoard from "../components/board/GameBoard";
 import Controls from "../components/board/Controls";
 import styles from "../styles/pages/Home.module.css";
 
@@ -48,9 +48,10 @@ function Demo() {
     return (
         <>
             <div className={styles.game}>
-                <Board data={gameData} moveIndex={currentMove} />
+                <GameBoard data={gameData} moveIndex={currentMove} />
                 {gameData || viewSample ? (
                     <Controls
+                        move={currentMove}
                         setMove={setCurrentMove}
                         max={gameData?.moves.length}
                     />

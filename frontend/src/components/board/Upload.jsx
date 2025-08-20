@@ -37,7 +37,6 @@ function Upload({ setFile }) {
                     type="file"
                     accept=".sgf"
                     onChange={(e) => {
-                        console.log(e.target.files[0]);
                         setFile(e.target.files[0]);
                     }}
                     hidden

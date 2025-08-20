@@ -30,7 +30,7 @@ class GetGameDataView(APIView):
     def post(self, request):
         sgf_file_data = request.data.get("sgf_file_data")
         if sgf_file_data is None:
-            f = open("katago/data/samples/1.sgf", "r")
+            f = open("katago/data/samples/2.sgf", "r")
             sgf_file_data = f.read()
 
         if not sgf_file_data:

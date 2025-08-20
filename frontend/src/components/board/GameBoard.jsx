@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { GTPLetters } from "../../constants";
+import Board from "@sabaki/go-board";
 import board_bg from "../../assets/images/board/board-bg.png";
 import place_stone_sound from "../../assets/sounds/board/place-stone.wav";
 import styles from "../../styles/components/board/Board.module.css";
@@ -9,7 +10,7 @@ import styles from "../../styles/components/board/Board.module.css";
  * @param {object} data - The data object containing the game data
  * @returns {JSX.Element} - The board component
  */
-function Board({ data, moveIndex }) {
+function GameBoard({ data, moveIndex }) {
     // Canvas variables
     const size = data?.size || 19;
     const canvasSize = 800;
@@ -17,15 +18,11 @@ function Board({ data, moveIndex }) {
     const padding = 50;
     const margin = (canvasSize - padding * 2) / (size - 1);
     const stoneRadius = margin / 2;
+    let game = Board.fromDimensions(size);
 
     // React variables
     const canvasRef = useRef(null);
     const [emptyBoard, setEmptyBoard] = useState(null);
-    const [currentBoard, setCurrentBoard] = useState(
-        Array(size)
-            .fill()
-            .map(() => Array(size).fill(null))
-    );
 
     // Assets
     const placeStoneSound = new Audio(place_stone_sound);
@@ -66,23 +63,21 @@ function Board({ data, moveIndex }) {
 
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
-        ctx.putImageData(emptyBoard, 0, 0);
-        const newArray = Array(size)
-            .fill()
-            .map(() => Array(size).fill(null));
-        setCurrentBoard(newArray);
-        placeStoneSound.play();
+        emptyBoard ? ctx.putImageData(emptyBoard, 0, 0) : ""; // idk why but if I don't check if emptyBoard exists first, sometimes error occurs
+        game.clear();
 
         for (let i = 0; i <= moveIndex; i++) {
             const move = data.moves[i];
 
+            // a null indicates an invalid move
             if (move.includes(null)) {
                 continue;
             }
 
-            const [color, [row, col]] = move;
-            placeStone(row, col, color, i === moveIndex ? true : false);
+            placeStone(move);
         }
+        placeStoneSound.play();
+        drawStones();
     }, [moveIndex]);
 
     const drawBoard = () => {
@@ -156,14 +151,61 @@ function Board({ data, moveIndex }) {
         }
     };
 
-    const placeStone = (row, col, color, highlight = false) => {
-        const newBoard = [...currentBoard];
-        newBoard[row][col] = color;
-        setCurrentBoard(newBoard);
+    /**
+     * Update the game variable based on the given data
+     * @param {string[][]} move - The move data [color, [row, col]]
+     */
+    const placeStone = (move) => {
+        const [color, [row, col]] = move;
+        const sign = color === "b" ? 1 : -1;
+        const check = game.analyzeMove(sign, [row, col]);
+        if (!check.suicide && !check.ko && !check.overwrite) {
+            game = game.makeMove(color === "b" ? 1 : -1, [row, col]);
+        }
+    };
 
+    const drawStones = () => {
+        // Get the most recent move to highlight
+        const lastMove =
+            moveIndex >= 0 && moveIndex < data.moves.length
+                ? data.moves[moveIndex]
+                : null;
+        let lastMoveCoords = null;
+
+        if (lastMove && !lastMove.includes(null)) {
+            const [color, [row, col]] = lastMove;
+            lastMoveCoords = [row, col];
+        }
+
+        for (let row = 0; row < game.signMap.length; row++) {
+            for (let col = 0; col < game.signMap[row].length; col++) {
+                const color = game.get([row, col]);
+
+                // if color is 0, it means there is no move at that point
+                if (color === 0) {
+                    continue;
+                }
+
+                // Check if this stone is the most recent move
+                const isHighlighted =
+                    lastMoveCoords &&
+                    lastMoveCoords[0] === row &&
+                    lastMoveCoords[1] === col;
+
+                drawStone(
+                    row,
+                    col,
+                    color === 1 ? "black" : "white",
+                    isHighlighted
+                );
+            }
+        }
+    };
+
+    const drawStone = (row, col, color, highlight) => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
-        color === "b" ? (ctx.fillStyle = "black") : (ctx.fillStyle = "white");
+        ctx.fillStyle = color;
         ctx.beginPath();
         ctx.arc(
             padding + margin * col,
@@ -177,15 +219,15 @@ function Board({ data, moveIndex }) {
         ctx.closePath();
 
         if (highlight) {
+            // Draw a red dot in the center of the stone
             ctx.beginPath();
             ctx.arc(
                 padding + margin * col,
                 canvasSize - padding - margin * row,
-                stoneRadius / 3,
+                stoneRadius / 4, // Smaller dot for better visibility
                 0,
                 2 * Math.PI
             );
-            ctx.stroke();
             ctx.fillStyle = "red";
             ctx.fill();
             ctx.closePath();
@@ -202,4 +244,4 @@ function Board({ data, moveIndex }) {
     );
 }
 
-export default Board;
+export default GameBoard;
