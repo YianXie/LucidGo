@@ -7,21 +7,47 @@ from rest_framework.response import Response
 from datetime import datetime
 from sgfmill import sgf
 
-KATAGO_MODEL_PATH = "backend/katago/models/kata1-b18c384nbt.bin.gz"
-KATAGO_CONFIG_PATH = "backend/katago/configs/analysis_example.cfg"
-KATAGO_LOG_PATH = "backend/katago/logs"
-
 
 class AnalyzeView(APIView):
     permission_classes = [AllowAny]
+    KATAGO_MODEL_PATH = "katago/models/kata1-b18c384nbt.bin.gz"
+    KATAGO_CONFIG_PATH = "katago/configs/analysis_example.cfg"
+    KATAGO_LOG_DIR = "katago/logs/"
+    KATAGO_LOG_FILENAME = f"katago_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log"
 
     def post(self, request):
         analysis_request = request.data.get("analysis_request")
         if not analysis_request:
             return Response({"error": "No analysis request provided"}, status=400)
 
-        analysis_request = json.loads(analysis_request)
-        return Response({"message": "Analysis request received!"}, status=200)
+        os.makedirs(self.KATAGO_LOG_DIR, exist_ok=True)
+        katago_log_file = open(
+            os.path.join(self.KATAGO_LOG_DIR, self.KATAGO_LOG_FILENAME), "w"
+        )
+        process = subprocess.Popen(
+            [
+                "katago",
+                "analysis",
+                "-model",
+                self.KATAGO_MODEL_PATH,
+                "-config",
+                self.KATAGO_CONFIG_PATH,
+            ],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=katago_log_file,
+            text=True,
+        )
+        process.stdin.write(json.dumps(analysis_request) + "\n")
+        process.stdin.flush()
+
+        response_line = process.stdout.readline()
+        response = {
+            "response": json.loads(response_line),
+            "message": "Analysis request completed!",
+        }
+
+        return Response(response, status=200)
 
 
 class GetGameDataView(APIView):

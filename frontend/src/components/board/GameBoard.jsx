@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { GTPLetters } from "../../constants";
+import { toRowColFormat } from "../../utils";
 import Board from "@sabaki/go-board";
 import board_bg from "../../assets/images/board/board-bg.png";
 import place_stone_sound from "../../assets/sounds/board/place-stone.wav";
@@ -8,13 +9,13 @@ import styles from "../../styles/components/board/Board.module.css";
 /**
  * Draws a Weiqi board with Pixi.js
  * @param {object} data - The data object containing the game data
- * @returns {JSX.Element} - The board component
+ * @param {number} moveIndex - The move you want to get to
+ * @returns The board component
  */
-function GameBoard({ data, moveIndex }) {
+function GameBoard({ data, moveIndex, recommendations }) {
     // Canvas variables
     const size = data?.size || 19;
     const canvasSize = 800;
-    const fontSize = 15;
     const padding = 50;
     const margin = (canvasSize - padding * 2) / (size - 1);
     const stoneRadius = margin / 2;
@@ -78,8 +79,29 @@ function GameBoard({ data, moveIndex }) {
         }
         placeStoneSound.play();
         drawStones();
-    }, [moveIndex]);
 
+        for (const [key, value] of Object.entries(recommendations)) {
+            if (key != moveIndex) {
+                continue;
+            }
+
+            for (let i = 0; i < value.length; i++) {
+                const [row, col] = toRowColFormat(value[i].move);
+                const winRate = value[i].winrate.toFixed(2);
+                const alpha = Math.max(0.25, 0.75 * 0.75 ** i);
+                drawRecommendedMove(
+                    row,
+                    col,
+                    `rgba(255, 0, 0, ${alpha})`,
+                    winRate
+                );
+            }
+        }
+    }, [moveIndex, recommendations]);
+
+    /**
+     * Draw the game board with lines
+     */
     const drawBoard = () => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
@@ -124,10 +146,13 @@ function GameBoard({ data, moveIndex }) {
         }
     };
 
+    /**
+     * Draw the game board's coords at both side (letter + number, GTP format)
+     */
     const drawCoords = () => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
-        ctx.font = `${fontSize}px Arial`;
+        ctx.font = "15px Arial";
         ctx.textBaseline = "middle";
         ctx.textAlign = "center";
         ctx.fillStyle = "black";
@@ -164,16 +189,19 @@ function GameBoard({ data, moveIndex }) {
         }
     };
 
+    /**
+     * Draw all the stones out until moveIndex
+     */
     const drawStones = () => {
         // Get the most recent move to highlight
         const lastMove =
-            moveIndex >= 0 && moveIndex < data.moves.length
+            moveIndex > 0 && moveIndex < data.moves.length
                 ? data.moves[moveIndex]
                 : null;
         let lastMoveCoords = null;
 
         if (lastMove && !lastMove.includes(null)) {
-            const [color, [row, col]] = lastMove;
+            const [, [row, col]] = lastMove;
             lastMoveCoords = [row, col];
         }
 
@@ -202,6 +230,13 @@ function GameBoard({ data, moveIndex }) {
         }
     };
 
+    /**
+     * Draw a stone based on the given information
+     * @param {number} row - the row of the move
+     * @param {number} col - the column of the move
+     * @param {string} color the color of the move (either black or white)
+     * @param {boolean} highlight whether to highlight the move or not
+     */
     const drawStone = (row, col, color, highlight) => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
@@ -232,6 +267,35 @@ function GameBoard({ data, moveIndex }) {
             ctx.fill();
             ctx.closePath();
         }
+    };
+
+    const drawRecommendedMove = (row, col, color, winRate) => {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
+
+        // Draw the red circle
+        ctx.beginPath();
+        ctx.arc(
+            padding + margin * col,
+            canvasSize - padding - margin * row,
+            stoneRadius - 2,
+            0,
+            2 * Math.PI
+        );
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.closePath();
+
+        // Write the winrate text
+        ctx.font = `12px Arial`;
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "white";
+        ctx.fillText(
+            winRate,
+            padding + margin * col,
+            canvasSize - padding - margin * row
+        );
     };
 
     return (
