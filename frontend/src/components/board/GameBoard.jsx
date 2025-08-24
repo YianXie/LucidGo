@@ -80,14 +80,12 @@ function GameBoard({ data, moveIndex, recommendations }) {
         placeStoneSound.play();
         drawStones();
 
-        for (const [key, value] of Object.entries(recommendations)) {
-            if (key != moveIndex) {
-                continue;
-            }
-
-            for (let i = 0; i < value.length; i++) {
-                const [row, col] = toRowColFormat(value[i].move);
-                const winRate = value[i].winrate.toFixed(2);
+        // Display the recommended moves
+        if (recommendations[moveIndex]) {
+            for (let i = 0; i < recommendations[moveIndex].length; i++) {
+                const move = recommendations[moveIndex][i];
+                const [row, col] = toRowColFormat(move.move);
+                const winRate = (move.winrate * 100).toFixed(1);
                 const alpha = Math.max(0.25, 0.75 * 0.75 ** i);
                 drawRecommendedMove(
                     row,

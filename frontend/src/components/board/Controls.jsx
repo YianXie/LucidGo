@@ -1,5 +1,6 @@
 import { toast } from "react-toastify";
 import styles from "../../styles/components/board/Controls.module.css";
+import { useRef } from "react";
 
 /**
  * A control panel for the game board
@@ -11,16 +12,26 @@ import styles from "../../styles/components/board/Controls.module.css";
  */
 function Controls({ move, setMove, max, tools }) {
     const skipBackAmount = 5;
+    const resetRef = useRef(null);
 
     return (
         <div className={styles.container}>
             <svg
+                ref={resetRef}
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
                 height="16"
                 fill="currentColor"
                 className={"bi bi-arrow-clockwise " + styles.reset}
                 viewBox="0 0 16 16"
+                onClick={() => {
+                    resetRef.current.classList.add(styles.clicked);
+                    tools.handleReset();
+
+                    setTimeout(() => {
+                        resetRef.current.classList.remove(styles.clicked);
+                    }, 300);
+                }}
             >
                 <title>Reset your board and re-upload file</title>
                 <path

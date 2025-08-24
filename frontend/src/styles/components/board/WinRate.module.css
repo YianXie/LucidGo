@@ -1,0 +1,10 @@
+.container {
+    width: 100%;
+    padding: 20px 10px;
+    background-color: var(--background-secondary);
+    margin-top: 10px;
+}
+
+.container > p {
+    color: var(--text-primary);
+}

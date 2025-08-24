@@ -20,18 +20,7 @@ nav span a {
     position: relative;
     color: var(--text-primary);
     text-decoration: none;
-    transition: color 0.3s;
-}
-
-nav span:has(svg) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-}
-
-nav span:has(svg) svg {
-    color: var(--text-primary);
+    font-weight: 500;
 }
 
 nav > .logo {
@@ -39,21 +28,44 @@ nav > .logo {
     font-weight: bold;
 }
 
-nav span:not(.logo)::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 1px;
-    background-color: white;
-    transition: width 0.3s;
+nav span:not(.demo) a {
+    transition: 0.3s;
 }
 
-nav span:not(.logo):hover a {
+nav span:not(.demo):hover a {
     color: var(--text-secondary);
 }
 
-nav span:not(.logo):hover::after {
+nav span:not(.demo)::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
     width: 100%;
+    height: 1.5px;
+    background-color: var(--text-secondary);
+    opacity: 0;
+    visibility: 0;
+    transition: 0.5s;
+}
+
+nav span:not(.demo):hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+span.demo {
+    background-color: white;
+    padding: 5px;
+    border-radius: 5px;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+span.demo:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+span.demo a {
+    color: black;
 }

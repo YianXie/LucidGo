@@ -47,6 +47,16 @@
     margin-right: auto;
 }
 
+.reset.clicked {
+    animation: spin 0.3s ease-in-out;
+}
+
 .analyze {
     margin-left: auto;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(-360deg);
+    }
 }
