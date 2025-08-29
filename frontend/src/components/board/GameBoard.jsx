@@ -12,7 +12,7 @@ import styles from "../../styles/components/board/Board.module.css";
  * @param {number} moveIndex - The move you want to get to
  * @returns The board component
  */
-function GameBoard({ data, moveIndex, recommendations }) {
+function GameBoard({ data, moveIndex }) {
     // Canvas variables
     const size = data?.size || 19;
     const canvasSize = 800;
@@ -79,23 +79,7 @@ function GameBoard({ data, moveIndex, recommendations }) {
         }
         placeStoneSound.play();
         drawStones();
-
-        // Display the recommended moves
-        if (recommendations[moveIndex]) {
-            for (let i = 0; i < recommendations[moveIndex].length; i++) {
-                const move = recommendations[moveIndex][i];
-                const [row, col] = toRowColFormat(move.move);
-                const winRate = (move.winrate * 100).toFixed(1);
-                const alpha = Math.max(0.25, 0.75 * 0.75 ** i);
-                drawRecommendedMove(
-                    row,
-                    col,
-                    `rgba(255, 0, 0, ${alpha})`,
-                    winRate
-                );
-            }
-        }
-    }, [moveIndex, recommendations]);
+    }, [moveIndex]);
 
     /**
      * Draw the game board with lines

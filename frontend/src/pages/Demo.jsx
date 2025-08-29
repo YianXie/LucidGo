@@ -18,13 +18,74 @@ function Demo() {
     const [gameData, setGameData] = useState(null);
     const [currentMove, setCurrentMove] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [loadedValue, setLoadedValue] = useState(0);
     const [winRate, setWinRate] = useState(null);
-    const [recommendedMoves, setRecommendedMoves] = useState({});
+    const [analyzeData, setAnalyzeData] = useState(null);
     const getGameDataURL = "/katago/get-game-data/";
     const getAnalysisURL = "/katago/analyze/";
 
     useEffect(() => {
+        if (!gameData) {
+            return;
+        }
+
         setWinRate(Array(gameData?.moves.length).fill(50));
+
+        async function analyzeAllMoves() {
+            setLoading(true);
+            const pastMoves = [];
+            const analyzeResults = [];
+            for (let i = 0; i < gameData.moves.length; i++) {
+                const move = gameData.moves[i];
+
+                if (move.includes(null)) {
+                    continue;
+                }
+
+                const [color, [row, col]] = move;
+                pastMoves.push([color, toGTPFormat(row, col)]);
+
+                const request = {
+                    id: `analysis_request_${i}`,
+                    moves: pastMoves,
+                    rules: "japanese",
+                    komi: 6.5,
+                    boardXSize: gameData.size,
+                    boardYSize: gameData.size,
+                    analyzeTurns: [i],
+                };
+                try {
+                    const res = await api.post(getAnalysisURL, {
+                        analysis_request: request,
+                    });
+                    const data = await res.data;
+
+                    const moves = data.response.moveInfos;
+                    moves.sort((a, b) => {
+                        if (a.order < b.order) {
+                            return -1;
+                        }
+                        return 1;
+                    });
+                    const winRate = parseFloat(
+                        (data.response.rootInfo.winrate * 100).toFixed(1)
+                    );
+                    setWinRate((prev) =>
+                        prev.map((value, index) =>
+                            index === i ? winRate : value
+                        )
+                    );
+                    analyzeResults.push(data);
+                } catch (error) {
+                    console.error("Error:", error);
+                } finally {
+                    setLoadedValue((100 / gameData.moves.length) * i);
+                }
+            }
+            setLoading(false);
+            setAnalyzeData(analyzeResults);
+        }
+        analyzeAllMoves();
     }, [gameData]);
 
     useEffect(() => {
@@ -75,80 +136,18 @@ function Demo() {
         }
     }, [file, viewSample]);
 
-    const handleAnalyze = () => {
-        if (!gameData) {
-            return;
-        }
-
-        setLoading(true);
-
-        const moves = [];
-        for (let i = 0; i <= currentMove; i++) {
-            const move = gameData.moves[i];
-
-            // Invalid move
-            if (move.includes(null)) {
-                continue;
-            }
-
-            const [color, [row, col]] = move;
-            moves.push([color, toGTPFormat(row, col)]);
-        }
-        const request = {
-            id: `analysis_request_${currentMove}`,
-            moves: moves,
-            rules: "japanese",
-            komi: 6.5,
-            boardXSize: gameData.size,
-            boardYSize: gameData.size,
-            analyzeTurns: [currentMove],
-        };
-        api.post(getAnalysisURL, { analysis_request: request })
-            .then((res) => res.data)
-            .then((data) => {
-                console.log("Analysis data:", data);
-                const moves = data.response.moveInfos;
-                moves.sort((a, b) => {
-                    if (a.order < b.order) {
-                        return -1;
-                    }
-                    return 1;
-                });
-                setRecommendedMoves({
-                    ...recommendedMoves,
-                    [currentMove]: moves,
-                });
-
-                const winRate = parseFloat(
-                    (data.response.rootInfo.winrate * 100).toFixed(1)
-                );
-                setWinRate((prev) =>
-                    prev.map((value, index) =>
-                        index === currentMove - 1 ? winRate : value
-                    )
-                );
-            })
-            .catch((error) => {
-                console.error("Error:", error);
-            })
-            .finally(() => {
-                setLoading(false);
-            });
-    };
-
     const handleReset = () => {
         window.location.reload();
     };
 
     return (
         <>
-            <LoadingIndicator className={loading ? "fadeIn" : "fadeOut"} />
+            <LoadingIndicator
+                className={loading ? "fadeIn" : "fadeOut"}
+                value={loadedValue}
+            />
             <div className={styles.game}>
-                <GameBoard
-                    data={gameData}
-                    moveIndex={currentMove}
-                    recommendations={recommendedMoves}
-                />
+                <GameBoard data={gameData} moveIndex={currentMove} />
                 {gameData || viewSample ? (
                     <>
                         <Controls
@@ -156,7 +155,7 @@ function Demo() {
                             setMove={setCurrentMove}
                             max={gameData?.moves.length}
                             tools={{
-                                handleAnalyze: handleAnalyze,
+                                handleAnalyze: () => {},
                                 handleReset: handleReset,
                             }}
                         />
