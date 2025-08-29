@@ -16,12 +16,16 @@ function Demo() {
     const viewSample = searchParams.get("sample") ? true : false;
     const [file, setFile] = useState("");
     const [gameData, setGameData] = useState(null);
-    const [winRate, setWinRate] = useState(null);
     const [currentMove, setCurrentMove] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [winRate, setWinRate] = useState(null);
     const [recommendedMoves, setRecommendedMoves] = useState({});
     const getGameDataURL = "/katago/get-game-data/";
     const getAnalysisURL = "/katago/analyze/";
+
+    useEffect(() => {
+        setWinRate(Array(gameData?.moves.length).fill(50));
+    }, [gameData]);
 
     useEffect(() => {
         if (!file && !viewSample) {
@@ -97,13 +101,12 @@ function Demo() {
             komi: 6.5,
             boardXSize: gameData.size,
             boardYSize: gameData.size,
-            maxVisits: 100,
             analyzeTurns: [currentMove],
         };
         api.post(getAnalysisURL, { analysis_request: request })
             .then((res) => res.data)
             .then((data) => {
-                console.log(data);
+                console.log("Analysis data:", data);
                 const moves = data.response.moveInfos;
                 moves.sort((a, b) => {
                     if (a.order < b.order) {
@@ -115,6 +118,15 @@ function Demo() {
                     ...recommendedMoves,
                     [currentMove]: moves,
                 });
+
+                const winRate = parseFloat(
+                    (data.response.rootInfo.winrate * 100).toFixed(1)
+                );
+                setWinRate((prev) =>
+                    prev.map((value, index) =>
+                        index === currentMove - 1 ? winRate : value
+                    )
+                );
             })
             .catch((error) => {
                 console.error("Error:", error);
@@ -138,19 +150,24 @@ function Demo() {
                     recommendations={recommendedMoves}
                 />
                 {gameData || viewSample ? (
-                    <Controls
-                        move={currentMove}
-                        setMove={setCurrentMove}
-                        max={gameData?.moves.length}
-                        tools={{
-                            handleAnalyze: handleAnalyze,
-                            handleReset: handleReset,
-                        }}
-                    />
+                    <>
+                        <Controls
+                            move={currentMove}
+                            setMove={setCurrentMove}
+                            max={gameData?.moves.length}
+                            tools={{
+                                handleAnalyze: handleAnalyze,
+                                handleReset: handleReset,
+                            }}
+                        />
+                        <WinRate
+                            data={winRate}
+                            maxMove={gameData?.moves.length}
+                        />
+                    </>
                 ) : (
                     <Upload setFile={setFile} />
                 )}
-                <WinRate data={winRate} />
             </div>
         </>
     );

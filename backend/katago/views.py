@@ -1,7 +1,5 @@
 import json
-import os
-import subprocess
-import pprint
+import httpx
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -11,42 +9,25 @@ from sgfmill import sgf
 
 class AnalyzeView(APIView):
     permission_classes = [AllowAny]
-    KATAGO_MODEL_PATH = "katago/models/kata1-b18c384nbt.bin.gz"
-    KATAGO_CONFIG_PATH = "katago/configs/analysis_example.cfg"
-    KATAGO_LOG_DIR = "katago/logs/"
-    PUBLIC_DNS = settings.PUBLIC_DNS
 
     def post(self, request):
         analysis_request = request.data.get("analysis_request")
         if not analysis_request:
             return Response({"error": "No analysis request provided"}, status=400)
 
-        os.makedirs(self.KATAGO_LOG_DIR, exist_ok=True)
-        process = subprocess.Popen(
-            [
-                "katago",
-                "analysis",
-                "-model",
-                self.KATAGO_MODEL_PATH,
-                "-config",
-                self.KATAGO_CONFIG_PATH,
-            ],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            text=True,
+        try:
+            with httpx.Client(timeout=settings.KATAGO_TIMEOUT) as client:
+                r = client.post(
+                    settings.KATAGO_ENDPOINT, json={"request": analysis_request}
+                )
+                r.raise_for_status()
+                response = r.json()
+        except httpx.HTTPError as e:
+            return Response({"error": str(e)}, status=502)
+
+        return Response(
+            {"response": response, "message": "Analysis request completed!"}, status=200
         )
-        process.stdin.write(json.dumps(analysis_request) + "\n")
-        process.stdin.flush()
-
-        response_line = process.stdout.readline()
-        response = json.loads(response_line)
-
-        response = {
-            "response": response,
-            "message": "Analysis request completed!",
-        }
-
-        return Response(response, status=200)
 
 
 class GetGameDataView(APIView):
