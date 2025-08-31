@@ -22,10 +22,8 @@ ChartJS.register(
     Legend
 );
 
-function WinRate({
-    data,
-    maxMove,
-    options = {
+function WinRate({ data, maxMove, currentMove }) {
+    const options = {
         responsive: true,
         plugins: {
             legend: {
@@ -43,10 +41,19 @@ function WinRate({
             y: {
                 suggestedMin: 0,
                 suggestedMax: 100,
+                title: {
+                    display: true,
+                    text: "Win Rate",
+                },
+            },
+            x: {
+                title: {
+                    display: true,
+                    text: "Move",
+                },
             },
         },
-    },
-}) {
+    };
     const [lineData, setLineData] = useState({
         labels: [],
         datasets: [
@@ -55,14 +62,16 @@ function WinRate({
                 data: [],
                 fill: false,
                 borderColor: "black",
-                tension: 0.1,
+                tension: 0.2,
+                pointRadius: 0,
             },
             {
                 label: "White",
                 data: [],
                 fill: false,
                 borderColor: "white",
-                tension: 0.1,
+                tension: 0.2,
+                pointRadius: 0,
             },
         ],
     });
@@ -97,9 +106,7 @@ function WinRate({
 
     useEffect(() => {
         setLineData({
-            labels: Array(maxMove)
-                .fill(1)
-                .map((value, index) => value + index),
+            labels: Array.from({ length: maxMove }, (_, i) => i + 1),
             datasets: [
                 {
                     ...lineData.datasets[0],
@@ -111,7 +118,39 @@ function WinRate({
                 },
             ],
         });
-    }, [blackWinRate, whiteWinRate, maxMove]);
+    }, [blackWinRate, whiteWinRate, maxMove, currentMove]);
+
+    useEffect(() => {
+        setLineData({
+            ...lineData,
+            datasets: [
+                {
+                    ...lineData.datasets[0],
+                    segment: {
+                        borderColor: (ctx) => {
+                            const x = ctx.p0.parsed.x;
+                            if (x < currentMove) {
+                                return "black";
+                            }
+                            return "rgba(0, 0, 0, 0.2)";
+                        },
+                    },
+                },
+                {
+                    ...lineData.datasets[1],
+                    segment: {
+                        borderColor: (ctx) => {
+                            const x = ctx.p0.parsed.x;
+                            if (x < currentMove) {
+                                return "white";
+                            }
+                            return "rgba(255, 255, 255, 0.2)";
+                        },
+                    },
+                },
+            ],
+        });
+    }, [currentMove]);
 
     return (
         <>

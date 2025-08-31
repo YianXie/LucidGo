@@ -1,6 +1,6 @@
 import { toast } from "react-toastify";
+import { useRef, useState } from "react";
 import styles from "../../styles/components/board/Controls.module.css";
-import { useRef } from "react";
 
 /**
  * A control panel for the game board
@@ -13,6 +13,7 @@ import { useRef } from "react";
 function Controls({ move, setMove, max, tools }) {
     const skipBackAmount = 5;
     const resetRef = useRef(null);
+    const [showRecommendations, setShowRecommendations] = useState(true);
 
     return (
         <div className={styles.container}>
@@ -146,7 +147,7 @@ function Controls({ move, setMove, max, tools }) {
                         (move >= max - 1 ? styles.disabled : "")
                     }
                     viewBox="0 0 16 16"
-                    title="5 moves forward"
+                    title={`${skipBackAmount} moves forward`}
                     onClick={() => {
                         if (move === max - 1) {
                             toast.error("Already at the end!");
@@ -180,19 +181,42 @@ function Controls({ move, setMove, max, tools }) {
                     <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m4.79-6.907A.5.5 0 0 0 4 5.5v5a.5.5 0 0 0 .79.407L7.5 8.972V10.5a.5.5 0 0 0 .79.407L11 8.972V10.5a.5.5 0 0 0 1 0v-5a.5.5 0 0 0-1 0v1.528L8.29 5.093a.5.5 0 0 0-.79.407v1.528z" />
                 </svg>
             </div>
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                fill="currentColor"
-                className={"bi bi-clipboard2-data-fill " + styles.analyze}
-                viewBox="0 0 16 16"
-                onClick={tools.handleAnalyze}
-            >
-                <title>Show recommended moves</title>
-                <path d="M10 .5a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5.5.5 0 0 1-.5.5.5.5 0 0 0-.5.5V2a.5.5 0 0 0 .5.5h5A.5.5 0 0 0 11 2v-.5a.5.5 0 0 0-.5-.5.5.5 0 0 1-.5-.5" />
-                <path d="M4.085 1H3.5A1.5 1.5 0 0 0 2 2.5v12A1.5 1.5 0 0 0 3.5 16h9a1.5 1.5 0 0 0 1.5-1.5v-12A1.5 1.5 0 0 0 12.5 1h-.585q.084.236.085.5V2a1.5 1.5 0 0 1-1.5 1.5h-5A1.5 1.5 0 0 1 4 2v-.5q.001-.264.085-.5M10 7a1 1 0 1 1 2 0v5a1 1 0 1 1-2 0zm-6 4a1 1 0 1 1 2 0v1a1 1 0 1 1-2 0zm4-3a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0V9a1 1 0 0 1 1-1" />
-            </svg>
+
+            {showRecommendations ? (
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    fill="currentColor"
+                    className={"bi bi-eye-fill " + styles.analyze}
+                    viewBox="0 0 16 16"
+                    onClick={() => {
+                        setShowRecommendations(!showRecommendations);
+                        tools.handleAnalyze();
+                    }}
+                >
+                    <title>Toggle recommended moves</title>
+                    <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0" />
+                    <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7" />
+                </svg>
+            ) : (
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    fill="currentColor"
+                    className={"bi bi-eye-slash-fill " + styles.analyze}
+                    viewBox="0 0 16 16"
+                    onClick={() => {
+                        setShowRecommendations(!showRecommendations);
+                        tools.handleAnalyze();
+                    }}
+                >
+                    <title>Toggle recommended moves</title>
+                    <path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7 7 0 0 0 2.79-.588M5.21 3.088A7 7 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474z" />
+                    <path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12z" />
+                </svg>
+            )}
         </div>
     );
 }

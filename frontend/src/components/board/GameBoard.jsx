@@ -1,10 +1,10 @@
 import { useRef, useEffect, useState } from "react";
 import { GTPLetters } from "../../constants";
-import { toRowColFormat } from "../../utils";
 import Board from "@sabaki/go-board";
 import board_bg from "../../assets/images/board/board-bg.png";
 import place_stone_sound from "../../assets/sounds/board/place-stone.wav";
 import styles from "../../styles/components/board/Board.module.css";
+import { toRowColFormat } from "../../utils";
 
 /**
  * Draws a Weiqi board with Pixi.js
@@ -12,9 +12,9 @@ import styles from "../../styles/components/board/Board.module.css";
  * @param {number} moveIndex - The move you want to get to
  * @returns The board component
  */
-function GameBoard({ data, moveIndex }) {
+function GameBoard({ gameData, analysisData, currentMove }) {
     // Canvas variables
-    const size = data?.size || 19;
+    const size = gameData?.size || 19;
     const canvasSize = 800;
     const padding = 50;
     const margin = (canvasSize - padding * 2) / (size - 1);
@@ -58,7 +58,7 @@ function GameBoard({ data, moveIndex }) {
     }, [size]);
 
     useEffect(() => {
-        if (!moveIndex) {
+        if (!currentMove) {
             return;
         }
 
@@ -67,8 +67,8 @@ function GameBoard({ data, moveIndex }) {
         emptyBoard ? ctx.putImageData(emptyBoard, 0, 0) : ""; // idk why but if I don't check if emptyBoard exists first, sometimes error occurs
         game.clear();
 
-        for (let i = 0; i <= moveIndex; i++) {
-            const move = data.moves[i];
+        for (let i = 0; i <= currentMove; i++) {
+            const move = gameData.moves[i];
 
             // a null indicates an invalid move
             if (move.includes(null)) {
@@ -79,7 +79,27 @@ function GameBoard({ data, moveIndex }) {
         }
         placeStoneSound.play();
         drawStones();
-    }, [moveIndex]);
+
+        // Draw the recommended move if it exists
+        if (analysisData && analysisData[currentMove]) {
+            for (
+                let i = 0;
+                i < analysisData[currentMove].response.moveInfos.length;
+                i++
+            ) {
+                const move = analysisData[currentMove].response.moveInfos[i];
+                const [row, col] = toRowColFormat(move.move);
+                const alpha = Math.max(0.25, 0.75 * 0.5 ** i); // Make sure the alpha is at least 0.25
+                const color = `rgba(255, 0, 0, ${alpha})`;
+
+                // The winrate is always for black, so we need to convert it to white's winrate
+                const rawWinRate =
+                    currentMove % 2 === 0 ? move.winrate : 1 - move.winrate;
+                const winRate = (rawWinRate * 100).toFixed(1);
+                drawRecommendedMove(row, col, color, winRate);
+            }
+        }
+    }, [currentMove, analysisData]);
 
     /**
      * Draw the game board with lines
@@ -177,8 +197,8 @@ function GameBoard({ data, moveIndex }) {
     const drawStones = () => {
         // Get the most recent move to highlight
         const lastMove =
-            moveIndex > 0 && moveIndex < data.moves.length
-                ? data.moves[moveIndex]
+            currentMove > 0 && currentMove < gameData.moves.length
+                ? gameData.moves[currentMove]
                 : null;
         let lastMoveCoords = null;
 
@@ -241,7 +261,7 @@ function GameBoard({ data, moveIndex }) {
             ctx.arc(
                 padding + margin * col,
                 canvasSize - padding - margin * row,
-                stoneRadius / 4, // Smaller dot for better visibility
+                stoneRadius / 4,
                 0,
                 2 * Math.PI
             );

@@ -16,11 +16,11 @@ function Demo() {
     const viewSample = searchParams.get("sample") ? true : false;
     const [file, setFile] = useState("");
     const [gameData, setGameData] = useState(null);
+    const [analysisData, setAnalysisData] = useState(null);
+    const [winRate, setWinRate] = useState(null);
     const [currentMove, setCurrentMove] = useState(null);
     const [loading, setLoading] = useState(false);
     const [loadedValue, setLoadedValue] = useState(0);
-    const [winRate, setWinRate] = useState(null);
-    const [analyzeData, setAnalyzeData] = useState(null);
     const getGameDataURL = "/katago/get-game-data/";
     const getAnalysisURL = "/katago/analyze/";
 
@@ -29,7 +29,7 @@ function Demo() {
             return;
         }
 
-        setWinRate(Array(gameData?.moves.length).fill(50));
+        setWinRate(Array.from({ length: gameData.moves.length }, () => 50));
 
         async function analyzeAllMoves() {
             setLoading(true);
@@ -60,13 +60,6 @@ function Demo() {
                     });
                     const data = await res.data;
 
-                    const moves = data.response.moveInfos;
-                    moves.sort((a, b) => {
-                        if (a.order < b.order) {
-                            return -1;
-                        }
-                        return 1;
-                    });
                     const winRate = parseFloat(
                         (data.response.rootInfo.winrate * 100).toFixed(1)
                     );
@@ -83,9 +76,13 @@ function Demo() {
                 }
             }
             setLoading(false);
-            setAnalyzeData(analyzeResults);
+            setAnalysisData(analyzeResults);
         }
         analyzeAllMoves();
+
+        return () => {
+            setLoadedValue(0);
+        };
     }, [gameData]);
 
     useEffect(() => {
@@ -136,6 +133,10 @@ function Demo() {
         }
     }, [file, viewSample]);
 
+    const handleToggleRecommendedMoves = () => {
+        console.log("toggle recommended moves");
+    };
+
     const handleReset = () => {
         window.location.reload();
     };
@@ -147,7 +148,11 @@ function Demo() {
                 value={loadedValue}
             />
             <div className={styles.game}>
-                <GameBoard data={gameData} moveIndex={currentMove} />
+                <GameBoard
+                    gameData={gameData}
+                    analysisData={analysisData}
+                    currentMove={currentMove}
+                />
                 {gameData || viewSample ? (
                     <>
                         <Controls
@@ -155,13 +160,14 @@ function Demo() {
                             setMove={setCurrentMove}
                             max={gameData?.moves.length}
                             tools={{
-                                handleAnalyze: () => {},
+                                handleAnalyze: handleToggleRecommendedMoves,
                                 handleReset: handleReset,
                             }}
                         />
                         <WinRate
                             data={winRate}
                             maxMove={gameData?.moves.length}
+                            currentMove={currentMove}
                         />
                     </>
                 ) : (
