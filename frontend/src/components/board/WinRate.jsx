@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
     Chart as ChartJS,
     Tooltip,
@@ -10,6 +10,7 @@ import {
     Title,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
+import { getRelativePosition } from "chart.js/helpers";
 import styles from "../../styles/components/board/WinRate.module.css";
 
 ChartJS.register(
@@ -23,6 +24,10 @@ ChartJS.register(
 );
 
 function WinRate({ data, maxMove, currentMove }) {
+    const [hoverX, setHoverX] = useState(null);
+    const [blackWinRate, setBlackWinRate] = useState([]);
+    const [whiteWinRate, setWhiteWinRate] = useState([]);
+    const chartRef = useRef(null);
     const options = {
         responsive: true,
         plugins: {
@@ -35,6 +40,9 @@ function WinRate({ data, maxMove, currentMove }) {
             },
             customCanvasBackgroundColor: {
                 color: "rgb(160, 160, 160)",
+            },
+            verticalLine: {
+                hoverX: hoverX,
             },
         },
         scales: {
@@ -52,6 +60,15 @@ function WinRate({ data, maxMove, currentMove }) {
                     text: "Move",
                 },
             },
+        },
+        onHover: (event) => {
+            const chart = chartRef.current;
+            if (!chart) {
+                return;
+            }
+
+            const { x } = getRelativePosition(event, chart);
+            setHoverX(x);
         },
     };
     const [lineData, setLineData] = useState({
@@ -75,19 +92,51 @@ function WinRate({ data, maxMove, currentMove }) {
             },
         ],
     });
-    const [blackWinRate, setBlackWinRate] = useState([]);
-    const [whiteWinRate, setWhiteWinRate] = useState([]);
-    const plugin = {
-        id: "customCanvasBackgroundColor",
-        beforeDraw: (chart, args, options) => {
-            const { ctx } = chart;
-            ctx.save();
-            ctx.globalCompositeOperation = "destination-over";
-            ctx.fillStyle = options.color || "#99ffff";
-            ctx.fillRect(0, 0, chart.width, chart.height);
-            ctx.restore();
+    const plugins = [
+        {
+            id: "customCanvasBackgroundColor",
+            beforeDraw: (chart, _, options) => {
+                const { ctx } = chart;
+                ctx.save();
+                ctx.globalCompositeOperation = "destination-over";
+                ctx.fillStyle = options.color || "#99ffff";
+                ctx.fillRect(0, 0, chart.width, chart.height);
+                ctx.restore();
+            },
         },
-    };
+        {
+            id: "verticalLine",
+            afterDraw: (chart) => {
+                const hoverXValue = chart.options.plugins.verticalLine?.hoverX;
+
+                if (!hoverXValue) {
+                    return;
+                }
+
+                const { ctx } = chart;
+                const { chartArea } = chart;
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(hoverXValue, chartArea.top);
+                ctx.lineTo(hoverXValue, chartArea.bottom);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "rgba(255, 0, 0, 0.8)";
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+                ctx.restore();
+            },
+        },
+        {
+            id: "eventListener",
+            beforeEvent: (chart, args) => {
+                const event = args.event;
+                if (event.type === "mouseout") {
+                    setHoverX(null);
+                }
+            },
+        },
+    ];
 
     useEffect(() => {
         if (!data) {
@@ -157,9 +206,10 @@ function WinRate({ data, maxMove, currentMove }) {
             {lineData.datasets[0].data ? (
                 <div className={styles.graphContainer}>
                     <Line
+                        ref={chartRef}
                         data={lineData}
                         options={options}
-                        plugins={[plugin]}
+                        plugins={plugins}
                     />
                 </div>
             ) : (

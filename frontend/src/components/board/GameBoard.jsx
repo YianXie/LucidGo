@@ -12,7 +12,12 @@ import { toRowColFormat } from "../../utils";
  * @param {number} moveIndex - The move you want to get to
  * @returns The board component
  */
-function GameBoard({ gameData, analysisData, currentMove }) {
+function GameBoard({
+    gameData,
+    analysisData,
+    currentMove,
+    showRecommendedMoves,
+}) {
     // Canvas variables
     const size = gameData?.size || 19;
     const canvasSize = 800;
@@ -81,7 +86,7 @@ function GameBoard({ gameData, analysisData, currentMove }) {
         drawStones();
 
         // Draw the recommended move if it exists
-        if (analysisData && analysisData[currentMove]) {
+        if (analysisData && analysisData[currentMove] && showRecommendedMoves) {
             for (
                 let i = 0;
                 i < analysisData[currentMove].response.moveInfos.length;
@@ -99,7 +104,7 @@ function GameBoard({ gameData, analysisData, currentMove }) {
                 drawRecommendedMove(row, col, color, winRate);
             }
         }
-    }, [currentMove, analysisData]);
+    }, [currentMove, analysisData, showRecommendedMoves]);
 
     /**
      * Draw the game board with lines

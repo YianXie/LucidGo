@@ -1,19 +1,18 @@
 import { toast } from "react-toastify";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import styles from "../../styles/components/board/Controls.module.css";
 
 /**
  * A control panel for the game board
  * @param {number} move - the current move, should be a state
  * @param {callback} setMove - the function that set the move state
- * @param {number} max - the maximum possible move
+ * @param {number} maxMove - the maximum possible move
  * @param {object} tools - an object that contains all the callbacks for different function buttons
  * @returns
  */
-function Controls({ move, setMove, max, tools }) {
+function Controls({ move, setMove, maxMove, tools }) {
     const skipBackAmount = 5;
     const resetRef = useRef(null);
-    const [showRecommendations, setShowRecommendations] = useState(true);
 
     return (
         <div className={styles.container}>
@@ -119,15 +118,15 @@ function Controls({ move, setMove, max, tools }) {
                     fill="currentColor"
                     className={
                         "bi bi-arrow-right-square-fill " +
-                        (move >= max - 1 ? styles.disabled : "")
+                        (move >= maxMove - 1 ? styles.disabled : "")
                     }
                     viewBox="0 0 16 16"
                     onClick={() => {
-                        if (move >= max - 1) {
+                        if (move >= maxMove - 1) {
                             toast.error("Already at the end!");
                         }
                         setMove((prev) => {
-                            if (prev < max - 1) {
+                            if (prev < maxMove - 1) {
                                 return prev + 1;
                             }
                             return prev;
@@ -144,15 +143,17 @@ function Controls({ move, setMove, max, tools }) {
                     fill="currentColor"
                     className={
                         "bi bi-skip-end-btn-fill " +
-                        (move >= max - 1 ? styles.disabled : "")
+                        (move >= maxMove - 1 ? styles.disabled : "")
                     }
                     viewBox="0 0 16 16"
                     title={`${skipBackAmount} moves forward`}
                     onClick={() => {
-                        if (move === max - 1) {
+                        if (move === maxMove - 1) {
                             toast.error("Already at the end!");
                         } else {
-                            setMove(Math.min(move + skipBackAmount, max - 1));
+                            setMove(
+                                Math.min(move + skipBackAmount, maxMove - 1)
+                            );
                         }
                     }}
                 >
@@ -166,14 +167,14 @@ function Controls({ move, setMove, max, tools }) {
                     fill="currentColor"
                     className={
                         "bi bi-skip-forward-btn-fill " +
-                        (move >= max - 1 ? styles.disabled : "")
+                        (move >= maxMove - 1 ? styles.disabled : "")
                     }
                     viewBox="0 0 16 16"
                     onClick={() => {
-                        if (move === max - 1) {
+                        if (move === maxMove - 1) {
                             toast.error("Already at the end!");
                         } else {
-                            setMove(max - 1);
+                            setMove(maxMove - 1);
                         }
                     }}
                 >
@@ -182,7 +183,7 @@ function Controls({ move, setMove, max, tools }) {
                 </svg>
             </div>
 
-            {showRecommendations ? (
+            {tools.recommendedMoves ? (
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="16"
@@ -191,8 +192,7 @@ function Controls({ move, setMove, max, tools }) {
                     className={"bi bi-eye-fill " + styles.analyze}
                     viewBox="0 0 16 16"
                     onClick={() => {
-                        setShowRecommendations(!showRecommendations);
-                        tools.handleAnalyze();
+                        tools.setShowRecommendedMoves(!tools.recommendedMoves);
                     }}
                 >
                     <title>Toggle recommended moves</title>
@@ -208,8 +208,7 @@ function Controls({ move, setMove, max, tools }) {
                     className={"bi bi-eye-slash-fill " + styles.analyze}
                     viewBox="0 0 16 16"
                     onClick={() => {
-                        setShowRecommendations(!showRecommendations);
-                        tools.handleAnalyze();
+                        tools.setShowRecommendedMoves(!tools.recommendedMoves);
                     }}
                 >
                     <title>Toggle recommended moves</title>

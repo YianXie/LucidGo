@@ -20,6 +20,7 @@ function Demo() {
     const [winRate, setWinRate] = useState(null);
     const [currentMove, setCurrentMove] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [showRecommendedMoves, setShowRecommendedMoves] = useState(true);
     const [loadedValue, setLoadedValue] = useState(0);
     const getGameDataURL = "/katago/get-game-data/";
     const getAnalysisURL = "/katago/analyze/";
@@ -133,10 +134,6 @@ function Demo() {
         }
     }, [file, viewSample]);
 
-    const handleToggleRecommendedMoves = () => {
-        console.log("toggle recommended moves");
-    };
-
     const handleReset = () => {
         window.location.reload();
     };
@@ -152,15 +149,18 @@ function Demo() {
                     gameData={gameData}
                     analysisData={analysisData}
                     currentMove={currentMove}
+                    showRecommendedMoves={showRecommendedMoves}
                 />
                 {gameData || viewSample ? (
                     <>
                         <Controls
                             move={currentMove}
                             setMove={setCurrentMove}
-                            max={gameData?.moves.length}
+                            maxMove={gameData?.moves.length}
                             tools={{
-                                handleAnalyze: handleToggleRecommendedMoves,
+                                setShowRecommendedMoves:
+                                    setShowRecommendedMoves,
+                                recommendedMoves: showRecommendedMoves,
                                 handleReset: handleReset,
                             }}
                         />
