@@ -8,6 +8,69 @@ Go (Weiqi) is often refers as abstract and difficult to understand. However, wit
 
 Most people enjoy assistance from AI, but have no idea how it works, and what factors affect its performance. KataGo Visualizer (this repo) allows you to visually see KataGo decisions in real time, and is highly customizable to fit your need.
 
+## Installation
+
+### MacOS and Linux
+
+By installing this repo on your machine, you will be able to run the website locally and analyze your move.
+
+Before installing, make sure you already have [node.js](https://nodejs.org/en/download) and [Python](https://www.python.org/downloads/) installed on your machine.
+
+To check if you have Python and node.js installed, run the following command in your terminal:
+
+```bash
+# print out your node.js and npm version, if you are missing any one of them, you need to install node.js
+node -v && npm -v
+
+# print out your Python and pip version, if you are missing any one of them, you need to install Python or pip
+python --version && pip --version
+```
+
+After you ensured you installed Python and node.js, run:
+
+```bash
+# clone this repo
+git clone https://github.com/YianXie/katago-visualizer
+
+# change your directory to the repo
+cd katago-visualizer
+
+# create a Python virtual environment
+python -m venv env
+
+# activate the virtual environment
+source env/bin/activate
+
+# (optional) to deactivate after you are done experimenting
+deactivate
+
+# install the required Python libraries
+cd backend && pip install -r requirements.txt
+
+# install the required npm packages
+cd ../frontend && npm install
+```
+
+## AWS Setup
+
+### EC2 Instance Setup
+
+You can use an AWS server to run KataGo's analysis more efficiently. To set it up, first create an EC2 Instance on AWS, and choose Linux-based system (such as Ubuntu) with Nvidia-Driver pre-installed.
+
+**DO NOT GO FOR NEURAL NETWORK INSTANCES**
+
+_Recommended instance: Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 24.04)_
+
+Choose a reasonably good set up (e.g. g4dn.xlarge), and then start your server.
+
+_If you encountered any quota issue, you may need to request for a quota increase_
+
+Then, copy your instance's **public IPv4 address** (e.g. 12.345.678.999), and paste it in the `.env` file in your `backend` directory.
+
+### Instal KataGo on your EC2 machine
+
+WIP
+
 ## License
 
 This project is licensed under the MIT License. Check the LICENSE tab for more details.

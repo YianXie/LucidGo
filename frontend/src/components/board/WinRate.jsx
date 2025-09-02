@@ -23,7 +23,7 @@ ChartJS.register(
     Legend
 );
 
-function WinRate({ data, maxMove, currentMove }) {
+function WinRate({ data, maxMove, setMove, currentMove }) {
     const [hoverX, setHoverX] = useState(null);
     const [blackWinRate, setBlackWinRate] = useState([]);
     const [whiteWinRate, setWhiteWinRate] = useState([]);
@@ -51,7 +51,7 @@ function WinRate({ data, maxMove, currentMove }) {
                 suggestedMax: 100,
                 title: {
                     display: true,
-                    text: "Win Rate",
+                    text: "Win Rate (%)",
                 },
             },
             x: {
@@ -67,8 +67,37 @@ function WinRate({ data, maxMove, currentMove }) {
                 return;
             }
 
-            const { x } = getRelativePosition(event, chart);
-            setHoverX(x);
+            const chartArea = chart.chartArea;
+            const chartWidth = chartArea.right - chartArea.left;
+            const xScale = chart.scales.x;
+
+            const { x, y } = getRelativePosition(event, chartArea);
+            const xValue = xScale.getValueForPixel(x); // x-axis is 0-based, so we need to add 1
+
+            if (
+                x < chartArea.left ||
+                x > chartArea.right ||
+                y < chartArea.top ||
+                y > chartArea.bottom
+            ) {
+                setHoverX(null);
+            } else {
+                setHoverX(xValue * (chartWidth / xScale.max) + chartArea.left);
+            }
+        },
+        onClick: (event) => {
+            const chart = chartRef.current;
+            if (!chart) {
+                return;
+            }
+
+            const { x } = getRelativePosition(event, chart.chartArea);
+            const xScale = chart.scales.x;
+            const xValue = Math.min(
+                xScale.getValueForPixel(x) + 1,
+                maxMove - 1
+            );
+            setMove(xValue);
         },
     };
     const [lineData, setLineData] = useState({
@@ -177,7 +206,7 @@ function WinRate({ data, maxMove, currentMove }) {
                     ...lineData.datasets[0],
                     segment: {
                         borderColor: (ctx) => {
-                            const x = ctx.p0.parsed.x;
+                            const x = ctx.p0.parsed.x + 1;
                             if (x < currentMove) {
                                 return "black";
                             }
@@ -189,7 +218,7 @@ function WinRate({ data, maxMove, currentMove }) {
                     ...lineData.datasets[1],
                     segment: {
                         borderColor: (ctx) => {
-                            const x = ctx.p0.parsed.x;
+                            const x = ctx.p0.parsed.x + 1;
                             if (x < currentMove) {
                                 return "white";
                             }

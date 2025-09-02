@@ -167,6 +167,7 @@ function Demo() {
                         <WinRate
                             data={winRate}
                             maxMove={gameData?.moves.length}
+                            setMove={setCurrentMove}
                             currentMove={currentMove}
                         />
                     </>
