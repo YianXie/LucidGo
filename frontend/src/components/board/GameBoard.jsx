@@ -3,7 +3,6 @@ import { GTPLetters } from "../../constants";
 import Board from "@sabaki/go-board";
 import board_bg from "../../assets/images/board/board-bg.png";
 import place_stone_sound from "../../assets/sounds/board/place-stone.wav";
-import styles from "../../styles/components/board/Board.module.css";
 import { toRowColFormat } from "../../utils";
 
 /**
@@ -308,7 +307,7 @@ function GameBoard({
     return (
         <canvas
             ref={canvasRef}
-            className={styles.board}
+            className="size-200"
             width={canvasSize}
             height={canvasSize}
         />

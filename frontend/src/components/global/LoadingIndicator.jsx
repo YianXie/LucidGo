@@ -1,36 +1,46 @@
-import styles from "../../styles/components/global/LoadingIndicator.module.css";
-
-function LoadingIndicator({ className, value }) {
+function LoadingIndicator({ show, value }) {
     return (
-        <div className={styles.container + " " + styles[className]}>
-            <div className={styles.loader}>
+        <div
+            className={`fixed z-[10] flex h-full w-full items-center justify-center ${show ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"} backdrop-blur-md backdrop-brightness-50 transition-all select-none`}
+        >
+            <div className="absolute rounded-2xl bg-white p-6 shadow-md">
                 {value ? (
-                    <div
-                        style={{ "--progress": value + "%" }}
-                        className={styles.progressContainer}
-                    >
-                        <p className={styles.progressNumber}>
-                            {value.toFixed(1)}%
-                        </p>
-                        <progress min="0" max="100" value={value}></progress>
+                    <div className="relative size-40">
+                        <svg
+                            className="size-full -rotate-90"
+                            viewBox="0 0 36 36"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <circle
+                                cx="18"
+                                cy="18"
+                                r="16"
+                                fill="none"
+                                className="stroke-current text-gray-200 dark:text-neutral-700"
+                                strokeWidth="2"
+                            ></circle>
+                            <circle
+                                cx="18"
+                                cy="18"
+                                r="16"
+                                fill="none"
+                                className="stroke-current text-blue-600 dark:text-blue-500"
+                                strokeWidth="2"
+                                strokeDasharray="100"
+                                strokeDashoffset={100 - value}
+                                strokeLinecap="round"
+                            ></circle>
+                        </svg>
+
+                        <div className="absolute start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
+                            <span className="text-center text-2xl font-bold text-blue-600 dark:text-blue-500">
+                                {value.toFixed(1)}%
+                            </span>
+                        </div>
                     </div>
                 ) : (
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        fill="currentColor"
-                        className="bi bi-arrow-clockwise"
-                        viewBox="0 0 16 16"
-                    >
-                        <path
-                            fillRule="evenodd"
-                            d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"
-                        />
-                        <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" />
-                    </svg>
+                    <i className="bi bi-arrow-clockwise animate-spin"></i>
                 )}
-                <p>Loading...</p>
             </div>
         </div>
     );

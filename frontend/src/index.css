@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@theme {
+    --color-bg-1: oklch(0.1677 0.0356 235.04);
+    --color-bg-2: oklch(0.1859 0.0414 238.25);
+    --color-bg-3: oklch(0.2083 0.048857 241.3514);
+    --color-bg-4: oklch(0.2376 0.0568 242.37);
+
+    --color-text-1: oklch(1 0 0);
+    --color-text-2: oklch(1 0 0);
+    --color-text-3: oklch(1 0 0);
+    --color-text-4: oklch(1 0 0);
+
+    --font-poppins: "Poppins", sans-serif;
+    --font-sans:
+        "Poppins", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+        "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --font-mono:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        "Liberation Mono", "Courier New", monospace;
+}

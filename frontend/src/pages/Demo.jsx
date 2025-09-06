@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { SGFSample } from "../constants";
+import { SGFSample, paddingTop } from "../constants";
 import { toGTPFormat } from "../utils";
 import api from "../api";
 import LoadingIndicator from "../components/global/LoadingIndicator";
@@ -9,7 +9,6 @@ import Upload from "../components/board/Upload";
 import GameBoard from "../components/board/GameBoard";
 import Controls from "../components/board/Controls";
 import WinRate from "../components/board/WinRate";
-import styles from "../styles/pages/Demo.module.css";
 
 function Demo() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -134,46 +133,76 @@ function Demo() {
         }
     }, [file, viewSample]);
 
-    const handleReset = () => {
-        window.location.reload();
+    const handleViewSample = (e) => {
+        e.preventDefault();
+
+        const newSearchParams = new URLSearchParams(searchParams);
+        newSearchParams.set("sample", "true");
+        setSearchParams(newSearchParams);
     };
 
     return (
         <>
-            <LoadingIndicator
-                className={loading ? "fadeIn" : "fadeOut"}
-                value={loadedValue}
-            />
-            <div className={styles.game}>
-                <GameBoard
-                    gameData={gameData}
-                    analysisData={analysisData}
-                    currentMove={currentMove}
-                    showRecommendedMoves={showRecommendedMoves}
-                />
-                {gameData || viewSample ? (
-                    <>
-                        <Controls
-                            move={currentMove}
-                            setMove={setCurrentMove}
-                            maxMove={gameData?.moves.length}
-                            tools={{
-                                setShowRecommendedMoves:
-                                    setShowRecommendedMoves,
-                                recommendedMoves: showRecommendedMoves,
-                                handleReset: handleReset,
-                            }}
-                        />
-                        <WinRate
-                            data={winRate}
-                            maxMove={gameData?.moves.length}
-                            setMove={setCurrentMove}
-                            currentMove={currentMove}
-                        />
-                    </>
-                ) : (
-                    <Upload setFile={setFile} />
-                )}
+            <LoadingIndicator show={loading} value={loadedValue} />
+            <div
+                className={`bg-bg-1 flex h-full w-full items-center justify-center pt-${paddingTop}`}
+            >
+                <div
+                    className={
+                        "inline-flex flex-col items-center justify-center"
+                    }
+                >
+                    <GameBoard
+                        gameData={gameData}
+                        analysisData={analysisData}
+                        currentMove={currentMove}
+                        showRecommendedMoves={showRecommendedMoves}
+                    />
+                    {gameData || viewSample ? (
+                        <>
+                            <Controls
+                                move={currentMove}
+                                setMove={setCurrentMove}
+                                maxMove={gameData?.moves.length}
+                                setShowRecommendedMoves={
+                                    setShowRecommendedMoves
+                                }
+                                showRecommendedMoves={showRecommendedMoves}
+                            />
+                            <WinRate
+                                data={winRate}
+                                maxMove={gameData?.moves.length}
+                                setMove={setCurrentMove}
+                                currentMove={currentMove}
+                            />
+                        </>
+                    ) : (
+                        <div className="fixed flex h-full w-full flex-col items-center justify-center backdrop-blur-md backdrop-brightness-50">
+                            <Upload setFile={setFile} accept={".sgf"} />
+                            <a
+                                className="mt-2 flex cursor-pointer items-center justify-center font-medium text-blue-400 hover:underline"
+                                onClick={handleViewSample}
+                            >
+                                View a sample
+                                <svg
+                                    className="ms-2 h-4 w-4 rtl:rotate-180"
+                                    aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 14 10"
+                                >
+                                    <path
+                                        stroke="currentColor"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M1 5h12m0 0L9 1m4 4L9 9"
+                                    />
+                                </svg>
+                            </a>
+                        </div>
+                    )}
+                </div>
             </div>
         </>
     );

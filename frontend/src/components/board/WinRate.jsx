@@ -11,7 +11,6 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { getRelativePosition } from "chart.js/helpers";
-import styles from "../../styles/components/board/WinRate.module.css";
 
 ChartJS.register(
     CategoryScale,
@@ -233,7 +232,7 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
     return (
         <>
             {lineData.datasets[0].data ? (
-                <div className={styles.graphContainer}>
+                <div className="my-5 w-full cursor-pointer">
                     <Line
                         ref={chartRef}
                         data={lineData}
@@ -242,8 +241,8 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                     />
                 </div>
             ) : (
-                <div className={styles.container}>
-                    <p>No win rate data</p>
+                <div className="my-5 w-full px-2.5 py-5">
+                    <p className="text-text-1">No win rate data</p>
                 </div>
             )}
         </>
