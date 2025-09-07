@@ -18,4 +18,4 @@ export const GitHubRepositoryLink =
 /**
  * Main content's padding top to avoid the header
  */
-export const paddingTop = 25;
+export const paddingTop = 100;

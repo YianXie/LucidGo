@@ -5,10 +5,11 @@ import { SGFSample, paddingTop } from "../constants";
 import { toGTPFormat } from "../utils";
 import api from "../api";
 import LoadingIndicator from "../components/global/LoadingIndicator";
-import Upload from "../components/board/Upload";
+import Upload from "../components/global/Upload";
 import GameBoard from "../components/board/GameBoard";
 import Controls from "../components/board/Controls";
 import WinRate from "../components/board/WinRate";
+import Container from "../components/global/Container";
 
 function Demo() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -144,9 +145,7 @@ function Demo() {
     return (
         <>
             <LoadingIndicator show={loading} value={loadedValue} />
-            <div
-                className={`bg-bg-1 flex h-full w-full items-center justify-center pt-${paddingTop}`}
-            >
+            <Container className="flex h-full w-full items-center justify-center">
                 <div
                     className={
                         "inline-flex flex-col items-center justify-center"
@@ -203,7 +202,7 @@ function Demo() {
                         </div>
                     )}
                 </div>
-            </div>
+            </Container>
         </>
     );
 }

@@ -1,4 +1,4 @@
-import FlexRow from "../global/assets/FlexRow";
+import FlexRow from "../global/FlexRow";
 import ControlMoveButton from "./ControlMoveButton";
 import ControlUtilButton from "./ControlUtilButton";
 

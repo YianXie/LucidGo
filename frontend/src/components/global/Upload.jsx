@@ -3,7 +3,7 @@ function Upload({ setFile, accept }) {
         <div className="relative h-max w-max place-content-center">
             <label
                 htmlFor="dropzone-file"
-                className="bg-bg-4 hover:bg-bg-3 flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-500 p-5 transition-colors"
+                className="bg-bg-4 hover:bg-bg-3 flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed border-gray-500 p-5 transition-colors"
             >
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                     <svg
