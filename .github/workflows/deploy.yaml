@@ -15,7 +15,7 @@ jobs:
               uses: aws-actions/configure-aws-credentials@main
               with:
                   aws-region: ap-southeast-1
-                  role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ROLE_NAME }}
+                  role-to-assume: ${{ secrets.AWS_ARN }}
 
             - name: Get runner IP
               id: ip
@@ -24,7 +24,7 @@ jobs:
             - name: Allow SSH from runner
               run: |
                   aws ec2 authorize-security-group-ingress \
-                  --group-id sg-${{ secrets.AWS_SECURITY_GROUP_ID }} \
+                  --group-id ${{ secrets.AWS_SECURITY_GROUP_ID }} \
                   --ip-permissions "IpProtocol=tcp,FromPort=22,ToPort=22,IpRanges=[{CidrIp=${{ steps.ip.outputs.ip }}/32,Description='GitHub Actions'}]"
 
             - uses: actions/checkout@v3
