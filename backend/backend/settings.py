@@ -23,7 +23,7 @@ if ENVIRONMENT == "development":
 else:
     DEBUG = False
 
-ALLOWED_HOSTS = [".onrender.com", "localhost", "127.0.0.1", "0.0.0.0"]
+ALLOWED_HOSTS = [".onrender.com", "localhost", "127.0.0.1", "0.0.0.0", env("PUBLIC_IP")]
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
@@ -32,6 +32,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://0.0.0.0:5173",
     "http://0.0.0.0:8000",
+    f"http://{env('PUBLIC_IP')}:5173",
+    f"http://{env('PUBLIC_IP')}:8000",
 ]
 
 REST_FRAMEWORK = {
