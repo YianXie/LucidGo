@@ -31,7 +31,7 @@ jobs:
             - name: rsync deployments
               uses: burnett01/rsync-deployments@7.1.0
               with:
-                  switches: -avz --delete --exclude=".git" --exclude="env"
+                  switches: -avz --delete --exclude=".git" --exclude="env" --exclude".env"
                   path: ./
                   remote_path: /opt/katago/app/
                   remote_host: ${{ secrets.EC2_HOST }}
