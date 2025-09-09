@@ -1,6 +1,8 @@
+import { useRef, useState } from "react";
 import FlexRow from "../global/FlexRow";
 import ControlMoveButton from "./ControlMoveButton";
 import ControlUtilButton from "./ControlUtilButton";
+import CheckList from "../global/CheckList";
 
 /**
  * A control panel for the game board
@@ -11,16 +13,34 @@ import ControlUtilButton from "./ControlUtilButton";
  * @returns
  */
 function Controls({
-    move,
+    currentMove,
     setMove,
     maxMove,
     setShowRecommendedMoves,
     showRecommendedMoves,
+    setShowPolicy,
+    showPolicy,
+    setShowOwnership,
+    showOwnership,
 }) {
     const fastForwardAmount = 5;
+    const [showOptions, setShowOptions] = useState(false);
+    const options = [
+        {
+            label: "Show recommended moves",
+            value: showRecommendedMoves,
+            setValue: setShowRecommendedMoves,
+        },
+        { label: "Show policy", value: showPolicy, setValue: setShowPolicy },
+        {
+            label: "Show ownership",
+            value: showOwnership,
+            setValue: setShowOwnership,
+        },
+    ];
 
     return (
-        <div className="bg-bg-4 shadow-bg-2 flex w-full items-center justify-center gap-5 rounded-b-xl p-2.5 shadow-md">
+        <div className="bg-bg-4 shadow-bg-2 relative flex w-full items-center justify-center gap-5 rounded-b-xl p-2.5 shadow-md">
             <ControlUtilButton
                 className={"bi bi-arrow-clockwise"}
                 onClick={() => {
@@ -33,7 +53,7 @@ function Controls({
                     className={"bi bi-skip-backward-btn-fill"}
                     label={"Move to the beginning"}
                     amount={-maxMove}
-                    move={move}
+                    move={currentMove}
                     setMove={setMove}
                     maxMove={maxMove}
                 />
@@ -41,7 +61,7 @@ function Controls({
                     className={"bi bi-rewind-btn-fill"}
                     label={`Rewind ${fastForwardAmount} moves`}
                     amount={-fastForwardAmount}
-                    move={move}
+                    move={currentMove}
                     setMove={setMove}
                     maxMove={maxMove}
                 />
@@ -49,18 +69,18 @@ function Controls({
                     className={"bi bi-arrow-left-square-fill"}
                     label={"Move backward 1 move"}
                     amount={-1}
-                    move={move}
+                    move={currentMove}
                     setMove={setMove}
                     maxMove={maxMove}
                 />
             </FlexRow>
-            <p className="text-white">{move}</p>
-            <FlexRow gap={2} className={"mr-auto gap-3"}>
+            <p className="text-white">{currentMove}</p>
+            <FlexRow className="mr-auto gap-3">
                 <ControlMoveButton
                     className={"bi bi-arrow-right-square-fill"}
                     label={"Move forward 1 move"}
                     amount={1}
-                    move={move}
+                    move={currentMove}
                     setMove={setMove}
                     maxMove={maxMove}
                 />
@@ -68,7 +88,7 @@ function Controls({
                     className={"bi bi-fast-forward-btn-fill"}
                     label={`Fast forward ${fastForwardAmount} moves`}
                     amount={fastForwardAmount}
-                    move={move}
+                    move={currentMove}
                     setMove={setMove}
                     maxMove={maxMove}
                 />
@@ -76,22 +96,38 @@ function Controls({
                     className={"bi bi-skip-forward-btn-fill"}
                     label={"Move to the end"}
                     amount={maxMove}
-                    move={move}
+                    move={currentMove}
                     setMove={setMove}
                     maxMove={maxMove}
                 />
             </FlexRow>
 
             <ControlUtilButton
-                className={
-                    showRecommendedMoves
-                        ? "bi bi-eye-fill"
-                        : "bi bi-eye-slash-fill"
-                }
+                className="bi bi-list check-list"
                 onClick={() => {
-                    setShowRecommendedMoves(!showRecommendedMoves);
+                    if (!showOptions) {
+                        document.addEventListener(
+                            "click",
+                            function handleClick(e) {
+                                e.stopPropagation();
+                                if (e.target.closest(".check-list")) return;
+                                setShowOptions(false);
+                                document.removeEventListener(
+                                    "click",
+                                    handleClick
+                                );
+                            }
+                        );
+                    }
+                    setShowOptions(!showOptions);
                 }}
-                label={"Toggle show recommended move"}
+                label={"Show options"}
+            />
+
+            <CheckList
+                options={options}
+                maxChecked={1}
+                className={`${showOptions ? "visible scale-100" : "invisible"} bg-bg-3 text-text-1 shadow-bg-2 absolute top-0 right-0 origin-bottom-right -translate-y-full scale-0 p-2 shadow-md transition-all duration-300`}
             />
         </div>
     );

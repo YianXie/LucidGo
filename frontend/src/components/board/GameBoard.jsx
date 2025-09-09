@@ -3,7 +3,7 @@ import { GTPLetters } from "../../constants";
 import Board from "@sabaki/go-board";
 import board_bg from "../../assets/images/board/board-bg.png";
 import place_stone_sound from "../../assets/sounds/board/place-stone.wav";
-import { toRowColFormat } from "../../utils";
+import { toGTPFormat, toRowColFormat } from "../../utils";
 
 /**
  * Draws a Weiqi board with Pixi.js
@@ -16,6 +16,8 @@ function GameBoard({
     analysisData,
     currentMove,
     showRecommendedMoves,
+    showPolicy,
+    showOwnership,
 }) {
     // Canvas variables
     const size = gameData?.size || 19;
@@ -85,25 +87,40 @@ function GameBoard({
         drawStones();
 
         // Draw the recommended move if it exists
-        if (analysisData && analysisData[currentMove] && showRecommendedMoves) {
-            for (
-                let i = 0;
-                i < analysisData[currentMove].response.moveInfos.length;
-                i++
-            ) {
-                const move = analysisData[currentMove].response.moveInfos[i];
-                const [row, col] = toRowColFormat(move.move);
-                const alpha = Math.max(0.25, 0.75 * 0.5 ** i); // Make sure the alpha is at least 0.25
-                const color = `rgba(255, 0, 0, ${alpha})`;
+        if (analysisData && analysisData[currentMove]) {
+            if (showRecommendedMoves) {
+                for (
+                    let i = 0;
+                    i < analysisData[currentMove].response.moveInfos.length;
+                    i++
+                ) {
+                    const move =
+                        analysisData[currentMove].response.moveInfos[i];
+                    const [row, col] = toRowColFormat(move.move);
+                    const alpha = Math.max(0.25, 0.75 * 0.5 ** i); // Make sure the alpha is at least 0.25
+                    const color = `rgba(255, 0, 0, ${alpha})`;
 
-                // The winrate is always for black, so we need to convert it to white's winrate
-                const rawWinRate =
-                    currentMove % 2 === 0 ? move.winrate : 1 - move.winrate;
-                const winRate = (rawWinRate * 100).toFixed(1);
-                drawRecommendedMove(row, col, color, winRate);
+                    // The winrate is always for black, so we need to convert it to white's winrate
+                    const rawWinRate =
+                        currentMove % 2 === 0 ? move.winrate : 1 - move.winrate;
+                    const winRate = (rawWinRate * 100).toFixed(1);
+                    drawRecommendedMove(row, col, color, winRate);
+                }
+            }
+            // if (showPolicy) {
+            //     drawPolicy(analysisData[currentMove].response.policy);
+            // }
+            if (showOwnership) {
+                drawOwnership(analysisData[currentMove].response.ownership);
             }
         }
-    }, [currentMove, analysisData, showRecommendedMoves]);
+    }, [
+        currentMove,
+        analysisData,
+        showRecommendedMoves,
+        showPolicy,
+        showOwnership,
+    ]);
 
     /**
      * Draw the game board with lines
@@ -302,6 +319,36 @@ function GameBoard({
             padding + margin * col,
             canvasSize - padding - margin * row
         );
+    };
+
+    const drawPolicy = (policy) => {
+        for (let i = 0; i < policy.length; i++) {
+            let row = Math.floor(i / gameData.size);
+            let col = i % gameData.size;
+        }
+    };
+
+    const drawOwnership = (ownership) => {
+        for (let i = 0; i < ownership.length; i++) {
+            const row = Math.floor(i / gameData.size);
+            const col = i % gameData.size;
+            if (game.get([row, col]) !== 0) continue;
+
+            const alpha = Math.min(
+                0.75,
+                Math.max(0.25, Math.abs(ownership[i]))
+            );
+            const color =
+                ownership[i] < 0
+                    ? `rgba(0, 0, 0, ${alpha})`
+                    : `rgba(255, 255, 255, ${alpha})`;
+            drawRecommendedMove(
+                row,
+                col,
+                color,
+                (Math.abs(ownership[i]) * 100).toFixed(1)
+            );
+        }
     };
 
     return (

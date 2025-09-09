@@ -67,7 +67,7 @@ _If you encountered any quota issue, you may need to request for a quota increas
 
 Then, copy your instance's **public IPv4 address** (e.g. 12.345.678.999), and paste it in the `.env` file in your `backend` directory.
 
-### Instal KataGo on your EC2 machine
+### Instal KataGo on your EC2 instance
 
 WIP
 

@@ -21,6 +21,8 @@ function Demo() {
     const [currentMove, setCurrentMove] = useState(null);
     const [loading, setLoading] = useState(false);
     const [showRecommendedMoves, setShowRecommendedMoves] = useState(true);
+    const [showPolicy, setShowPolicy] = useState(false);
+    const [showOwnership, setShowOwnership] = useState(false);
     const [loadedValue, setLoadedValue] = useState(0);
     const getGameDataURL = "/katago/get-game-data/";
     const getAnalysisURL = "/katago/analyze/";
@@ -54,6 +56,8 @@ function Demo() {
                     boardXSize: gameData.size,
                     boardYSize: gameData.size,
                     analyzeTurns: [i],
+                    includePolicy: true,
+                    includeOwnership: true,
                 };
                 try {
                     const res = await api.post(getAnalysisURL, {
@@ -156,17 +160,23 @@ function Demo() {
                         analysisData={analysisData}
                         currentMove={currentMove}
                         showRecommendedMoves={showRecommendedMoves}
+                        showPolicy={showPolicy}
+                        showOwnership={showOwnership}
                     />
                     {gameData || viewSample ? (
                         <>
                             <Controls
-                                move={currentMove}
+                                currentMove={currentMove}
                                 setMove={setCurrentMove}
                                 maxMove={gameData?.moves.length}
                                 setShowRecommendedMoves={
                                     setShowRecommendedMoves
                                 }
                                 showRecommendedMoves={showRecommendedMoves}
+                                showPolicy={showPolicy}
+                                showOwnership={showOwnership}
+                                setShowPolicy={setShowPolicy}
+                                setShowOwnership={setShowOwnership}
                             />
                             <WinRate
                                 data={winRate}

@@ -39,7 +39,10 @@ function LoadingIndicator({ show, value }) {
                         </div>
                     </div>
                 ) : (
-                    <i className="bi bi-arrow-clockwise animate-spin"></i>
+                    <div className="flex flex-col items-center justify-center">
+                        <i className="bi bi-arrow-clockwise animate-spin text-7xl"></i>
+                        <p className="mt-5 text-2xl font-bold">Loading...</p>
+                    </div>
                 )}
             </div>
         </div>
