@@ -34,7 +34,7 @@ jobs:
               with:
                   switches: -avz --delete --exclude=".git" --exclude="env" --exclude=".env" --exclude="staticfiles"
                   path: ./
-                  remote_path: /opt/lucid-go/
+                  remote_path: /opt/lucid-go/app/
                   remote_host: ${{ secrets.EC2_HOST }}
                   remote_user: ${{ secrets.EC2_USER }}
                   remote_key: ${{ secrets.EC2_KEY }}
