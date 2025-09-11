@@ -20,9 +20,7 @@ function Header() {
                         alt="Logo"
                         className="h-10 w-10 cursor-pointer"
                     />
-                    <p className="text-text-1 text-lg font-[500]">
-                        KataGo Visualizer
-                    </p>
+                    <p className="text-text-1 text-lg font-[500]">LucidGo</p>
                 </div>
                 <ul className="text-text-1 flex items-center gap-7.5">
                     <HeaderLink to={"/docs"}>Docs</HeaderLink>

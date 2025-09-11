@@ -1,12 +1,12 @@
 # LucidGo (WIP)
 
-KataGo Visualizer allows you to use visually see the analysis for each move
+LucidGo allows you to use visually see the analysis for each move
 
 ## Introduction
 
 Go (Weiqi) is often refers as abstract and difficult to understand. However, with the advancement of AI (Artificial Intelligence) technology, such as AlphaGo and [KataGo](https://github.com/lightvector/KataGo), it has became a lot easier to study and play.
 
-Most people enjoy assistance from AI, but have no idea how it works, and what factors affect its performance. KataGo Visualizer (this repo) allows you to visually see KataGo decisions in real time, and is highly customizable to fit your need.
+Most people enjoy the assistance from AI, but have no idea how it works, and what factors affect its performance. LucidGo allows you to visually see AI, such as Katago, make its decisions in real time, and is highly customizable to fit your need.
 
 ## Installation
 
@@ -30,10 +30,10 @@ After you ensured you installed Python and node.js, run:
 
 ```bash
 # clone this repo
-git clone https://github.com/YianXie/katago-visualizer
+git clone https://github.com/YianXie/LucidGo
 
 # change your directory to the repo
-cd katago-visualizer
+cd LucidGo
 
 # create a Python virtual environment
 python -m venv env
@@ -55,7 +55,7 @@ cd ../frontend && npm install
 
 ### EC2 Instance Setup
 
-You can use an AWS server to run KataGo's analysis more efficiently. To set it up, first create an EC2 Instance on AWS, and choose Linux-based system (such as Ubuntu) with Nvidia-Driver pre-installed.
+Since LucidGo uses KataGo as its Go engine, you can use an AWS server in order to run LucidGo's analysis more efficiently. To set it up, first create an EC2 Instance on AWS, and choose Linux-based system (such as Ubuntu) with Nvidia-Driver pre-installed.
 
 **DO NOT GO FOR NEURAL NETWORK INSTANCES**
 

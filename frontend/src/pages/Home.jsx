@@ -21,7 +21,7 @@ function Home() {
                 style={{ paddingTop: `${paddingTop}px` }}
             >
                 <BlurText
-                    text="Explore how KataGo makes its move"
+                    text="Analyze your moves with LucidGo"
                     delay={100}
                     animateBy="words"
                     direction="top"
@@ -83,7 +83,9 @@ function Home() {
                             <i
                                 className={`bi bi-box-arrow-up-right text-text-1 text-3xl`}
                             ></i>
-                            <p className="text-text-1 text-3xl">Try it out</p>
+                            <p className="text-text-1 text-3xl font-[500]">
+                                Try it out
+                            </p>
                         </div>
                     </div>
                 </AnimatedContent>
