@@ -23,17 +23,12 @@ if ENVIRONMENT == "development":
 else:
     DEBUG = False
 
-ALLOWED_HOSTS = [".onrender.com", "localhost", "127.0.0.1", "0.0.0.0", env("PUBLIC_IP")]
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "http://0.0.0.0:5173",
-    "http://0.0.0.0:8000",
-    f"http://{env('PUBLIC_IP')}:5173",
-    f"http://{env('PUBLIC_IP')}:8000",
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
+    env("PUBLIC_IP"),
+    "api.lucidgo.org",
 ]
 
 REST_FRAMEWORK = {
@@ -64,6 +59,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
 ]
+
+USE_X_FORWARDED_HOST = True
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -159,6 +156,23 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://0.0.0.0:5173",
+    "http://0.0.0.0:8000",
+    f"http://{env('PUBLIC_IP')}:5173",
+    f"http://{env('PUBLIC_IP')}:8000",
+    "https://www.lucidgo.org",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://api.lucidgo.org",
+    "https://www.lucidgo.org",
+]
+
 # Additional CORS settings for file uploads
 CORS_ALLOW_METHODS = [
     "DELETE",
@@ -181,11 +195,16 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
-# Additional CORS settings to ensure proper handling
 CORS_EXPOSE_HEADERS = [
     "content-type",
     "content-disposition",
 ]
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_SSL_REDIRECT = True
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # Allow credentials
 CORS_ALLOW_CREDENTIALS = True
@@ -204,6 +223,5 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 10
 FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 10
 
 # KataGo settings
-PUBLIC_IP = env("PUBLIC_IP")
-KATAGO_ENDPOINT = f"http://{PUBLIC_IP}:8080/analyze"
+KATAGO_ENDPOINT = f"http://{env('PUBLIC_IP')}:8080/analyze"
 KATAGO_TIMEOUT = env.int("KATAGO_TIMEOUT", default=30)  # in seconds
