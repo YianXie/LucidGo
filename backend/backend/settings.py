@@ -55,7 +55,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "katago",
+    "api",
     "rest_framework",
     "corsheaders",
 ]
@@ -223,6 +223,6 @@ FILE_UPLOAD_HANDLERS = [
 DATA_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 10
 FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 10
 
-# KataGo settings
-KATAGO_ENDPOINT = f"http://{env('PUBLIC_IP')}:8080/analyze"
-KATAGO_TIMEOUT = env.int("KATAGO_TIMEOUT", default=30)  # in seconds
+# API settings
+API_ENDPOINT = f"{env('API_URL')}/katago/analyze"
+API_TIMEOUT = env.int("API_TIMEOUT", default=30)  # in seconds

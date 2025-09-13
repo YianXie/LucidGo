@@ -15,9 +15,9 @@ class AnalyzeView(APIView):
             return Response({"error": "No analysis request provided"}, status=400)
 
         try:
-            with httpx.Client(timeout=settings.KATAGO_TIMEOUT) as client:
+            with httpx.Client(timeout=settings.API_TIMEOUT) as client:
                 r = client.post(
-                    settings.KATAGO_ENDPOINT, json={"request": analysis_request}
+                    settings.API_ENDPOINT, json={"request": analysis_request}
                 )
                 r.raise_for_status()
                 response = r.json()
