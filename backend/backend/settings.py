@@ -27,7 +27,7 @@ ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     "0.0.0.0",
-    env("PUBLIC_IP"),
+    env("API_URL"),
     "api.lucidgo.org",
 ]
 
@@ -163,8 +163,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://0.0.0.0:5173",
     "http://0.0.0.0:8000",
-    f"http://{env('PUBLIC_IP')}:5173",
-    f"http://{env('PUBLIC_IP')}:8000",
+    f"http://{env('API_URL')}:5173",
+    f"http://{env('API_URL')}:8000",
     "https://www.lucidgo.org",
 ]
 
