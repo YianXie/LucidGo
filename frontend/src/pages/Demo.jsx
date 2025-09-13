@@ -24,8 +24,8 @@ function Demo() {
     const [showPolicy, setShowPolicy] = useState(false);
     const [showOwnership, setShowOwnership] = useState(false);
     const [loadedValue, setLoadedValue] = useState(0);
-    const getGameDataURL = "/katago/get-game-data/";
-    const getAnalysisURL = "/katago/analyze/";
+    const getGameDataURL = "/api/get-game-data/";
+    const getAnalysisURL = "/api/analyze/";
 
     useEffect(() => {
         if (!gameData) {
