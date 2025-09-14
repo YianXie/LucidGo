@@ -27,7 +27,7 @@ ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     "0.0.0.0",
-    env("API_URL"),
+    env("API_ENDPOINT"),
     "api.lucidgo.org",
 ]
 
