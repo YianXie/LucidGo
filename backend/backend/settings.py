@@ -220,5 +220,5 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 10
 FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 10
 
 # API settings
-API_ENDPOINT = f"{env('API_URL')}/katago/analyze"
+API_ENDPOINT = env("API_ENDPOINT")
 API_TIMEOUT = env.int("API_TIMEOUT", default=30)  # in seconds

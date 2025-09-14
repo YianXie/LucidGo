@@ -17,7 +17,8 @@ class AnalyzeView(APIView):
         try:
             with httpx.Client(timeout=settings.API_TIMEOUT) as client:
                 r = client.post(
-                    settings.API_ENDPOINT, json={"request": analysis_request}
+                    f"{settings.API_ENDPOINT}/katago/analyze",
+                    json={"request": analysis_request},
                 )
                 r.raise_for_status()
                 response = r.json()
