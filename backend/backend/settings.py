@@ -4,19 +4,11 @@ import environ
 
 env = environ.Env()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 environ.Env.read_env(BASE_DIR / ".env")
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env("SECRET_KEY")
 
-# SECURITY WARNING: don't run with debug turned on in production!
 ENVIRONMENT = env("ENVIRONMENT", default="production")
 if ENVIRONMENT == "development":
     DEBUG = True
@@ -28,7 +20,6 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "0.0.0.0",
     env("API_ENDPOINT"),
-    "api.lucidgo.org",
 ]
 
 REST_FRAMEWORK = {
@@ -45,8 +36,6 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
 }
 
-
-# Application definition
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -103,19 +92,28 @@ TEMPLATES = [
 WSGI_APPLICATION = "backend.wsgi.application"
 
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if ENVIRONMENT == "development":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("DB_NAME", default="lucidgo_db"),
+            "USER": env("DB_USER"),
+            "PASSWORD": env("DB_PASSWORD"),
+            "HOST": env("DB_HOST", default="localhost"),
+            "PORT": env("DB_PORT", default="5432"),
+            "CONN_MAX_AGE": 600,
+        }
     }
-}
+else:
+    import dj_database_url
 
+    DATABASES = {
+        "default": dj_database_url.parse(
+            env("DB_URL"),
+            conn_max_age=600,
+        )
+    }
 
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -133,9 +131,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "Asia/Singapore"
@@ -145,14 +140,8 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -169,7 +158,6 @@ CSRF_TRUSTED_ORIGINS = [
     "https://www.lucidgo.org",
 ]
 
-# Additional CORS settings for file uploads
 CORS_ALLOW_METHODS = [
     "DELETE",
     "GET",
@@ -196,29 +184,23 @@ CORS_EXPOSE_HEADERS = [
     "content-disposition",
 ]
 
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-SECURE_SSL_REDIRECT = True
-SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+if ENVIRONMENT == "production":
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = True
-
-# Allow credentials
 CORS_ALLOW_CREDENTIALS = True
 
-# Handle preflight requests
 CORS_PREFLIGHT_MAX_AGE = 86400
 
-# File upload settings
 FILE_UPLOAD_HANDLERS = [
     "django.core.files.uploadhandler.MemoryFileUploadHandler",
     "django.core.files.uploadhandler.TemporaryFileUploadHandler",
 ]
 
-# Maximum file size (10MB)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 10
 FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 10
 
-# API settings
 API_ENDPOINT = env("API_ENDPOINT")
 API_TIMEOUT = env.int("API_TIMEOUT", default=30)  # in seconds
