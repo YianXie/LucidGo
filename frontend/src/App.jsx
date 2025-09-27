@@ -15,6 +15,7 @@ function App() {
                     <Route path="demo/" element={<Demo />} />
                     <Route path="docs/" element={<Docs />} />
                     <Route path="video-blog/" element={<VideoBlog />} />
+                    <Route path="video-blog/:videoId" element={<VideoBlog />} />
                     <Route path="*" element={<NotFoundPage />} />
                 </Route>
             </Routes>

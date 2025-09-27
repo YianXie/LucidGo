@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import FlexRow from "../global/FlexRow";
+import Flex from "../global/Flex";
 import ControlMoveButton from "./ControlMoveButton";
 import ControlUtilButton from "./ControlUtilButton";
 import CheckList from "../global/CheckList";
@@ -48,7 +48,7 @@ function Controls({
                 }}
                 label={"Refresh your board"}
             />
-            <FlexRow gap={2} className={"ml-auto gap-3"}>
+            <Flex gap={2} className={"ml-auto gap-3"}>
                 <ControlMoveButton
                     className={"bi bi-skip-backward-btn-fill"}
                     label={"Move to the beginning"}
@@ -73,9 +73,9 @@ function Controls({
                     setMove={setMove}
                     maxMove={maxMove}
                 />
-            </FlexRow>
+            </Flex>
             <p className="text-white">{currentMove}</p>
-            <FlexRow className="mr-auto gap-3">
+            <Flex className="mr-auto gap-3">
                 <ControlMoveButton
                     className={"bi bi-arrow-right-square-fill"}
                     label={"Move forward 1 move"}
@@ -100,7 +100,7 @@ function Controls({
                     setMove={setMove}
                     maxMove={maxMove}
                 />
-            </FlexRow>
+            </Flex>
 
             <ControlUtilButton
                 className="bi bi-list check-list"
@@ -127,7 +127,7 @@ function Controls({
             <CheckList
                 options={options}
                 maxChecked={1}
-                className={`${showOptions ? "visible scale-100" : "invisible"} bg-bg-3 text-text-1 shadow-bg-2 absolute top-0 right-0 origin-bottom-right -translate-y-full scale-0 p-2 shadow-md transition-all duration-300`}
+                className={`${showOptions ? "visible scale-100" : "invisible"} bg-bg-3 text-text-1 shadow-bg-2 absolute top-0 right-0 origin-bottom-right -translate-y-full scale-0 p-2 inset-shadow-sm transition-all duration-300`}
             />
         </div>
     );

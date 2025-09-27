@@ -4,7 +4,7 @@ import DarkVeil from "../components/global/assets/DarkVeil";
 import BlurText from "../components/global/assets/BlurText";
 import ButtonPill from "../components/global/assets/ButtonPill";
 import AnimatedContent from "../components/global/assets/AnimatedContent";
-import FlexRow from "../components/global/FlexRow";
+import Flex from "../components/global/Flex";
 import demoPicture from "../assets/images/home/demo.png";
 import { GitHubRepositoryLink, paddingTop } from "../constants";
 
@@ -36,7 +36,9 @@ function Home() {
                     animateOpacity
                     threshold={0.1}
                 >
-                    <FlexRow className={"mt-10 gap-10"}>
+                    <Flex
+                        className={"mt-10 items-center justify-center gap-10"}
+                    >
                         <ButtonPill
                             className={
                                 "bg-text-1 hover:bg-text-1/80 active:bg-text-1/60 px-10 py-3"
@@ -47,7 +49,6 @@ function Home() {
                         >
                             Demo
                         </ButtonPill>
-
                         <ButtonPill
                             className={
                                 "bg-text-1/10 hover:bg-text-1/20 text-text-1 active:bg-text-1/40 border-1 border-gray-600 px-10 py-3"
@@ -58,7 +59,7 @@ function Home() {
                         >
                             GitHub
                         </ButtonPill>
-                    </FlexRow>
+                    </Flex>
                     <div
                         className="relative h-max w-max cursor-pointer"
                         onClick={() => {

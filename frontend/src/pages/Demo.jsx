@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { SGFSample, paddingTop } from "../constants";
+import { SGFSample } from "../constants";
 import { toGTPFormat } from "../utils";
 import api from "../api";
 import LoadingIndicator from "../components/global/LoadingIndicator";
 import Upload from "../components/global/Upload";
 import GameBoard from "../components/board/GameBoard";
-import Controls from "../components/board/Controls";
+// import Controls from "../components/board/Controls";
 import WinRate from "../components/board/WinRate";
 import Container from "../components/global/Container";
+import Flex from "../components/global/Flex";
 
 function Demo() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -64,6 +65,15 @@ function Demo() {
                         analysis_request: request,
                     });
                     const data = await res.data;
+                    data.response.moveInfos.sort((a, b) => {
+                        if (a.winrate > b.winrate) {
+                            return -1;
+                        }
+                        if (a.winrate < b.winrate) {
+                            return 1;
+                        }
+                        return 0;
+                    });
 
                     const winRate = parseFloat(
                         (data.response.rootInfo.winrate * 100).toFixed(1)
@@ -150,43 +160,28 @@ function Demo() {
         <>
             <LoadingIndicator show={loading} value={loadedValue} />
             <Container className="flex h-full w-full items-center justify-center">
-                <div
-                    className={
-                        "inline-flex flex-col items-center justify-center"
-                    }
-                >
+                <Flex className="w-full flex-wrap items-center justify-center">
                     <GameBoard
                         gameData={gameData}
                         analysisData={analysisData}
                         currentMove={currentMove}
+                        setMove={setCurrentMove}
+                        setShowRecommendedMoves={setShowRecommendedMoves}
+                        setShowPolicy={setShowPolicy}
+                        setShowOwnership={setShowOwnership}
                         showRecommendedMoves={showRecommendedMoves}
                         showPolicy={showPolicy}
                         showOwnership={showOwnership}
                     />
                     {gameData || viewSample ? (
-                        <>
-                            <Controls
-                                currentMove={currentMove}
-                                setMove={setCurrentMove}
-                                maxMove={gameData?.moves.length}
-                                setShowRecommendedMoves={
-                                    setShowRecommendedMoves
-                                }
-                                showRecommendedMoves={showRecommendedMoves}
-                                showPolicy={showPolicy}
-                                showOwnership={showOwnership}
-                                setShowPolicy={setShowPolicy}
-                                setShowOwnership={setShowOwnership}
-                            />
-                            <WinRate
-                                data={winRate}
-                                maxMove={gameData?.moves.length}
-                                setMove={setCurrentMove}
-                                currentMove={currentMove}
-                            />
-                        </>
+                        <WinRate
+                            data={winRate}
+                            maxMove={gameData?.moves.length}
+                            setMove={setCurrentMove}
+                            currentMove={currentMove}
+                        />
                     ) : (
-                        <div className="fixed flex h-full w-full flex-col items-center justify-center backdrop-blur-md backdrop-brightness-50">
+                        <div className="fixed top-0 left-0 flex h-full w-full flex-col items-center justify-center backdrop-blur-md backdrop-brightness-50">
                             <Upload setFile={setFile} accept={".sgf"} />
                             <a
                                 className="mt-2 flex cursor-pointer items-center justify-center font-medium text-blue-400 hover:underline"
@@ -211,7 +206,7 @@ function Demo() {
                             </a>
                         </div>
                     )}
-                </div>
+                </Flex>
             </Container>
         </>
     );

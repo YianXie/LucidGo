@@ -29,6 +29,7 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
     const chartRef = useRef(null);
     const options = {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
                 position: "top",
@@ -232,7 +233,7 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
     return (
         <>
             {lineData.datasets[0].data ? (
-                <div className="my-5 w-full cursor-pointer">
+                <div className="relative my-5 h-100 w-200 cursor-pointer">
                     <Line
                         ref={chartRef}
                         data={lineData}

@@ -3,7 +3,8 @@ import { GTPLetters } from "../../constants";
 import Board from "@sabaki/go-board";
 import board_bg from "../../assets/images/board/board-bg.png";
 import place_stone_sound from "../../assets/sounds/board/place-stone.wav";
-import { toGTPFormat, toRowColFormat } from "../../utils";
+import Controls from "./Controls";
+import { toRowColFormat } from "../../utils";
 
 /**
  * Draws a Weiqi board with Pixi.js
@@ -15,9 +16,13 @@ function GameBoard({
     gameData,
     analysisData,
     currentMove,
+    setMove,
     showRecommendedMoves,
     showPolicy,
     showOwnership,
+    setShowRecommendedMoves,
+    setShowPolicy,
+    setShowOwnership,
 }) {
     // Canvas variables
     const size = gameData?.size || 19;
@@ -352,12 +357,25 @@ function GameBoard({
     };
 
     return (
-        <canvas
-            ref={canvasRef}
-            className="size-200"
-            width={canvasSize}
-            height={canvasSize}
-        />
+        <div>
+            <canvas
+                ref={canvasRef}
+                className="size-200"
+                width={canvasSize}
+                height={canvasSize}
+            />
+            <Controls
+                currentMove={currentMove}
+                setMove={setMove}
+                maxMove={gameData?.moves.length}
+                setShowRecommendedMoves={setShowRecommendedMoves}
+                setShowPolicy={setShowPolicy}
+                setShowOwnership={setShowOwnership}
+                showRecommendedMoves={showRecommendedMoves}
+                showPolicy={showPolicy}
+                showOwnership={showOwnership}
+            />
+        </div>
     );
 }
 
