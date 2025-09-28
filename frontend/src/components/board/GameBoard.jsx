@@ -109,14 +109,34 @@ function GameBoard({
                     const rawWinRate =
                         currentMove % 2 === 0 ? move.winrate : 1 - move.winrate;
                     const winRate = (rawWinRate * 100).toFixed(1);
-                    drawRecommendedMove(row, col, color, winRate);
+                    drawStone(row, col, color, false, winRate, "white");
                 }
             }
-            // if (showPolicy) {
-            //     drawPolicy(analysisData[currentMove].response.policy);
-            // }
+
             if (showOwnership) {
-                drawOwnership(analysisData[currentMove].response.ownership);
+                const ownership = analysisData[currentMove].response.ownership;
+                for (let i = 0; i < ownership.length; i++) {
+                    const row = Math.floor(i / gameData.size);
+                    const col = i % gameData.size;
+                    if (game.get([row, col]) !== 0) continue;
+
+                    const alpha = Math.min(
+                        0.75,
+                        Math.max(0.25, Math.abs(ownership[i]))
+                    );
+                    const color =
+                        ownership[i] < 0
+                            ? `rgba(0, 0, 0, ${alpha})`
+                            : `rgba(255, 255, 255, ${alpha})`;
+                    drawStone(
+                        row,
+                        col,
+                        color,
+                        false,
+                        null,
+                        color.indexOf("255") === -1 ? "white" : "black"
+                    );
+                }
             }
         }
     }, [
@@ -252,7 +272,9 @@ function GameBoard({
                     row,
                     col,
                     color === 1 ? "black" : "white",
-                    isHighlighted
+                    isHighlighted,
+                    null,
+                    color === 1 ? "white" : "black"
                 );
             }
         }
@@ -262,10 +284,12 @@ function GameBoard({
      * Draw a stone based on the given information
      * @param {number} row - the row of the move
      * @param {number} col - the column of the move
-     * @param {string} color the color of the move (either black or white)
+     * @param {string} color the color of the move
      * @param {boolean} highlight whether to highlight the move or not
+     * @param {string} text the text to draw on the stone
+     * @param {string} textColor the color of the text
      */
-    const drawStone = (row, col, color, highlight) => {
+    const drawStone = (row, col, color, highlight, text, textColor) => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
         ctx.fillStyle = color;
@@ -295,63 +319,16 @@ function GameBoard({
             ctx.fill();
             ctx.closePath();
         }
-    };
 
-    const drawRecommendedMove = (row, col, color, winRate) => {
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
-
-        // Draw the red circle
-        ctx.beginPath();
-        ctx.arc(
-            padding + margin * col,
-            canvasSize - padding - margin * row,
-            stoneRadius - 2,
-            0,
-            2 * Math.PI
-        );
-        ctx.fillStyle = color;
-        ctx.fill();
-        ctx.closePath();
-
-        // Write the winrate text
-        ctx.font = `12px Arial`;
-        ctx.textBaseline = "middle";
-        ctx.textAlign = "center";
-        ctx.fillStyle = "white";
-        ctx.fillText(
-            winRate,
-            padding + margin * col,
-            canvasSize - padding - margin * row
-        );
-    };
-
-    const drawPolicy = (policy) => {
-        for (let i = 0; i < policy.length; i++) {
-            let row = Math.floor(i / gameData.size);
-            let col = i % gameData.size;
-        }
-    };
-
-    const drawOwnership = (ownership) => {
-        for (let i = 0; i < ownership.length; i++) {
-            const row = Math.floor(i / gameData.size);
-            const col = i % gameData.size;
-            if (game.get([row, col]) !== 0) continue;
-
-            const alpha = Math.min(
-                0.75,
-                Math.max(0.25, Math.abs(ownership[i]))
-            );
-            const color =
-                ownership[i] < 0
-                    ? `rgba(0, 0, 0, ${alpha})`
-                    : `rgba(255, 255, 255, ${alpha})`;
-            drawRecommendedMove(
-                row,
-                col,
-                color,
-                (Math.abs(ownership[i]) * 100).toFixed(1)
+        if (text) {
+            ctx.font = "12px Arial";
+            ctx.textBaseline = "middle";
+            ctx.textAlign = "center";
+            ctx.fillStyle = textColor;
+            ctx.fillText(
+                text,
+                padding + margin * col,
+                canvasSize - padding - margin * row
             );
         }
     };

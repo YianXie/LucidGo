@@ -233,7 +233,7 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
     return (
         <>
             {lineData.datasets[0].data ? (
-                <div className="relative my-5 h-100 w-200 cursor-pointer">
+                <div className="relative my-5 h-75 w-150 cursor-pointer">
                     <Line
                         ref={chartRef}
                         data={lineData}

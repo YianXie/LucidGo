@@ -7,14 +7,15 @@ import api from "../api";
 import LoadingIndicator from "../components/global/LoadingIndicator";
 import Upload from "../components/global/Upload";
 import GameBoard from "../components/board/GameBoard";
-// import Controls from "../components/board/Controls";
 import WinRate from "../components/board/WinRate";
 import Container from "../components/global/Container";
 import Flex from "../components/global/Flex";
+import RangeSelector from "../components/global/RangeSelector";
 
 function Demo() {
     const [searchParams, setSearchParams] = useSearchParams();
-    const viewSample = searchParams.get("sample") ? true : false;
+    const viewSampleParam = searchParams.get("sample");
+    const maxVisitsParam = parseInt(searchParams.get("maxVisits")) || 500;
     const [file, setFile] = useState("");
     const [gameData, setGameData] = useState(null);
     const [analysisData, setAnalysisData] = useState(null);
@@ -25,6 +26,7 @@ function Demo() {
     const [showPolicy, setShowPolicy] = useState(false);
     const [showOwnership, setShowOwnership] = useState(false);
     const [loadedValue, setLoadedValue] = useState(0);
+    const [maxVisits, setMaxVisits] = useState(500);
     const getGameDataURL = "/api/get-game-data/";
     const getAnalysisURL = "/api/analyze/";
 
@@ -57,6 +59,7 @@ function Demo() {
                     boardXSize: gameData.size,
                     boardYSize: gameData.size,
                     analyzeTurns: [i],
+                    maxVisits: maxVisitsParam,
                     includePolicy: true,
                     includeOwnership: true,
                 };
@@ -98,10 +101,10 @@ function Demo() {
         return () => {
             setLoadedValue(0);
         };
-    }, [gameData]);
+    }, [gameData, maxVisitsParam]);
 
     useEffect(() => {
-        if (!file && !viewSample) {
+        if (!file && !viewSampleParam) {
             return;
         }
 
@@ -136,7 +139,7 @@ function Demo() {
             }
         }
 
-        if (viewSample) {
+        if (viewSampleParam) {
             getGameData(SGFSample);
         } else {
             const reader = new FileReader();
@@ -146,7 +149,7 @@ function Demo() {
             };
             reader.readAsText(file);
         }
-    }, [file, viewSample]);
+    }, [file, viewSampleParam]);
 
     const handleViewSample = (e) => {
         e.preventDefault();
@@ -156,11 +159,17 @@ function Demo() {
         setSearchParams(newSearchParams);
     };
 
+    const handleApply = () => {
+        const newSearchParams = new URLSearchParams(searchParams);
+        newSearchParams.set("maxVisits", maxVisits);
+        setSearchParams(newSearchParams);
+    };
+
     return (
         <>
             <LoadingIndicator show={loading} value={loadedValue} />
             <Container className="flex h-full w-full items-center justify-center">
-                <Flex className="w-full flex-wrap items-center justify-center">
+                <Flex className="w-full flex-wrap items-center justify-center gap-7.5">
                     <GameBoard
                         gameData={gameData}
                         analysisData={analysisData}
@@ -173,13 +182,45 @@ function Demo() {
                         showPolicy={showPolicy}
                         showOwnership={showOwnership}
                     />
-                    {gameData || viewSample ? (
-                        <WinRate
-                            data={winRate}
-                            maxMove={gameData?.moves.length}
-                            setMove={setCurrentMove}
-                            currentMove={currentMove}
-                        />
+                    {gameData || viewSampleParam ? (
+                        <Flex className="flex-col flex-wrap items-center justify-center gap-5">
+                            <WinRate
+                                data={winRate}
+                                maxMove={gameData?.moves.length}
+                                setMove={setCurrentMove}
+                                currentMove={currentMove}
+                            />
+                            <Flex
+                                className={
+                                    "flex-col items-center justify-center gap-5 pb-5"
+                                }
+                            >
+                                <p className="text-text-1 text-lg font-[500]">
+                                    Settings
+                                </p>
+                                <Flex className="w-full flex-wrap items-center justify-center gap-3">
+                                    <p
+                                        className="text-text-1 text-md"
+                                        aria-label="Max Visits"
+                                    >
+                                        Max Visits
+                                    </p>
+                                    <RangeSelector
+                                        min={100}
+                                        max={1000}
+                                        step={10}
+                                        value={maxVisits}
+                                        setValue={setMaxVisits}
+                                    />
+                                </Flex>
+                                <button
+                                    onClick={handleApply}
+                                    className="text-text-1 bg-bg-4 hover:bg-bg-3 cursor-pointer rounded-md px-4 py-2 transition-all duration-300"
+                                >
+                                    Apply
+                                </button>
+                            </Flex>
+                        </Flex>
                     ) : (
                         <div className="fixed top-0 left-0 flex h-full w-full flex-col items-center justify-center backdrop-blur-md backdrop-brightness-50">
                             <Upload setFile={setFile} accept={".sgf"} />
