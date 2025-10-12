@@ -15,12 +15,13 @@ if ENVIRONMENT == "development":
 else:
     DEBUG = False
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "0.0.0.0",
-    env("API_ENDPOINT"),
-]
+if ENVIRONMENT == "development":
+    ALLOWED_HOSTS = [
+        "localhost",
+        "127.0.0.1",
+    ]
+else:
+    ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -146,6 +147,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "https://www.lucidgo.org",
+    "https://api.lucidgo.org",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
