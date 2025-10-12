@@ -3,14 +3,18 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from sgfmill import sgf
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class AnalyzeView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
         analysis_request = request.data.get("analysis_request")
+        print(analysis_request)
         if not analysis_request:
             return Response({"error": "No analysis request provided"}, status=400)
 
@@ -30,12 +34,13 @@ class AnalyzeView(APIView):
         )
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class GetGameDataView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
         sgf_file_data = request.data.get("sgf_file_data")
-
+        print(sgf_file_data)
         if not sgf_file_data:
             return Response({"error": "No SGF file data provided"}, status=400)
 
