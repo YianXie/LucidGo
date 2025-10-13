@@ -7,6 +7,9 @@ import { defineConfig } from "eslint/config";
 export default defineConfig([
     pluginReact.configs.flat.recommended,
     {
+        ignores: ["dist/**"],
+    },
+    {
         files: ["**/*.{js,jsx}"],
         extends: ["js/recommended"],
         languageOptions: {
