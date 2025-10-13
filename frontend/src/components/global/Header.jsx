@@ -1,19 +1,18 @@
 import logo from "/logo.png";
 import HeaderLink from "./HeaderLink";
+import ClickableIcon from "./ClickableIcon";
 import { GitHubRepositoryLink } from "../../constants";
-import { useNavigate } from "react-router-dom";
+import useNavigation from "../../hooks/useNavigation";
 
 function Header() {
-    const navigate = useNavigate();
+    const { navigateTo, openExternal } = useNavigation();
 
     return (
         <header className="fixed left-50/100 z-100 mt-4 w-80/100 -translate-x-1/2 rounded-4xl border-1 border-gray-700 px-6 backdrop-blur-xs">
             <nav className="flex items-center justify-between">
                 <div
                     className="flex cursor-pointer items-center justify-center gap-3"
-                    onClick={() => {
-                        navigate("/");
-                    }}
+                    onClick={navigateTo("/")}
                 >
                     <img
                         src={logo}
@@ -26,13 +25,12 @@ function Header() {
                     <HeaderLink to={"/docs"}>Docs</HeaderLink>
                     <HeaderLink to={"/video-blog"}>Video Blog</HeaderLink>
                     <HeaderLink to={"/demo"}>Demo</HeaderLink>
-                    <i
-                        className="bi bi-github cursor-pointer text-3xl transition-all hover:opacity-80"
+                    <ClickableIcon
+                        iconClass="bi bi-github"
+                        onClick={openExternal(GitHubRepositoryLink)}
                         title="GitHub Repository"
-                        onClick={() => {
-                            window.open(GitHubRepositoryLink);
-                        }}
-                    ></i>
+                        className="text-3xl"
+                    />
                 </ul>
             </nav>
             <div className="bg-bg-2 absolute top-50/100 left-50/100 z-[-1] h-full w-full -translate-50/100 rounded-4xl opacity-80 backdrop-blur-xl"></div>

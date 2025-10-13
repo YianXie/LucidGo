@@ -1,16 +1,18 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import DarkVeil from "../components/global/assets/DarkVeil";
 import BlurText from "../components/global/assets/BlurText";
 import ButtonPill from "../components/global/assets/ButtonPill";
 import AnimatedContent from "../components/global/assets/AnimatedContent";
 import Flex from "../components/global/Flex";
+import ClickableImage from "../components/global/ClickableImage";
+import HoverOverlay from "../components/global/HoverOverlay";
 import demoPicture from "../assets/images/home/demo.png";
 import { GitHubRepositoryLink, paddingTop } from "../constants";
+import useNavigation from "../hooks/useNavigation";
+import useHover from "../hooks/useHover";
 
 function Home() {
-    const navigate = useNavigate();
-    const [demoImageHovered, setDemoImageHovered] = useState(false);
+    const { navigateTo, openExternal } = useNavigation();
+    const [demoImageHovered, demoImageHoverProps] = useHover();
     const titleClassName = "text-text-1 mt-25 text-5xl/tight font-[600]";
 
     return (
@@ -43,9 +45,7 @@ function Home() {
                             className={
                                 "bg-text-1 hover:bg-text-1/80 active:bg-text-1/60 px-10 py-3"
                             }
-                            onClick={() => {
-                                navigate("/demo");
-                            }}
+                            onClick={navigateTo("/demo")}
                         >
                             Demo
                         </ButtonPill>
@@ -53,42 +53,28 @@ function Home() {
                             className={
                                 "bg-text-1/10 hover:bg-text-1/20 text-text-1 active:bg-text-1/40 border-1 border-gray-600 px-10 py-3"
                             }
-                            onClick={() => {
-                                window.open(GitHubRepositoryLink);
-                            }}
+                            onClick={openExternal(GitHubRepositoryLink)}
                         >
                             GitHub
                         </ButtonPill>
                     </Flex>
-                    <div
-                        className="relative h-max w-max cursor-pointer"
-                        onClick={() => {
-                            window.open("/demo");
-                        }}
-                        onMouseEnter={() => {
-                            setDemoImageHovered(true);
-                        }}
-                        onMouseLeave={() => {
-                            setDemoImageHovered(false);
-                        }}
+                    <ClickableImage
+                        src={demoPicture}
+                        alt="demo picture"
+                        onClick={openExternal("/demo")}
+                        isHovered={demoImageHovered}
+                        hoverProps={demoImageHoverProps}
+                        className="my-15 h-200 w-200"
                     >
-                        <img
-                            src={demoPicture}
-                            alt="demo picture"
-                            draggable={false}
-                            className={`my-15 h-200 w-200 transition-all duration-300 ${demoImageHovered ? "blur-xs brightness-50" : ""}`}
-                        />
-                        <div
-                            className={`absolute top-50/100 left-50/100 flex -translate-50/100 flex-col items-center justify-center gap-3 transition-all duration-300 ${demoImageHovered ? "opacity-100" : "opacity-0"}`}
-                        >
+                        <HoverOverlay isVisible={demoImageHovered}>
                             <i
                                 className={`bi bi-box-arrow-up-right text-text-1 text-3xl`}
                             ></i>
                             <p className="text-text-1 text-3xl font-[500]">
                                 Try it out
                             </p>
-                        </div>
-                    </div>
+                        </HoverOverlay>
+                    </ClickableImage>
                 </AnimatedContent>
             </div>
         </div>
