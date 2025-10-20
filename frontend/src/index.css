@@ -20,3 +20,125 @@
         ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
         "Liberation Mono", "Courier New", monospace;
 }
+
+/* Documentation Styles */
+.prose {
+    color: var(--color-text-1);
+    max-width: none;
+}
+
+.prose h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: var(--color-text-1);
+    border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+    padding-bottom: 0.5rem;
+}
+
+.prose h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: var(--color-text-1);
+}
+
+.prose h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--color-text-1);
+}
+
+.prose h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: var(--color-text-1);
+}
+
+.prose p {
+    margin-bottom: 1rem;
+    line-height: 1.75;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.prose a {
+    color: rgb(59, 130, 246);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.prose a:hover {
+    color: rgb(96, 165, 250);
+    text-decoration: underline;
+}
+
+.prose code {
+    background-color: rgba(59, 130, 246, 0.1);
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.9em;
+    color: rgb(96, 165, 250);
+    font-family: var(--font-mono);
+}
+
+.prose pre {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+}
+
+.prose pre code {
+    background-color: transparent;
+    padding: 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.875rem;
+}
+
+.prose ul, .prose ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+.prose li {
+    margin-bottom: 0.5rem;
+    line-height: 1.75;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.prose ul > li {
+    list-style-type: disc;
+}
+
+.prose ol > li {
+    list-style-type: decimal;
+}
+
+.prose blockquote {
+    border-left: 4px solid rgb(59, 130, 246);
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(59, 130, 246, 0.05);
+    padding: 1rem;
+    border-radius: 0.25rem;
+}
+
+.prose strong {
+    font-weight: 600;
+    color: var(--color-text-1);
+}
+
+.prose hr {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 2rem 0;
+}
