@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Container from "../components/global/Container";
 import Sidebar from "../components/docs/Sidebar";
@@ -10,12 +10,17 @@ import HowToUse from "../../docs/how-to-use.mdx";
 function Docs() {
     const location = useLocation();
     const navigate = useNavigate();
+    const contentRef = useRef(null);
     const [activeSection, setActiveSection] = useState("get-started");
 
     useEffect(() => {
         const hash = location.hash.slice(1);
         if (hash && ["get-started", "installation", "how-to-use"].includes(hash)) {
             setActiveSection(hash);
+            // Scroll to top when section changes
+            if (contentRef.current) {
+                contentRef.current.scrollTop = 0;
+            }
         } else if (!location.hash) {
             navigate("#get-started", { replace: true });
         }
@@ -46,7 +51,10 @@ function Docs() {
                     How to Use
                 </SidebarLink>
             </Sidebar>
-            <div className="prose prose-invert max-w-none flex-1 p-8 overflow-y-auto">
+            <div 
+                ref={contentRef}
+                className="prose prose-invert max-w-none flex-1 p-8 overflow-y-auto scroll-smooth"
+            >
                 {renderContent()}
             </div>
         </Container>
