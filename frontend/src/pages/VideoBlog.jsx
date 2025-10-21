@@ -1,56 +1,57 @@
 import { useParams } from "react-router-dom";
-import { videoData } from "../constants";
+import { videoData, transcriptData } from "../constants";
 import { capitalize } from "../utils";
 import Container from "../components/global/Container";
 import Video from "../components/videos/Video";
-import Flex from "../components/global/Flex";
-import NavigationSidebar from "../components/global/NavigationSidebar";
+import VideoSidebar from "../components/videos/VideoSidebar";
+import VideoSidebarLink from "../components/videos/VideoSidebarLink";
+import Transcript from "../components/videos/Transcript";
 
 function VideoBlog() {
     const { videoId } = useParams();
 
-    const navigationItems = Object.keys(videoData).map((key) => ({
-        key,
-        label: capitalize(key),
-        to: `/video-blog/${key}`,
-    }));
-
     return (
-        <Container>
-            <Flex className={"h-full w-full gap-10"}>
-                <NavigationSidebar
-                    title="Video Blog"
-                    items={navigationItems}
-                    activeKey={videoId}
-                />
+        <Container className="flex">
+            <VideoSidebar>
+                {Object.keys(videoData).map((key) => (
+                    <VideoSidebarLink
+                        key={key}
+                        to={`/video-blog/${key}`}
+                        isActive={videoId === key}
+                    >
+                        {capitalize(key)}
+                    </VideoSidebarLink>
+                ))}
+            </VideoSidebar>
 
-                <Flex
-                    className={
-                        "w-full flex-col items-center gap-2 overflow-auto p-3"
-                    }
-                >
-                    {videoId && videoData[videoId] ? (
-                        <>
-                            <h1 className="text-text-1 mb-3 text-xl font-[500]">
-                                {capitalize(videoId)}
-                            </h1>
-                            <Video link={videoData[videoId]} />
-                            <h1 className="text-text-1 mt-5 mb-3 text-xl font-[500]">
+            <div className="prose prose-invert max-w-none flex-1 overflow-y-auto scroll-smooth p-8">
+                {videoId && videoData[videoId] ? (
+                    <div className="flex flex-col items-center gap-6">
+                        <h1 className="text-text-1 text-2xl font-semibold">
+                            {capitalize(videoId)}
+                        </h1>
+                        <Video link={videoData[videoId]} />
+                        
+                        <div className="mt-8 w-full flex flex-col items-center gap-4">
+                            <h2 className="text-text-1 text-xl font-semibold">
                                 Transcript
+                            </h2>
+                            <Transcript transcript={transcriptData[videoId]} />
+                        </div>
+                    </div>
+                ) : (
+                    <div className="mt-10 flex h-full items-center justify-center">
+                        <div className="text-center">
+                            <h1 className="text-text-1 text-3xl font-semibold">
+                                Welcome to the Video Blog!
                             </h1>
-                        </>
-                    ) : (
-                        <div className="mt-5 w-full text-center">
-                            <h1 className="text-text-1 text-2xl font-[500]">
-                                Welcome to the video blog page!
-                            </h1>
-                            <p className="text-text-1 mt-2">
-                                Click on a video to watch it.
+                            <p className="text-text-1/70 mt-4 text-lg">
+                                Select a video from the sidebar to watch.
                             </p>
                         </div>
-                    )}
-                </Flex>
-            </Flex>
+                    </div>
+                )}
+            </div>
         </Container>
     );
 }
