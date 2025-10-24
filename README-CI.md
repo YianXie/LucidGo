@@ -6,10 +6,10 @@ This project includes a comprehensive CI/CD setup with automated code formatting
 
 ### Local Development
 
-1. **Install development dependencies:**
+1. **Install dependencies:**
 
     ```bash
-    make install-dev
+    make install
     ```
 
 2. **Run all checks:**
@@ -35,7 +35,6 @@ This project includes a comprehensive CI/CD setup with automated code formatting
 
 -   `make help` - Show all available commands
 -   `make install` - Install production dependencies
--   `make install-dev` - Install development dependencies
 -   `make format` - Format all code (Python + Frontend)
 -   `make format-check` - Check if code is formatted correctly
 -   `make lint` - Lint all code (Python + Frontend)
@@ -74,7 +73,7 @@ The CI pipeline runs on every push and pull request to main/develop branches:
 ## Configuration Files
 
 -   `Makefile` - Main automation file
--   `backend/requirements-dev.txt` - Python development dependencies
+-   `backend/requirements.txt` - Python dependencies
 -   `backend/.flake8` - Flake8 configuration
 -   `backend/mypy.ini` - MyPy type checking configuration
 -   `backend/pyproject.toml` - Black, isort, bandit, and coverage configuration

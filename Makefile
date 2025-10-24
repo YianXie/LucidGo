@@ -1,13 +1,12 @@
 # Makefile for CI/CD automation
 # This Makefile provides commands for code formatting, linting, testing, and security checks
 
-.PHONY: help install install-dev format format-check lint lint-python lint-frontend test test-python test-frontend security security-python security-frontend clean all-checks
+.PHONY: help install format format-check lint lint-python lint-frontend test test-python test-frontend security security-python security-frontend clean all-checks
 
 # Default target
 help:
 	@echo "Available commands:"
-	@echo "  install          - Install production dependencies"
-	@echo "  install-dev      - Install development dependencies"
+	@echo "  install          - Install dependencies"
 	@echo "  format           - Format all code (Python + Frontend)"
 	@echo "  format-check     - Check if code is formatted correctly"
 	@echo "  lint             - Lint all code (Python + Frontend)"
@@ -24,13 +23,8 @@ help:
 
 # Installation targets
 install:
-	@echo "Installing production dependencies..."
+	@echo "Installing dependencies..."
 	cd backend && pip install -r requirements.txt
-	cd frontend && npm ci --only=production
-
-install-dev:
-	@echo "Installing development dependencies..."
-	cd backend && pip install -r requirements-dev.txt
 	cd frontend && npm ci
 
 # Formatting targets
@@ -119,8 +113,8 @@ all-checks: format-check lint test security
 
 # CI-specific targets
 ci-install:
-	@echo "Installing dependencies for CI..."
-	cd backend && pip install -r requirements-dev.txt
+	@echo "Installing dependencies..."
+	cd backend && pip install -r requirements.txt
 	cd frontend && npm ci
 
 ci-checks: ci-install format-check lint test security
