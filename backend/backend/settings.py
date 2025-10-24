@@ -105,7 +105,7 @@ else:
     import dj_database_url
 
     DATABASES = {
-        "default": dj_database_url.parse(
+        "default": dj_database_url.parse(  # type: ignore
             env("DB_URL"),
             conn_max_age=600,
         )

@@ -1,5 +1,6 @@
 import httpx
 from rest_framework.permissions import AllowAny
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from sgfmill import sgf
@@ -13,7 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 class AnalyzeView(APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         analysis_request = request.data.get("analysis_request")
         print(analysis_request)
         if not analysis_request:
@@ -39,7 +40,7 @@ class AnalyzeView(APIView):
 class GetGameDataView(APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         sgf_file_data = request.data.get("sgf_file_data")
         print(sgf_file_data)
         if not sgf_file_data:
@@ -48,7 +49,7 @@ class GetGameDataView(APIView):
         try:
             game = sgf.Sgf_game.from_string(sgf_file_data)
         except ValueError as error:
-            return Response({"message": f"Invalid sgf data: {error}"})
+            return Response({"message": f"Invalid sgf data: {error}"}, status=400)
         moves = [node.get_move() for node in game.get_main_sequence()]
         game_data = {
             "moves": moves,

@@ -331,4 +331,8 @@ sketch
 .history
 .ionide
 
+# Security reports
+backend/bandit-report.json
+backend/safety-report.json
+
 # End of https://www.toptal.com/developers/gitignore/api/python,react,django,macos,visualstudiocode

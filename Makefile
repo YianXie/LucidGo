@@ -91,9 +91,9 @@ security: security-python security-frontend
 
 security-python:
 	@echo "Running Python security checks with bandit..."
-	cd backend && bandit -r . -f json -o bandit-report.json
-	@echo "Running safety check for known vulnerabilities..."
-	cd backend && safety check --json --output safety-report.json
+	cd backend && bandit -r . --format json > bandit-report.json
+	@echo "Running safety scan for known vulnerabilities..."
+	cd backend && safety scan -r requirements.txt --output json > safety-report.json
 
 security-frontend:
 	@echo "Running frontend security audit..."
