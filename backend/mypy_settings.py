@@ -5,7 +5,7 @@ This allows mypy to run without requiring actual environment variables.
 
 from datetime import timedelta
 from pathlib import Path
-from typing import Optional, List, Any
+from typing import List, Optional
 
 
 # Mock environ for mypy
