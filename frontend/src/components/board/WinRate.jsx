@@ -1,16 +1,16 @@
-import { useEffect, useState, useRef } from "react";
 import {
-    Chart as ChartJS,
-    Tooltip,
-    Legend,
     CategoryScale,
+    Chart as ChartJS,
+    Legend,
+    LineElement,
     LinearScale,
     PointElement,
-    LineElement,
     Title,
+    Tooltip,
 } from "chart.js";
-import { Line } from "react-chartjs-2";
 import { getRelativePosition } from "chart.js/helpers";
+import { useEffect, useRef, useState } from "react";
+import { Line } from "react-chartjs-2";
 
 ChartJS.register(
     CategoryScale,

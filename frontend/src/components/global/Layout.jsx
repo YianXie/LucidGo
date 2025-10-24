@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
-import { ToastContainer, Bounce } from "react-toastify";
+import { Bounce, ToastContainer } from "react-toastify";
+
 import Header from "./Header";
 
 function Layout() {

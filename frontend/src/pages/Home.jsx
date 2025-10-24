@@ -1,14 +1,14 @@
-import DarkVeil from "../components/global/assets/DarkVeil";
+import demoPicture from "../assets/images/home/demo.png";
+import ClickableImage from "../components/global/ClickableImage";
+import Flex from "../components/global/Flex";
+import HoverOverlay from "../components/global/HoverOverlay";
+import AnimatedContent from "../components/global/assets/AnimatedContent";
 import BlurText from "../components/global/assets/BlurText";
 import ButtonPill from "../components/global/assets/ButtonPill";
-import AnimatedContent from "../components/global/assets/AnimatedContent";
-import Flex from "../components/global/Flex";
-import ClickableImage from "../components/global/ClickableImage";
-import HoverOverlay from "../components/global/HoverOverlay";
-import demoPicture from "../assets/images/home/demo.png";
+import DarkVeil from "../components/global/assets/DarkVeil";
 import { GitHubRepositoryLink, paddingTop } from "../constants";
-import useNavigation from "../hooks/useNavigation";
 import useHover from "../hooks/useHover";
+import useNavigation from "../hooks/useNavigation";
 
 function Home() {
     const { navigateTo, openExternal } = useNavigation();

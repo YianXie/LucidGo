@@ -1,8 +1,9 @@
 import { useState } from "react";
+
+import CheckList from "../global/CheckList";
 import Flex from "../global/Flex";
 import ControlMoveButton from "./ControlMoveButton";
 import ControlUtilButton from "./ControlUtilButton";
-import CheckList from "../global/CheckList";
 
 /**
  * A control panel for the game board

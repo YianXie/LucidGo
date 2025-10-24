@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { SGFSample } from "../constants";
-import { toGTPFormat } from "../utils";
+
 import api from "../api";
-import LoadingIndicator from "../components/global/LoadingIndicator";
-import Upload from "../components/global/Upload";
 import GameBoard from "../components/board/GameBoard";
 import WinRate from "../components/board/WinRate";
 import Container from "../components/global/Container";
-import Flex from "../components/global/Flex";
-import RangeSelector from "../components/global/RangeSelector";
 import ExternalLinkIcon from "../components/global/ExternalLinkIcon";
+import Flex from "../components/global/Flex";
+import LoadingIndicator from "../components/global/LoadingIndicator";
+import RangeSelector from "../components/global/RangeSelector";
+import Upload from "../components/global/Upload";
+import { SGFSample } from "../constants";
+import { toGTPFormat } from "../utils";
 
 function Demo() {
     const [searchParams, setSearchParams] = useSearchParams();

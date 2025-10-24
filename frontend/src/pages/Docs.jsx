@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import Container from "../components/global/Container";
+
+import GetStarted from "../../docs/get-started.mdx";
+import HowToUse from "../../docs/how-to-use.mdx";
+import Installation from "../../docs/installation.mdx";
 import Sidebar from "../components/docs/Sidebar";
 import SidebarLink from "../components/docs/SidebarLink";
-import GetStarted from "../../docs/get-started.mdx";
-import Installation from "../../docs/installation.mdx";
-import HowToUse from "../../docs/how-to-use.mdx";
+import Container from "../components/global/Container";
 
 function Docs() {
     const location = useLocation();
@@ -15,7 +16,10 @@ function Docs() {
 
     useEffect(() => {
         const hash = location.hash.slice(1);
-        if (hash && ["get-started", "installation", "how-to-use"].includes(hash)) {
+        if (
+            hash &&
+            ["get-started", "installation", "how-to-use"].includes(hash)
+        ) {
             setActiveSection(hash);
             // Scroll to top when section changes
             if (contentRef.current) {
@@ -41,19 +45,28 @@ function Docs() {
     return (
         <Container className="flex">
             <Sidebar>
-                <SidebarLink to={"#get-started"} isActive={activeSection === "get-started"}>
+                <SidebarLink
+                    to={"#get-started"}
+                    isActive={activeSection === "get-started"}
+                >
                     Get Started
                 </SidebarLink>
-                <SidebarLink to={"#installation"} isActive={activeSection === "installation"}>
+                <SidebarLink
+                    to={"#installation"}
+                    isActive={activeSection === "installation"}
+                >
                     Installation
                 </SidebarLink>
-                <SidebarLink to={"#how-to-use"} isActive={activeSection === "how-to-use"}>
+                <SidebarLink
+                    to={"#how-to-use"}
+                    isActive={activeSection === "how-to-use"}
+                >
                     How to Use
                 </SidebarLink>
             </Sidebar>
-            <div 
+            <div
                 ref={contentRef}
-                className="prose prose-invert max-w-none flex-1 p-8 overflow-y-auto scroll-smooth"
+                className="prose prose-invert max-w-none flex-1 overflow-y-auto scroll-smooth p-8"
             >
                 {renderContent()}
             </div>

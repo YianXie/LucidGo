@@ -1,10 +1,11 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+
 import Layout from "./components/global/Layout";
-import Home from "./pages/Home";
 import Demo from "./pages/Demo";
 import Docs from "./pages/Docs";
-import VideoBlog from "./pages/VideoBlog";
+import Home from "./pages/Home";
 import NotFoundPage from "./pages/NotFoundPage";
+import VideoBlog from "./pages/VideoBlog";
 
 function App() {
     return (

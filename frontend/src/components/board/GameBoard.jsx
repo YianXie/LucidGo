@@ -1,10 +1,11 @@
-import { useRef, useEffect, useState } from "react";
-import { GTPLetters } from "../../constants";
 import Board from "@sabaki/go-board";
+import { useEffect, useRef, useState } from "react";
+
 import board_bg from "../../assets/images/board/board-bg.png";
 import place_stone_sound from "../../assets/sounds/board/place-stone.wav";
-import Controls from "./Controls";
+import { GTPLetters } from "../../constants";
 import { toRowColFormat } from "../../utils";
+import Controls from "./Controls";
 
 /**
  * Draws a Weiqi board with Pixi.js

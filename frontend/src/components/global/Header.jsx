@@ -1,8 +1,8 @@
-import logo from "/logo.png";
-import HeaderLink from "./HeaderLink";
-import ClickableIcon from "./ClickableIcon";
 import { GitHubRepositoryLink } from "../../constants";
 import useNavigation from "../../hooks/useNavigation";
+import ClickableIcon from "./ClickableIcon";
+import HeaderLink from "./HeaderLink";
+import logo from "/logo.png";
 
 function Header() {
     const { navigateTo, openExternal } = useNavigation();

@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+<<<<<<< HEAD
 import { videoData, transcriptData } from "../constants";
 import { capitalize } from "../utils";
 import Container from "../components/global/Container";
@@ -6,6 +7,15 @@ import Video from "../components/videos/Video";
 import VideoSidebar from "../components/videos/VideoSidebar";
 import VideoSidebarLink from "../components/videos/VideoSidebarLink";
 import Transcript from "../components/videos/Transcript";
+=======
+
+import Container from "../components/global/Container";
+import Flex from "../components/global/Flex";
+import NavigationSidebar from "../components/global/NavigationSidebar";
+import Video from "../components/videos/Video";
+import { videoData } from "../constants";
+import { capitalize } from "../utils";
+>>>>>>> b17305a (refactor: :recycle: Formatted code)
 
 function VideoBlog() {
     const { videoId } = useParams();

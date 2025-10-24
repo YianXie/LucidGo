@@ -1,8 +1,8 @@
 import js from "@eslint/js";
 import react from "eslint-plugin-react";
-import globals from "globals";
 import pluginReact from "eslint-plugin-react";
 import { defineConfig } from "eslint/config";
+import globals from "globals";
 
 export default defineConfig([
     pluginReact.configs.flat.recommended,
