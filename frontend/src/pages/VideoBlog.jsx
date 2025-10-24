@@ -1,21 +1,12 @@
 import { useParams } from "react-router-dom";
-<<<<<<< HEAD
-import { videoData, transcriptData } from "../constants";
-import { capitalize } from "../utils";
+
 import Container from "../components/global/Container";
+import Transcript from "../components/videos/Transcript";
 import Video from "../components/videos/Video";
 import VideoSidebar from "../components/videos/VideoSidebar";
 import VideoSidebarLink from "../components/videos/VideoSidebarLink";
-import Transcript from "../components/videos/Transcript";
-=======
-
-import Container from "../components/global/Container";
-import Flex from "../components/global/Flex";
-import NavigationSidebar from "../components/global/NavigationSidebar";
-import Video from "../components/videos/Video";
-import { videoData } from "../constants";
+import { transcriptData, videoData } from "../constants";
 import { capitalize } from "../utils";
->>>>>>> b17305a (refactor: :recycle: Formatted code)
 
 function VideoBlog() {
     const { videoId } = useParams();
@@ -41,7 +32,7 @@ function VideoBlog() {
                             {capitalize(videoId)}
                         </h1>
                         <Video link={videoData[videoId]} />
-                        
+
                         <div className="mt-8 w-full flex flex-col items-center gap-4">
                             <h2 className="text-text-1 text-xl font-semibold">
                                 Transcript
