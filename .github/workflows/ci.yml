@@ -1,65 +1,150 @@
-name: CI Checks
+name: CI
 
 on:
     push:
-        branches: [main, develop]
+        branches: [main]
     pull_request:
-        branches: [main, develop]
+        branches: [main]
 
 jobs:
-    ci-checks:
+    backend-tests:
+        name: Backend Tests
         runs-on: ubuntu-latest
 
-        strategy:
-            matrix:
-                python-version: [3.11]
-                node-version: [18]
+        services:
+            postgres:
+                image: postgres:15
+                env:
+                    POSTGRES_PASSWORD: postgres
+                    POSTGRES_DB: test_db
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 5432:5432
 
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
 
-            - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v5
+            - name: Install python
+              uses: actions/setup-python@v4
               with:
-                  python-version: ${{ matrix.python-version }}
-                  cache: "pip"
+                  python-version: "3.13"
 
-            - name: Set up Node.js ${{ matrix.node-version }}
+            - name: Install dependencies
+              working-directory: ./backend
+              run: |
+                  pip install -r requirements.txt
+
+            - name: Run Django tests
+              working-directory: ./backend
+              env:
+                  SECRET_KEY: test-secret-key-for-ci
+                  ENVIRONMENT: development
+                  ALLOWED_HOSTS: localhost,127.0.0.1
+              run: |
+                  python manage.py makemigrations && python manage.py migrate
+                  python manage.py test
+
+    frontend-checks:
+        name: Frontend Linting & Formatting
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: ${{ matrix.node-version }}
+                  node-version: "18"
                   cache: "npm"
                   cache-dependency-path: frontend/package-lock.json
 
-            - name: Install Python dependencies
+            - name: Install dependencies
+              working-directory: ./frontend
+              run: npm ci
+
+            - name: Run ESLint
+              working-directory: ./frontend
+              run: npm run lint
+
+            - name: Check Prettier formatting
+              working-directory: ./frontend
+              run: npx prettier --check "src/**/*.{js,jsx,css,md}"
+
+            - name: Build frontend
+              working-directory: ./frontend
+              run: npm run build
+
+    backend-linting:
+        name: Backend Code Quality
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Install python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.13"
+
+            - name: Install dependencies
+              working-directory: ./backend
               run: |
-                  cd backend
                   pip install -r requirements.txt
 
-            - name: Install Node.js dependencies
-              run: |
-                  cd frontend
-                  npm ci
+            - name: Run Ruff (code formatting check)
+              working-directory: ./backend
+              run: ruff format --check .
 
-            - name: Run code formatting check
-              run: make format-check
+            - name: Run isort (import sorting check)
+              working-directory: ./backend
+              run: isort --check-only --diff .
 
-            - name: Run linting checks
-              run: make lint
+    security-checks:
+        name: Security Checks
+        runs-on: ubuntu-latest
 
-            - name: Run security checks
-              run: make security
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-            - name: Run tests
-              run: make test
-
-            - name: Upload security reports
-              uses: actions/upload-artifact@v4
-              if: always()
+            - name: Install python
+              uses: actions/setup-python@v4
               with:
-                  name: security-reports
-                  path: |
-                      backend/bandit-report.json
-                      backend/safety-report.json
-                  retention-days: 30
+                  python-version: "3.13"
+
+            - name: Install dependencies
+              working-directory: ./backend
+              run: |
+                  pip install -r requirements.txt
+
+            - name: Run Safety CLI to check for vulnerabilities
+              uses: pyupio/safety-action@v1
+              with:
+                  api-key: ${{ secrets.SAFETY_API_KEY }}
+                  args: --detailed-output
+
+            - name: Run bandit (security linting)
+              working-directory: ./backend
+              run: bandit -r . -x ./.env -x ./__pycache__ -x ./.venv
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "18"
+                  cache: "npm"
+                  cache-dependency-path: frontend/package-lock.json
+
+            - name: Install frontend dependencies
+              working-directory: ./frontend
+              run: npm ci
+
+            - name: Run npm audit
+              working-directory: ./frontend
+              run: npm audit --audit-level=moderate
