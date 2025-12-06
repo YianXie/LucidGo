@@ -45,6 +45,8 @@ jobs:
                   SECRET_KEY: test-secret-key-for-ci
                   ENVIRONMENT: development
                   ALLOWED_HOSTS: localhost,127.0.0.1
+                  API_ENDPOINT: ${{ secrets.API_ENDPOINT }}
+                  API_TIMEOUT: 30
               run: |
                   python manage.py makemigrations && python manage.py migrate
                   python manage.py test
