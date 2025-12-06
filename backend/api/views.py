@@ -16,7 +16,6 @@ class AnalyzeView(APIView):
 
     def post(self, request: Request) -> Response:
         analysis_request = request.data.get("analysis_request")
-        print(analysis_request)
         if not analysis_request:
             return Response({"error": "No analysis request provided"}, status=400)
 
@@ -42,7 +41,6 @@ class GetGameDataView(APIView):
 
     def post(self, request: Request) -> Response:
         sgf_file_data = request.data.get("sgf_file_data")
-        print(sgf_file_data)
         if not sgf_file_data:
             return Response({"error": "No SGF file data provided"}, status=400)
 
