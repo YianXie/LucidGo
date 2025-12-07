@@ -41,6 +41,16 @@ jobs:
                   remote_user: ${{ secrets.EC2_USER }}
                   remote_key: ${{ secrets.EC2_KEY }}
 
+            - name: Run deploy script for EC2
+              uses: appleboy/ssh-action@master
+              with:
+                  host: ${{ secrets.EC2_HOST }}
+                  username: ${{ secrets.EC2_USER }}
+                  key: ${{ secrets.EC2_KEY }}
+                  script: |
+                      cd /home/ubuntu/lucid-go/app/backend
+                      ./deploy.sh
+
             - name: Revoke SSH from runner
               if: always()
               run: |

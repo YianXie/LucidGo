@@ -4,7 +4,7 @@ LucidGo allows you to use visually see the analysis for each move
 
 ## Introduction
 
-Go (Weiqi) is often refers as abstract and difficult to understand. However, with the advancement of AI (Artificial Intelligence) technology, such as AlphaGo and [KataGo](https://github.com/lightvector/KataGo), it has became a lot easier to study and play.
+Go (Weiqi) is often referred as abstract and difficult to understand. However, with the advancement of AI (Artificial Intelligence) technology, such as [KataGo](https://github.com/lightvector/KataGo), it has became a lot easier to study and play.
 
 Most people enjoy the assistance from AI, but have no idea how it works, and what factors affect its performance. LucidGo allows you to visually see AI, such as Katago, make its decisions in real time, and is highly customizable to fit your need.
 
@@ -41,7 +41,7 @@ python -m venv env
 # activate the virtual environment
 source env/bin/activate
 
-# (optional) to deactivate after you are done experimenting
+# (optional) to deactivate after you are done developing
 deactivate
 
 # install the required Python libraries
@@ -49,6 +49,18 @@ cd backend && pip install -r requirements.txt
 
 # install the required npm packages
 cd ../frontend && npm install
+```
+
+To start the website:
+
+```bash
+# Start the backend server
+cd backend
+python manage.py runserver
+
+# Start the frontend server
+cd ../frontend
+npm run dev
 ```
 
 ## AWS Setup
@@ -63,7 +75,7 @@ _Recommended instance: Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 24.0
 
 Choose a reasonably good set up (e.g. g4dn.xlarge), and then start your server.
 
-_If you encountered any quota issue, you may need to request for a quota increase_
+> If you encountered any quota issue, you may need to request for a quota increase
 
 Then, copy your instance's **public IPv4 address** (e.g. 12.345.678.999), and paste it in the `.env` file in your `backend` directory.
 
