@@ -14,6 +14,48 @@ import Upload from "../components/global/Upload";
 import { SGFSample } from "../constants";
 import { toGTPFormat } from "../utils";
 
+/**
+ * Check if the server is currently available based on GMT+8 timezone
+ * Server starts at 15:00 GMT+8 on weekdays, 08:00 GMT+8 on weekends
+ * Server stops at 22:00 GMT+8 every day
+ * @returns {boolean} - True if server is available, false otherwise
+ */
+function isServerAvailable() {
+    const now = new Date();
+
+    // Get GMT+8 time using Intl.DateTimeFormat for accurate timezone conversion
+    const formatter = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Shanghai",
+        hour: "numeric",
+        minute: "numeric",
+        weekday: "long",
+        hour12: false,
+    });
+
+    const parts = formatter.formatToParts(now);
+    const hours = parseInt(parts.find((p) => p.type === "hour").value);
+    const minutes = parseInt(parts.find((p) => p.type === "minute").value);
+    const dayOfWeek = parts.find((p) => p.type === "weekday").value;
+
+    const currentTimeInMinutes = hours * 60 + minutes;
+    const stopTimeInMinutes = 22 * 60; // 22:00
+
+    // Check if past stop time
+    if (currentTimeInMinutes >= stopTimeInMinutes) {
+        return false;
+    }
+
+    // Check if before start time
+    const isWeekend = dayOfWeek === "Saturday" || dayOfWeek === "Sunday";
+    const startTimeInMinutes = isWeekend ? 8 * 60 : 15 * 60; // 08:00 on weekends, 15:00 on weekdays
+
+    if (currentTimeInMinutes < startTimeInMinutes) {
+        return false;
+    }
+
+    return true;
+}
+
 function Demo() {
     const [searchParams, setSearchParams] = useSearchParams();
     const viewSampleParam = searchParams.get("sample");
@@ -29,8 +71,24 @@ function Demo() {
     const [showOwnership, setShowOwnership] = useState(false);
     const [loadedValue, setLoadedValue] = useState(0);
     const [maxVisits, setMaxVisits] = useState(500);
+    const [serverAvailable, setServerAvailable] = useState(isServerAvailable());
     const getGameDataURL = "/api/get-game-data/";
     const getAnalysisURL = "/api/analyze/";
+
+    // Check server availability periodically
+    useEffect(() => {
+        const checkAvailability = () => {
+            setServerAvailable(isServerAvailable());
+        };
+
+        // Check immediately
+        checkAvailability();
+
+        // Check every minute
+        const interval = setInterval(checkAvailability, 60000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         if (!gameData) {
@@ -167,9 +225,77 @@ function Demo() {
         setSearchParams(newSearchParams);
     };
 
+    // Get next available time message
+    const getNextAvailableTime = () => {
+        const now = new Date();
+
+        // Get GMT+8 time using Intl.DateTimeFormat
+        const formatter = new Intl.DateTimeFormat("en-US", {
+            timeZone: "Asia/Shanghai",
+            hour: "numeric",
+            minute: "numeric",
+            weekday: "long",
+            hour12: false,
+        });
+
+        const parts = formatter.formatToParts(now);
+        const hours = parseInt(parts.find((p) => p.type === "hour").value);
+        const minutes = parseInt(parts.find((p) => p.type === "minute").value);
+        const dayOfWeek = parts.find((p) => p.type === "weekday").value;
+
+        const isWeekend = dayOfWeek === "Saturday" || dayOfWeek === "Sunday";
+        const currentTimeInMinutes = hours * 60 + minutes;
+        const stopTimeInMinutes = 22 * 60;
+
+        if (currentTimeInMinutes >= stopTimeInMinutes) {
+            // Server will be available tomorrow
+            const tomorrow = new Date(now);
+            tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+            const tomorrowFormatter = new Intl.DateTimeFormat("en-US", {
+                timeZone: "Asia/Shanghai",
+                weekday: "long",
+            });
+            const tomorrowDayOfWeek = tomorrowFormatter
+                .formatToParts(tomorrow)
+                .find((p) => p.type === "weekday").value;
+            const tomorrowIsWeekend =
+                tomorrowDayOfWeek === "Saturday" ||
+                tomorrowDayOfWeek === "Sunday";
+            const startTime = tomorrowIsWeekend ? "08:00" : "15:00";
+            return `The server will be available tomorrow at ${startTime} GMT+8`;
+        } else {
+            // Server will be available today
+            const startTime = isWeekend ? "08:00" : "15:00";
+            return `The server will be available today at ${startTime} GMT+8`;
+        }
+    };
+
     return (
         <>
             <LoadingIndicator show={loading} value={loadedValue} />
+            {!serverAvailable && (
+                <div className="fixed top-0 left-0 z-50 flex h-full w-full flex-col items-center justify-center backdrop-blur-md backdrop-brightness-50">
+                    <div className="bg-bg-1 rounded-lg border border-bg-3 p-8 shadow-lg max-w-md mx-4">
+                        <h2 className="text-text-1 text-2xl font-bold mb-4 text-center">
+                            Demo Unavailable
+                        </h2>
+                        <p className="text-text-1 text-lg mb-2 text-center">
+                            The demo server is currently unavailable at this
+                            time.
+                        </p>
+                        <p className="text-text-2 text-md mt-4 text-center">
+                            {getNextAvailableTime()}
+                        </p>
+                        <div className="mt-6 text-text-2 text-sm text-center">
+                            <p>Server Hours:</p>
+                            <p className="mt-2">
+                                Weekdays: 15:00 - 22:00 GMT+8
+                            </p>
+                            <p>Weekends: 08:00 - 22:00 GMT+8</p>
+                        </div>
+                    </div>
+                </div>
+            )}
             <Container className="flex h-full w-full items-center justify-center">
                 <Flex className="w-full flex-wrap items-center justify-center gap-7.5">
                     <GameBoard
