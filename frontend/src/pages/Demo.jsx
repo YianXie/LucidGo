@@ -1,3 +1,18 @@
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import Backdrop from "@mui/material/Backdrop";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import CircularProgress from "@mui/material/CircularProgress";
+import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import Link from "@mui/material/Link";
+import Slider from "@mui/material/Slider";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -6,10 +21,6 @@ import api from "../api";
 import GameBoard from "../components/board/GameBoard";
 import WinRate from "../components/board/WinRate";
 import Container from "../components/global/Container";
-import ExternalLinkIcon from "../components/global/ExternalLinkIcon";
-import Flex from "../components/global/Flex";
-import LoadingIndicator from "../components/global/LoadingIndicator";
-import RangeSelector from "../components/global/RangeSelector";
 import Upload from "../components/global/Upload";
 import { SGFSample } from "../constants";
 import { toGTPFormat } from "../utils";
@@ -213,7 +224,6 @@ function Demo() {
 
     const handleViewSample = (e) => {
         e.preventDefault();
-
         const newSearchParams = new URLSearchParams(searchParams);
         newSearchParams.set("sample", "true");
         setSearchParams(newSearchParams);
@@ -231,7 +241,7 @@ function Demo() {
 
         // Get GMT+8 time using Intl.DateTimeFormat
         const formatter = new Intl.DateTimeFormat("en-US", {
-            timeZone: "Asia/Shanghai",
+            timeZone: "Asia/Singapore",
             hour: "numeric",
             minute: "numeric",
             weekday: "long",
@@ -252,7 +262,7 @@ function Demo() {
             const tomorrow = new Date(now);
             tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
             const tomorrowFormatter = new Intl.DateTimeFormat("en-US", {
-                timeZone: "Asia/Shanghai",
+                timeZone: "Asia/Singapore",
                 weekday: "long",
             });
             const tomorrowDayOfWeek = tomorrowFormatter
@@ -272,96 +282,215 @@ function Demo() {
 
     return (
         <>
-            <LoadingIndicator show={loading} value={loadedValue} />
-            {!serverAvailable && (
-                <div className="fixed top-0 left-0 z-50 flex h-full w-full flex-col items-center justify-center backdrop-blur-md backdrop-brightness-50">
-                    <div className="bg-bg-1 rounded-lg border border-bg-3 p-8 shadow-lg max-w-md mx-4">
-                        <h2 className="text-text-1 text-2xl font-bold mb-4 text-center">
-                            Demo Unavailable
-                        </h2>
-                        <p className="text-text-1 text-lg mb-2 text-center">
-                            The demo server is currently unavailable at this
-                            time.
-                        </p>
-                        <p className="text-text-2 text-md mt-4 text-center">
-                            {getNextAvailableTime()}
-                        </p>
-                        <div className="mt-6 text-text-2 text-sm text-center">
-                            <p>Server Hours:</p>
-                            <p className="mt-2">
-                                Weekdays: 15:00 - 22:00 GMT+8
-                            </p>
-                            <p>Weekends: 08:00 - 22:00 GMT+8</p>
-                        </div>
-                    </div>
-                </div>
-            )}
-            <Container className="flex h-full w-full items-center justify-center">
-                <Flex className="w-full flex-wrap items-center justify-center gap-7.5">
-                    <GameBoard
-                        gameData={gameData}
-                        analysisData={analysisData}
-                        currentMove={currentMove}
-                        setMove={setCurrentMove}
-                        setShowRecommendedMoves={setShowRecommendedMoves}
-                        setShowPolicy={setShowPolicy}
-                        setShowOwnership={setShowOwnership}
-                        showRecommendedMoves={showRecommendedMoves}
-                        showPolicy={showPolicy}
-                        showOwnership={showOwnership}
-                    />
-                    {gameData || viewSampleParam ? (
-                        <Flex className="flex-col flex-wrap items-center justify-center gap-5">
-                            <WinRate
-                                data={winRate}
-                                maxMove={gameData?.moves.length}
-                                setMove={setCurrentMove}
+            <Backdrop
+                open={loading}
+                sx={{
+                    color: "#fff",
+                    zIndex: (theme) => theme.zIndex.drawer + 1,
+                    flexDirection: "column",
+                    gap: 2,
+                }}
+            >
+                {loadedValue > 0 ? (
+                    <>
+                        <CircularProgress
+                            variant="determinate"
+                            value={loadedValue}
+                            size={120}
+                            thickness={4}
+                        />
+                        <Typography variant="h6">
+                            {loadedValue.toFixed(1)}%
+                        </Typography>
+                    </>
+                ) : (
+                    <>
+                        <CircularProgress size={80} />
+                        <Typography variant="h6">Loading...</Typography>
+                    </>
+                )}
+            </Backdrop>
+
+            <Dialog
+                open={!serverAvailable}
+                maxWidth="sm"
+                fullWidth
+                slotProps={{
+                    sx: {
+                        borderRadius: 2,
+                    },
+                }}
+            >
+                <DialogTitle>Demo Unavailable</DialogTitle>
+                <DialogContent>
+                    <DialogContentText sx={{ mb: 2 }}>
+                        The demo server is currently unavailable at this time.
+                    </DialogContentText>
+                    <DialogContentText sx={{ mb: 3 }}>
+                        {getNextAvailableTime()}
+                    </DialogContentText>
+                    <Box sx={{ mt: 3 }}>
+                        <Typography variant="body2" color="text.secondary">
+                            Server Hours:
+                        </Typography>
+                        <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ mt: 1 }}
+                        >
+                            Weekdays: 15:00 - 22:00 GMT+8
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            Weekends: 08:00 - 22:00 GMT+8
+                        </Typography>
+                    </Box>
+                </DialogContent>
+            </Dialog>
+
+            <Container>
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: { xs: "column", lg: "row" },
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 4,
+                        py: 4,
+                        minHeight: "calc(100vh - 100px)",
+                    }}
+                >
+                    {(gameData || viewSampleParam) && (
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                gap: 3,
+                            }}
+                        >
+                            <GameBoard
+                                gameData={gameData}
+                                analysisData={analysisData}
                                 currentMove={currentMove}
-                            />
-                            <Flex
-                                className={
-                                    "flex-col items-center justify-center gap-5 pb-5"
+                                setMove={setCurrentMove}
+                                setShowRecommendedMoves={
+                                    setShowRecommendedMoves
                                 }
-                            >
-                                <p className="text-text-1 text-lg font-[500]">
-                                    Settings
-                                </p>
-                                <Flex className="w-full flex-wrap items-center justify-center gap-3">
-                                    <p
-                                        className="text-text-1 text-md"
-                                        aria-label="Max Visits"
-                                    >
-                                        Max Visits
-                                    </p>
-                                    <RangeSelector
-                                        min={100}
-                                        max={1000}
-                                        step={10}
-                                        value={maxVisits}
-                                        setValue={setMaxVisits}
+                                setShowPolicy={setShowPolicy}
+                                setShowOwnership={setShowOwnership}
+                                showRecommendedMoves={showRecommendedMoves}
+                                showPolicy={showPolicy}
+                                showOwnership={showOwnership}
+                            />
+                        </Box>
+                    )}
+
+                    {gameData || viewSampleParam ? (
+                        <Card
+                            sx={{
+                                width: { xs: "100%", sm: 400 },
+                                maxWidth: "100%",
+                            }}
+                        >
+                            <CardContent>
+                                <Stack spacing={3} alignItems="center">
+                                    <WinRate
+                                        data={winRate}
+                                        maxMove={gameData?.moves.length}
+                                        setMove={setCurrentMove}
+                                        currentMove={currentMove}
                                     />
-                                </Flex>
-                                <button
-                                    onClick={handleApply}
-                                    className="text-text-1 bg-bg-4 hover:bg-bg-3 cursor-pointer rounded-md px-4 py-2 transition-all duration-300"
-                                >
-                                    Apply
-                                </button>
-                            </Flex>
-                        </Flex>
+                                    <Box
+                                        sx={{
+                                            width: "100%",
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: 2,
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <Typography variant="h6">
+                                            Settings
+                                        </Typography>
+                                        <Box sx={{ width: "100%", px: 2 }}>
+                                            <Typography
+                                                variant="body2"
+                                                gutterBottom
+                                                sx={{ mb: 2 }}
+                                            >
+                                                Max Visits: {maxVisits}
+                                            </Typography>
+                                            <Slider
+                                                value={maxVisits}
+                                                onChange={(e, newValue) =>
+                                                    setMaxVisits(newValue)
+                                                }
+                                                min={100}
+                                                max={1000}
+                                                step={10}
+                                                marks={[
+                                                    {
+                                                        value: 100,
+                                                        label: "100",
+                                                    },
+                                                    {
+                                                        value: 1000,
+                                                        label: "1000",
+                                                    },
+                                                ]}
+                                                aria-label="Max Visits"
+                                            />
+                                        </Box>
+                                        <Button
+                                            variant="contained"
+                                            onClick={handleApply}
+                                            sx={{ mt: 1 }}
+                                        >
+                                            Apply
+                                        </Button>
+                                    </Box>
+                                </Stack>
+                            </CardContent>
+                        </Card>
                     ) : (
-                        <div className="fixed top-0 left-0 flex h-full w-full flex-col items-center justify-center backdrop-blur-md backdrop-brightness-50">
+                        <Backdrop
+                            open={true}
+                            sx={{
+                                color: "#fff",
+                                flexDirection: "column",
+                                gap: 2,
+                                backdropFilter: "blur(4px)",
+                                animation: "fadeIn 0.3s ease",
+                                "@keyframes fadeIn": {
+                                    from: {
+                                        opacity: 0,
+                                    },
+                                    to: {
+                                        opacity: 1,
+                                    },
+                                },
+                            }}
+                        >
                             <Upload setFile={setFile} accept={".sgf"} />
-                            <a
-                                className="mt-2 flex cursor-pointer items-center justify-center font-medium text-blue-400 hover:underline"
+                            <Link
+                                component="button"
                                 onClick={handleViewSample}
+                                sx={{
+                                    color: "primary.light",
+                                    textDecoration: "underline",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 0.5,
+                                    cursor: "pointer",
+                                    mt: 2,
+                                }}
                             >
                                 View a sample
-                                <ExternalLinkIcon />
-                            </a>
-                        </div>
+                                <OpenInNewIcon fontSize="small" />
+                            </Link>
+                        </Backdrop>
                     )}
-                </Flex>
+                </Box>
             </Container>
         </>
     );

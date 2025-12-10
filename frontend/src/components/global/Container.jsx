@@ -1,13 +1,23 @@
+import Box from "@mui/material/Box";
+import MuiContainer from "@mui/material/Container";
+
 import { paddingTop } from "../../constants";
 
-function Container({ className, children }) {
+function Container({ className, children, ...props }) {
     return (
-        <div
-            className={`bg-bg-1 z-1 h-full w-full ${className}`}
-            style={{ paddingTop: `${paddingTop}px` }}
+        <Box
+            sx={{
+                minHeight: "100vh",
+                width: "100%",
+                pt: `${paddingTop}px`,
+                backgroundColor: "background.default",
+            }}
+            className={className}
         >
-            {children}
-        </div>
+            <MuiContainer maxWidth={false} {...props}>
+                {children}
+            </MuiContainer>
+        </Box>
     );
 }
 

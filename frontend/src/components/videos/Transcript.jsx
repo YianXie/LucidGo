@@ -1,28 +1,57 @@
+import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+
 function Transcript({ transcript }) {
     if (!transcript) {
         return (
-            <div className="text-text-1/70 w-full max-w-2xl text-center">
-                <p>No transcript available for this video.</p>
-            </div>
+            <Box
+                sx={{
+                    width: "100%",
+                    maxWidth: 800,
+                    textAlign: "center",
+                    color: "text.secondary",
+                }}
+            >
+                <Typography>No transcript available for this video.</Typography>
+            </Box>
         );
     }
 
     return (
-        <div className="text-text-1 w-full max-w-2xl rounded-lg bg-gray-900/30 p-6">
-            <div className="space-y-4">
+        <Paper
+            elevation={0}
+            sx={{
+                width: "100%",
+                maxWidth: 800,
+                p: 3,
+                backgroundColor: "background.paper",
+            }}
+        >
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {transcript.map((entry, index) => (
-                    <div
+                    <Box
                         key={index}
-                        className="border-l-2 border-blue-500/30 pl-4"
+                        sx={{
+                            borderLeft: 2,
+                            borderColor: "primary.light",
+                            pl: 2,
+                        }}
                     >
-                        <div className="text-text-1/50 mb-1 text-sm">
+                        <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ display: "block", mb: 0.5 }}
+                        >
                             {entry.timestamp}
-                        </div>
-                        <p className="leading-relaxed">{entry.text}</p>
-                    </div>
+                        </Typography>
+                        <Typography variant="body1" sx={{ lineHeight: 1.8 }}>
+                            {entry.text}
+                        </Typography>
+                    </Box>
                 ))}
-            </div>
-        </div>
+            </Box>
+        </Paper>
     );
 }
 

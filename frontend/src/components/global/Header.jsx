@@ -1,40 +1,197 @@
+import GitHubIcon from "@mui/icons-material/GitHub";
+import MenuIcon from "@mui/icons-material/Menu";
+import AppBar from "@mui/material/AppBar";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Drawer from "@mui/material/Drawer";
+import IconButton from "@mui/material/IconButton";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemText from "@mui/material/ListItemText";
+import Slide from "@mui/material/Slide";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import useScrollTrigger from "@mui/material/useScrollTrigger";
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+
 import { GitHubRepositoryLink } from "../../constants";
-import useNavigation from "../../hooks/useNavigation";
-import ClickableIcon from "./ClickableIcon";
-import HeaderLink from "./HeaderLink";
 import logo from "/logo.png";
 
+function HideOnScroll({ children }) {
+    const trigger = useScrollTrigger({
+        target: window,
+        threshold: 100,
+    });
+    return (
+        <Slide appear={false} direction="down" in={!trigger}>
+            {children}
+        </Slide>
+    );
+}
+
 function Header() {
-    const { navigateTo, openExternal } = useNavigation();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const [mobileOpen, setMobileOpen] = useState(false);
+
+    const handleDrawerToggle = () => {
+        setMobileOpen(!mobileOpen);
+    };
+
+    const navItems = [
+        { label: "Docs", path: "/docs" },
+        { label: "Video Blog", path: "/video-blog" },
+        { label: "Demo", path: "/demo" },
+    ];
+
+    const drawer = (
+        <Box onClick={handleDrawerToggle} sx={{ textAlign: "center" }}>
+            <List>
+                {navItems.map((item) => (
+                    <ListItem key={item.path} disablePadding>
+                        <ListItemButton
+                            onClick={() => navigate(item.path)}
+                            selected={location.pathname === item.path}
+                            sx={{
+                                textAlign: "center",
+                                "&.Mui-selected": {
+                                    backgroundColor: "action.selected",
+                                },
+                            }}
+                        >
+                            <ListItemText primary={item.label} />
+                        </ListItemButton>
+                    </ListItem>
+                ))}
+                <ListItem disablePadding>
+                    <ListItemButton
+                        onClick={() =>
+                            window.open(GitHubRepositoryLink, "_blank")
+                        }
+                        sx={{ textAlign: "center" }}
+                    >
+                        <ListItemText primary="GitHub" />
+                    </ListItemButton>
+                </ListItem>
+            </List>
+        </Box>
+    );
 
     return (
-        <header className="fixed left-50/100 z-100 mt-4 w-80/100 -translate-x-1/2 rounded-4xl border-1 border-gray-700 px-6 backdrop-blur-xs">
-            <nav className="flex items-center justify-between">
-                <div
-                    className="flex cursor-pointer items-center justify-center gap-3"
-                    onClick={navigateTo("/")}
+        <>
+            <HideOnScroll>
+                <AppBar
+                    sx={{
+                        position: "sticky",
+                        top: 0,
+                        width: "100%",
+                        backgroundColor: "background.paper",
+                        color: "text.primary",
+                        boxShadow: 4,
+                    }}
                 >
-                    <img
-                        src={logo}
-                        alt="Logo"
-                        className="h-10 w-10 cursor-pointer"
-                    />
-                    <p className="text-text-1 text-lg font-[500]">LucidGo</p>
-                </div>
-                <ul className="text-text-1 flex items-center gap-7.5">
-                    <HeaderLink to={"/docs"}>Docs</HeaderLink>
-                    <HeaderLink to={"/video-blog"}>Video Blog</HeaderLink>
-                    <HeaderLink to={"/demo"}>Demo</HeaderLink>
-                    <ClickableIcon
-                        iconClass="bi bi-github"
-                        onClick={openExternal(GitHubRepositoryLink)}
-                        title="GitHub Repository"
-                        className="text-3xl"
-                    />
-                </ul>
-            </nav>
-            <div className="bg-bg-2 absolute top-50/100 left-50/100 z-[-1] h-full w-full -translate-50/100 rounded-4xl opacity-80 backdrop-blur-xl"></div>
-        </header>
+                    <Toolbar sx={{ justifyContent: "space-between" }}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1.5,
+                                cursor: "pointer",
+                            }}
+                            onClick={() => navigate("/")}
+                        >
+                            <img
+                                src={logo}
+                                alt="Logo"
+                                style={{ height: 40, width: 40 }}
+                            />
+                            <Typography
+                                variant="h6"
+                                component="div"
+                                sx={{ fontWeight: 500 }}
+                            >
+                                LucidGo
+                            </Typography>
+                        </Box>
+
+                        {isMobile ? (
+                            <IconButton
+                                color="inherit"
+                                aria-label="open drawer"
+                                edge="start"
+                                onClick={handleDrawerToggle}
+                            >
+                                <MenuIcon />
+                            </IconButton>
+                        ) : (
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 2,
+                                }}
+                            >
+                                {navItems.map((item) => (
+                                    <Button
+                                        key={item.path}
+                                        onClick={() => navigate(item.path)}
+                                        color={
+                                            location.pathname === item.path
+                                                ? "primary"
+                                                : "inherit"
+                                        }
+                                        sx={{
+                                            textTransform: "none",
+                                            textDecoration:
+                                                location.pathname === item.path
+                                                    ? "underline"
+                                                    : "none",
+                                        }}
+                                    >
+                                        {item.label}
+                                    </Button>
+                                ))}
+                                <IconButton
+                                    onClick={() =>
+                                        window.open(
+                                            GitHubRepositoryLink,
+                                            "_blank"
+                                        )
+                                    }
+                                    color="inherit"
+                                    aria-label="GitHub Repository"
+                                >
+                                    <GitHubIcon />
+                                </IconButton>
+                            </Box>
+                        )}
+                    </Toolbar>
+                </AppBar>
+            </HideOnScroll>
+            <Drawer
+                variant="temporary"
+                open={mobileOpen}
+                onClose={handleDrawerToggle}
+                ModalProps={{
+                    keepMounted: true, // Better open performance on mobile.
+                }}
+                sx={{
+                    display: { xs: "block", md: "none" },
+                    "& .MuiDrawer-paper": {
+                        boxSizing: "border-box",
+                        width: 240,
+                    },
+                }}
+            >
+                {drawer}
+            </Drawer>
+        </>
     );
 }
 

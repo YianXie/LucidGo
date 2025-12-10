@@ -1,3 +1,5 @@
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
 import {
     CategoryScale,
     Chart as ChartJS,
@@ -233,18 +235,34 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
     return (
         <>
             {lineData.datasets[0].data ? (
-                <div className="relative my-5 h-75 w-150 cursor-pointer">
+                <Box
+                    sx={{
+                        position: "relative",
+                        my: 3,
+                        height: 300,
+                        width: { xs: "100%", sm: 600 },
+                        cursor: "pointer",
+                    }}
+                >
                     <Line
                         ref={chartRef}
                         data={lineData}
                         options={options}
                         plugins={plugins}
                     />
-                </div>
+                </Box>
             ) : (
-                <div className="my-5 w-full px-2.5 py-5">
-                    <p className="text-text-1">No win rate data</p>
-                </div>
+                <Box
+                    sx={{
+                        my: 3,
+                        width: "100%",
+                        px: 2,
+                        py: 3,
+                        textAlign: "center",
+                    }}
+                >
+                    <Typography variant="body1">No win rate data</Typography>
+                </Box>
             )}
         </>
     );

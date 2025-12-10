@@ -1,3 +1,12 @@
+import MenuIcon from "@mui/icons-material/Menu";
+import Box from "@mui/material/Box";
+import Drawer from "@mui/material/Drawer";
+import IconButton from "@mui/material/IconButton";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 
 import Container from "../components/global/Container";
@@ -8,51 +17,150 @@ import VideoSidebarLink from "../components/videos/VideoSidebarLink";
 import { transcriptData, videoData } from "../constants";
 import { capitalize } from "../utils";
 
+const drawerWidth = 256;
+
 function VideoBlog() {
     const { videoId } = useParams();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const [mobileOpen, setMobileOpen] = useState(false);
+
+    const handleDrawerToggle = () => {
+        setMobileOpen(!mobileOpen);
+    };
+
+    const sidebarContent = (
+        <VideoSidebar>
+            {Object.keys(videoData).map((key) => (
+                <VideoSidebarLink
+                    key={key}
+                    to={`/video-blog/${key}`}
+                    isActive={videoId === key}
+                >
+                    {capitalize(key)}
+                </VideoSidebarLink>
+            ))}
+        </VideoSidebar>
+    );
 
     return (
-        <Container className="flex">
-            <VideoSidebar>
-                {Object.keys(videoData).map((key) => (
-                    <VideoSidebarLink
-                        key={key}
-                        to={`/video-blog/${key}`}
-                        isActive={videoId === key}
-                    >
-                        {capitalize(key)}
-                    </VideoSidebarLink>
-                ))}
-            </VideoSidebar>
-
-            <div className="prose prose-invert max-w-none flex-1 overflow-y-auto scroll-smooth p-8">
-                {videoId && videoData[videoId] ? (
-                    <div className="flex flex-col items-center gap-6">
-                        <h1 className="text-text-1 text-2xl font-semibold">
-                            {capitalize(videoId)}
-                        </h1>
-                        <Video link={videoData[videoId]} />
-
-                        <div className="mt-8 w-full flex flex-col items-center gap-4">
-                            <h2 className="text-text-1 text-xl font-semibold">
-                                Transcript
-                            </h2>
-                            <Transcript transcript={transcriptData[videoId]} />
-                        </div>
-                    </div>
+        <Container>
+            <Box sx={{ display: "flex", height: "calc(100vh - 100px)" }}>
+                {isMobile ? (
+                    <>
+                        <IconButton
+                            color="inherit"
+                            aria-label="open drawer"
+                            edge="start"
+                            onClick={handleDrawerToggle}
+                            sx={{
+                                position: "fixed",
+                                top: 80,
+                                left: 16,
+                                zIndex: 1300,
+                            }}
+                        >
+                            <MenuIcon />
+                        </IconButton>
+                        <Drawer
+                            variant="temporary"
+                            open={mobileOpen}
+                            onClose={handleDrawerToggle}
+                            ModalProps={{
+                                keepMounted: true,
+                            }}
+                            sx={{
+                                display: { xs: "block", md: "none" },
+                                "& .MuiDrawer-paper": {
+                                    boxSizing: "border-box",
+                                    width: drawerWidth,
+                                },
+                            }}
+                        >
+                            {sidebarContent}
+                        </Drawer>
+                    </>
                 ) : (
-                    <div className="mt-10 flex h-full items-center justify-center">
-                        <div className="text-center">
-                            <h1 className="text-text-1 text-3xl font-semibold">
-                                Welcome to the Video Blog!
-                            </h1>
-                            <p className="text-text-1/70 mt-4 text-lg">
-                                Select a video from the sidebar to watch.
-                            </p>
-                        </div>
-                    </div>
+                    <Box
+                        sx={{
+                            width: drawerWidth,
+                            flexShrink: 0,
+                        }}
+                    >
+                        {sidebarContent}
+                    </Box>
                 )}
-            </div>
+
+                <Box
+                    component="main"
+                    sx={{
+                        flexGrow: 1,
+                        overflowY: "auto",
+                        p: 3,
+                    }}
+                >
+                    {videoId && videoData[videoId] ? (
+                        <Stack spacing={3} alignItems="center">
+                            <Typography
+                                variant="h4"
+                                component="h1"
+                                fontWeight={600}
+                            >
+                                {capitalize(videoId)}
+                            </Typography>
+                            <Box
+                                sx={{
+                                    width: "100%",
+                                    maxWidth: 800,
+                                    "& iframe": {
+                                        width: "100%",
+                                        height: { xs: 250, sm: 400, md: 500 },
+                                    },
+                                }}
+                            >
+                                <Video link={videoData[videoId]} />
+                            </Box>
+                            <Box sx={{ width: "100%", maxWidth: 800, mt: 4 }}>
+                                <Typography
+                                    variant="h5"
+                                    component="h2"
+                                    sx={{ mb: 2 }}
+                                >
+                                    Transcript
+                                </Typography>
+                                <Transcript
+                                    transcript={transcriptData[videoId]}
+                                />
+                            </Box>
+                        </Stack>
+                    ) : (
+                        <Box
+                            sx={{
+                                display: "flex",
+                                height: "100%",
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}
+                        >
+                            <Stack spacing={2} alignItems="center">
+                                <Typography
+                                    variant="h3"
+                                    component="h1"
+                                    fontWeight={600}
+                                >
+                                    Welcome to the Video Blog!
+                                </Typography>
+                                <Typography
+                                    variant="body1"
+                                    color="text.secondary"
+                                >
+                                    Select a video from the sidebar to watch.
+                                </Typography>
+                            </Stack>
+                        </Box>
+                    )}
+                </Box>
+            </Box>
         </Container>
     );
 }

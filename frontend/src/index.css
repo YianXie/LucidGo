@@ -1,29 +1,7 @@
 @import "tailwindcss";
 
-@theme {
-    --color-bg-1: oklch(0.1677 0.0356 235.04);
-    --color-bg-2: oklch(0.1859 0.0414 238.25);
-    --color-bg-3: oklch(0.2083 0.048857 241.3514);
-    --color-bg-4: oklch(0.2376 0.0568 242.37);
-
-    --color-text-1: oklch(1 0 0);
-    --color-text-2: oklch(1 0 0);
-    --color-text-3: oklch(1 0 0);
-    --color-text-4: oklch(1 0 0);
-
-    --font-poppins: "Poppins", sans-serif;
-    --font-sans:
-        "Poppins", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
-        "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-    --font-mono:
-        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-        "Liberation Mono", "Courier New", monospace;
-}
-
-/* Documentation Styles */
+/* Documentation Styles - Updated to work with MUI theme */
 .prose {
-    color: var(--color-text-1);
     max-width: none;
     line-height: 1.8;
 }
@@ -33,8 +11,9 @@
     font-weight: 700;
     margin-top: 0;
     margin-bottom: 1.5rem;
-    color: var(--color-text-1);
-    border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+    border-bottom: 2px solid;
+    border-color: currentColor;
+    opacity: 0.3;
     padding-bottom: 0.5rem;
     line-height: 1.2;
 }
@@ -44,7 +23,6 @@
     font-weight: 600;
     margin-top: 2.5rem;
     margin-bottom: 1rem;
-    color: var(--color-text-1);
     line-height: 1.3;
 }
 
@@ -57,7 +35,6 @@
     font-weight: 600;
     margin-top: 1.5rem;
     margin-bottom: 0.75rem;
-    color: var(--color-text-1);
     line-height: 1.4;
 }
 
@@ -66,40 +43,34 @@
     font-weight: 600;
     margin-top: 1.25rem;
     margin-bottom: 0.5rem;
-    color: var(--color-text-1);
 }
 
 .prose p {
     margin-bottom: 1rem;
     line-height: 1.8;
-    color: rgba(255, 255, 255, 0.9);
 }
 
 .prose a {
-    color: rgb(59, 130, 246);
     text-decoration: none;
     transition: color 0.2s;
     font-weight: 500;
 }
 
 .prose a:hover {
-    color: rgb(96, 165, 250);
     text-decoration: underline;
 }
 
 .prose code {
-    background-color: rgba(59, 130, 246, 0.15);
     padding: 0.2rem 0.4rem;
     border-radius: 0.25rem;
     font-size: 0.9em;
-    color: rgb(147, 197, 253);
-    font-family: var(--font-mono);
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        "Liberation Mono", "Courier New", monospace;
 }
 
 .prose pre {
-    background-color: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(59, 130, 246, 0.3);
+    border: 1px solid;
     border-radius: 0.5rem;
     padding: 1.25rem;
     overflow-x: auto;
@@ -111,7 +82,6 @@
 .prose pre code {
     background-color: transparent;
     padding: 0;
-    color: rgba(255, 255, 255, 0.95);
     font-size: 0.875rem;
     border: none;
 }
@@ -126,7 +96,6 @@
 .prose li {
     margin-bottom: 0.5rem;
     line-height: 1.8;
-    color: rgba(255, 255, 255, 0.9);
 }
 
 .prose ul > li {
@@ -137,18 +106,11 @@
     list-style-type: decimal;
 }
 
-.prose ul > li::marker,
-.prose ol > li::marker {
-    color: rgb(59, 130, 246);
-}
-
 .prose blockquote {
-    border-left: 4px solid rgb(59, 130, 246);
+    border-left: 4px solid;
     padding-left: 1rem;
     margin: 1.5rem 0;
     font-style: italic;
-    color: rgba(255, 255, 255, 0.85);
-    background-color: rgba(59, 130, 246, 0.08);
     padding: 1rem;
     border-radius: 0.25rem;
 }
@@ -159,15 +121,14 @@
 
 .prose strong {
     font-weight: 600;
-    color: var(--color-text-1);
 }
 
 .prose hr {
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    border-top: 1px solid;
     margin: 2.5rem 0;
+    opacity: 0.15;
 }
 
 .prose em {
     font-style: italic;
-    color: rgba(255, 255, 255, 0.95);
 }

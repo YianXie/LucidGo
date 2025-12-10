@@ -1,3 +1,9 @@
+import MenuIcon from "@mui/icons-material/Menu";
+import Box from "@mui/material/Box";
+import Drawer from "@mui/material/Drawer";
+import IconButton from "@mui/material/IconButton";
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -8,11 +14,16 @@ import Sidebar from "../components/docs/Sidebar";
 import SidebarLink from "../components/docs/SidebarLink";
 import Container from "../components/global/Container";
 
+const drawerWidth = 256;
+
 function Docs() {
     const location = useLocation();
     const navigate = useNavigate();
     const contentRef = useRef(null);
     const [activeSection, setActiveSection] = useState("get-started");
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const [mobileOpen, setMobileOpen] = useState(false);
 
     useEffect(() => {
         const hash = location.hash.slice(1);
@@ -30,6 +41,10 @@ function Docs() {
         }
     }, [location.hash, navigate]);
 
+    const handleDrawerToggle = () => {
+        setMobileOpen(!mobileOpen);
+    };
+
     const renderContent = () => {
         switch (activeSection) {
             case "installation":
@@ -42,34 +57,92 @@ function Docs() {
         }
     };
 
-    return (
-        <Container className="flex">
-            <Sidebar>
-                <SidebarLink
-                    to={"#get-started"}
-                    isActive={activeSection === "get-started"}
-                >
-                    Get Started
-                </SidebarLink>
-                <SidebarLink
-                    to={"#installation"}
-                    isActive={activeSection === "installation"}
-                >
-                    Installation
-                </SidebarLink>
-                <SidebarLink
-                    to={"#how-to-use"}
-                    isActive={activeSection === "how-to-use"}
-                >
-                    How to Use
-                </SidebarLink>
-            </Sidebar>
-            <div
-                ref={contentRef}
-                className="prose prose-invert max-w-none flex-1 overflow-y-auto scroll-smooth p-8"
+    const sidebarContent = (
+        <Sidebar>
+            <SidebarLink
+                to={"#get-started"}
+                isActive={activeSection === "get-started"}
             >
-                {renderContent()}
-            </div>
+                Get Started
+            </SidebarLink>
+            <SidebarLink
+                to={"#installation"}
+                isActive={activeSection === "installation"}
+            >
+                Installation
+            </SidebarLink>
+            <SidebarLink
+                to={"#how-to-use"}
+                isActive={activeSection === "how-to-use"}
+            >
+                How to Use
+            </SidebarLink>
+        </Sidebar>
+    );
+
+    return (
+        <Container>
+            <Box sx={{ display: "flex", height: "calc(100vh - 100px)" }}>
+                {isMobile ? (
+                    <>
+                        <IconButton
+                            color="inherit"
+                            aria-label="open drawer"
+                            edge="start"
+                            onClick={handleDrawerToggle}
+                            sx={{
+                                position: "fixed",
+                                top: 80,
+                                left: 16,
+                                zIndex: 1300,
+                            }}
+                        >
+                            <MenuIcon />
+                        </IconButton>
+                        <Drawer
+                            variant="temporary"
+                            open={mobileOpen}
+                            onClose={handleDrawerToggle}
+                            ModalProps={{
+                                keepMounted: true,
+                            }}
+                            sx={{
+                                display: { xs: "block", md: "none" },
+                                "& .MuiDrawer-paper": {
+                                    boxSizing: "border-box",
+                                    width: drawerWidth,
+                                },
+                            }}
+                        >
+                            {sidebarContent}
+                        </Drawer>
+                    </>
+                ) : (
+                    <Box
+                        sx={{
+                            width: drawerWidth,
+                            flexShrink: 0,
+                        }}
+                    >
+                        {sidebarContent}
+                    </Box>
+                )}
+                <Box
+                    ref={contentRef}
+                    component="main"
+                    sx={{
+                        flexGrow: 1,
+                        overflowY: "auto",
+                        p: 3,
+                        "& .prose": {
+                            maxWidth: "none",
+                        },
+                    }}
+                    className="prose prose-invert"
+                >
+                    {renderContent()}
+                </Box>
+            </Box>
         </Container>
     );
 }

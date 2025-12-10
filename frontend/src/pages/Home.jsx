@@ -1,83 +1,145 @@
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardActionArea from "@mui/material/CardActionArea";
+import CardContent from "@mui/material/CardContent";
+import CardMedia from "@mui/material/CardMedia";
+import Container from "@mui/material/Container";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import demoPicture from "../assets/images/home/demo.png";
-import ClickableImage from "../components/global/ClickableImage";
-import Flex from "../components/global/Flex";
-import HoverOverlay from "../components/global/HoverOverlay";
-import AnimatedContent from "../components/global/assets/AnimatedContent";
-import BlurText from "../components/global/assets/BlurText";
-import ButtonPill from "../components/global/assets/ButtonPill";
-import DarkVeil from "../components/global/assets/DarkVeil";
-import { GitHubRepositoryLink, paddingTop } from "../constants";
-import useHover from "../hooks/useHover";
-import useNavigation from "../hooks/useNavigation";
+import { GitHubRepositoryLink } from "../constants";
 
 function Home() {
-    const { navigateTo, openExternal } = useNavigation();
-    const [demoImageHovered, demoImageHoverProps] = useHover();
-    const titleClassName = "text-text-1 mt-25 text-5xl/tight font-[600]";
+    const navigate = useNavigate();
+    const [imageHovered, setImageHovered] = useState(false);
 
     return (
-        <div className="relative h-full w-full">
-            <DarkVeil speed={1} />
-            <div
-                className="relative flex flex-col items-center justify-center"
-                style={{ paddingTop: `${paddingTop}px` }}
-            >
-                <BlurText
-                    text="Analyze your moves with LucidGo"
-                    delay={100}
-                    animateBy="words"
-                    direction="top"
-                    className={titleClassName}
-                />
-                <AnimatedContent
-                    distance={100}
-                    direction="vertical"
-                    reverse={false}
-                    duration={1.2}
-                    ease="power3.out"
-                    animateOpacity
-                    threshold={0.1}
-                >
-                    <Flex
-                        className={"mt-10 items-center justify-center gap-10"}
+        <Box
+            sx={{
+                minHeight: "100vh",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                py: 8,
+            }}
+        >
+            <Container maxWidth="md">
+                <Stack spacing={6} alignItems="center">
+                    <Typography
+                        variant="h2"
+                        component="h1"
+                        sx={{
+                            fontWeight: 600,
+                            textAlign: "center",
+                            mb: 2,
+                        }}
                     >
-                        <ButtonPill
-                            className={
-                                "bg-text-1 hover:bg-text-1/80 active:bg-text-1/60 px-10 py-3"
-                            }
-                            onClick={navigateTo("/demo")}
+                        Analyze your moves with LucidGo
+                    </Typography>
+
+                    <Stack
+                        direction={{ xs: "column", sm: "row" }}
+                        spacing={2}
+                        sx={{ mt: 4 }}
+                    >
+                        <Button
+                            variant="contained"
+                            size="large"
+                            onClick={() => navigate("/demo")}
+                            sx={{
+                                px: 4,
+                                py: 1.5,
+                                textTransform: "none",
+                                fontSize: "1rem",
+                            }}
                         >
                             Demo
-                        </ButtonPill>
-                        <ButtonPill
-                            className={
-                                "bg-text-1/10 hover:bg-text-1/20 text-text-1 active:bg-text-1/40 border-1 border-gray-600 px-10 py-3"
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            size="large"
+                            onClick={() =>
+                                window.open(GitHubRepositoryLink, "_blank")
                             }
-                            onClick={openExternal(GitHubRepositoryLink)}
+                            sx={{
+                                px: 4,
+                                py: 1.5,
+                                textTransform: "none",
+                                fontSize: "1rem",
+                            }}
                         >
                             GitHub
-                        </ButtonPill>
-                    </Flex>
-                    <ClickableImage
-                        src={demoPicture}
-                        alt="demo picture"
-                        onClick={openExternal("/demo")}
-                        isHovered={demoImageHovered}
-                        hoverProps={demoImageHoverProps}
-                        className="my-15 h-200 w-200"
+                        </Button>
+                    </Stack>
+
+                    <Card
+                        sx={{
+                            maxWidth: 800,
+                            width: "100%",
+                            cursor: "pointer",
+                            position: "relative",
+                            mt: 4,
+                        }}
+                        onClick={() => navigate("/demo")}
+                        onMouseEnter={() => setImageHovered(true)}
+                        onMouseLeave={() => setImageHovered(false)}
                     >
-                        <HoverOverlay isVisible={demoImageHovered}>
-                            <i
-                                className={`bi bi-box-arrow-up-right text-text-1 text-3xl`}
-                            ></i>
-                            <p className="text-text-1 text-3xl font-[500]">
-                                Try it out
-                            </p>
-                        </HoverOverlay>
-                    </ClickableImage>
-                </AnimatedContent>
-            </div>
-        </div>
+                        <CardActionArea>
+                            <CardMedia
+                                component="img"
+                                image={demoPicture}
+                                alt="demo picture"
+                                sx={{
+                                    width: "100%",
+                                    height: "auto",
+                                    objectFit: "contain",
+                                }}
+                            />
+                            {imageHovered && (
+                                <CardContent
+                                    sx={{
+                                        position: "absolute",
+                                        top: 0,
+                                        left: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        backgroundColor: "rgba(0, 0, 0, 0.6)",
+                                        color: "white",
+                                        backdropFilter: "blur(4px)",
+                                        animation: "fadeIn 0.3s ease",
+                                        "@keyframes fadeIn": {
+                                            from: {
+                                                opacity: 0,
+                                            },
+                                            to: {
+                                                opacity: 1,
+                                            },
+                                        },
+                                    }}
+                                >
+                                    <OpenInNewIcon
+                                        sx={{ fontSize: 48, mb: 2 }}
+                                    />
+                                    <Typography variant="h5" fontWeight={500}>
+                                        Try it out
+                                    </Typography>
+                                </CardContent>
+                            )}
+                        </CardActionArea>
+                    </Card>
+                </Stack>
+            </Container>
+        </Box>
     );
 }
 

@@ -1,17 +1,36 @@
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemText from "@mui/material/ListItemText";
 import { Link } from "react-router-dom";
 
 function SidebarLink({ className = "", to, isActive, children }) {
-    const activeClass = isActive
-        ? "text-blue-500 font-semibold border-l-2 border-blue-500 pl-3"
-        : "text-text-1 pl-3.5";
-
     return (
-        <Link
-            to={to}
-            className={`${activeClass} cursor-pointer transition-all duration-300 hover:pl-4 hover:text-blue-400 ${className}`}
-        >
-            {children}
-        </Link>
+        <ListItem disablePadding className={className}>
+            <ListItemButton
+                component={Link}
+                to={to}
+                selected={isActive}
+                sx={{
+                    borderLeft: isActive ? 2 : 0,
+                    borderColor: "primary.main",
+                    pl: isActive ? 2.5 : 3,
+                    "&.Mui-selected": {
+                        backgroundColor: "action.selected",
+                        "&:hover": {
+                            backgroundColor: "action.selected",
+                        },
+                    },
+                }}
+            >
+                <ListItemText
+                    primary={children}
+                    primaryTypographyProps={{
+                        fontWeight: isActive ? 600 : 400,
+                        color: isActive ? "primary.main" : "text.primary",
+                    }}
+                />
+            </ListItemButton>
+        </ListItem>
     );
 }
 
