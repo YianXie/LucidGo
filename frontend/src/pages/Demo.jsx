@@ -286,7 +286,7 @@ function Demo() {
                 open={loading}
                 sx={{
                     color: "#fff",
-                    zIndex: (theme) => theme.zIndex.drawer + 1,
+                    zIndex: (theme) => theme.zIndex.appBar - 1,
                     flexDirection: "column",
                     gap: 2,
                 }}
@@ -315,6 +315,9 @@ function Demo() {
                 open={!serverAvailable}
                 maxWidth="sm"
                 fullWidth
+                sx={{
+                    zIndex: (theme) => theme.zIndex.appBar - 1,
+                }}
                 slotProps={{
                     sx: {
                         borderRadius: 2,
