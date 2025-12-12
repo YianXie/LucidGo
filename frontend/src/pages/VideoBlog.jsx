@@ -10,11 +10,10 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 
 import Container from "../components/global/Container";
-import Transcript from "../components/videos/Transcript";
 import Video from "../components/videos/Video";
 import VideoSidebar from "../components/videos/VideoSidebar";
 import VideoSidebarLink from "../components/videos/VideoSidebarLink";
-import { transcriptData, videoData } from "../constants";
+import { videoData } from "../constants";
 import { capitalize } from "../utils";
 
 const drawerWidth = 256;
@@ -119,18 +118,6 @@ function VideoBlog() {
                                 }}
                             >
                                 <Video link={videoData[videoId]} />
-                            </Box>
-                            <Box sx={{ width: "100%", maxWidth: 800, mt: 4 }}>
-                                <Typography
-                                    variant="h5"
-                                    component="h2"
-                                    sx={{ mb: 2 }}
-                                >
-                                    Transcript
-                                </Typography>
-                                <Transcript
-                                    transcript={transcriptData[videoId]}
-                                />
                             </Box>
                         </Stack>
                     ) : (

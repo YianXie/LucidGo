@@ -135,10 +135,12 @@ function Demo() {
                     includeOwnership: true,
                 };
                 try {
+                    console.log("request", request);
                     const res = await api.post(getAnalysisURL, {
                         analysis_request: request,
                     });
                     const data = await res.data;
+                    console.log("data", data);
                     data.response.moveInfos.sort((a, b) => {
                         if (a.winrate > b.winrate) {
                             return -1;
@@ -181,6 +183,7 @@ function Demo() {
 
         async function getGameData(SGFContent) {
             try {
+                console.log(SGFContent);
                 setLoading(true);
                 const gameDataRes = await api.post(getGameDataURL, {
                     sgf_file_data: SGFContent,

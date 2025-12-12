@@ -46,32 +46,3 @@ export const videoData = {
     placeholder10:
         "https://www.youtube-nocookie.com/embed/NpEaa2P7qZI?si=kGS1pD4WugClEe-r",
 };
-
-/**
- * Transcript data for videos
- * Each transcript is an array of objects with timestamp and text
- */
-export const transcriptData = {
-    introduction: [
-        {
-            timestamp: "0:00",
-            text: "Welcome to LucidGo! In this introduction video, we'll explore what makes LucidGo a powerful tool for analyzing Go games.",
-        },
-        {
-            timestamp: "0:15",
-            text: "LucidGo is built on top of KataGo, one of the strongest Go AI engines in the world. It provides real-time visual analysis to help you understand the game better.",
-        },
-        {
-            timestamp: "0:35",
-            text: "With features like win rate tracking, policy network visualization, and territory prediction, you can see exactly how the AI thinks about each position.",
-        },
-        {
-            timestamp: "0:55",
-            text: "Whether you're a beginner looking to improve or an experienced player analyzing high-level games, LucidGo makes AI analysis accessible and understandable.",
-        },
-        {
-            timestamp: "1:15",
-            text: "Let's dive in and see how LucidGo can transform the way you study Go!",
-        },
-    ],
-};
