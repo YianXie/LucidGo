@@ -287,22 +287,44 @@ function Demo() {
                 sx={{
                     color: "#fff",
                     zIndex: (theme) => theme.zIndex.appBar - 1,
+                    backdropFilter: "blur(4px) brightness(0.8)",
                     flexDirection: "column",
                     gap: 2,
                 }}
             >
                 {loadedValue > 0 ? (
-                    <>
+                    <Box
+                        sx={{
+                            position: "relative",
+                            display: "inline-flex",
+                        }}
+                    >
                         <CircularProgress
+                            size={120}
                             variant="determinate"
                             value={loadedValue}
-                            size={120}
-                            thickness={4}
                         />
-                        <Typography variant="h6">
-                            {loadedValue.toFixed(1)}%
-                        </Typography>
-                    </>
+                        <Box
+                            sx={{
+                                top: 0,
+                                left: 0,
+                                bottom: 0,
+                                right: 0,
+                                position: "absolute",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}
+                        >
+                            <Typography
+                                variant="body1"
+                                component="div"
+                                sx={{ color: "text.secondary" }}
+                            >
+                                {loadedValue.toFixed(2)}%
+                            </Typography>
+                        </Box>
+                    </Box>
                 ) : (
                     <>
                         <CircularProgress size={80} />
