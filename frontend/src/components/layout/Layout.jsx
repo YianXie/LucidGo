@@ -3,7 +3,7 @@ import { useTheme } from "@mui/material/styles";
 import { Outlet } from "react-router-dom";
 import { Bounce, ToastContainer } from "react-toastify";
 
-import Header from "./Header";
+import Header from "../layout/Header";
 
 function Layout() {
     const theme = useTheme();
@@ -12,15 +12,11 @@ function Layout() {
     return (
         <>
             <Header />
-            <Box
-                component="main"
-                sx={{
-                    height: "100%",
-                    width: "100%",
-                }}
-            >
+            <Box component="main">
                 <Outlet />
             </Box>
+
+            {/* For React Toastify */}
             <ToastContainer
                 position="bottom-left"
                 autoClose={5000}

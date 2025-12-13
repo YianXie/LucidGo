@@ -1,5 +1,6 @@
 import MenuIcon from "@mui/icons-material/Menu";
 import Box from "@mui/material/Box";
+import Container from "@mui/material/Container";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import { useTheme } from "@mui/material/styles";
@@ -12,7 +13,6 @@ import HowToUse from "../../docs/how-to-use.mdx";
 import Installation from "../../docs/installation.mdx";
 import Sidebar from "../components/docs/Sidebar";
 import SidebarLink from "../components/docs/SidebarLink";
-import Container from "../components/global/Container";
 
 const drawerWidth = 256;
 

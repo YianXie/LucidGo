@@ -1,5 +1,6 @@
 import MenuIcon from "@mui/icons-material/Menu";
 import Box from "@mui/material/Box";
+import Container from "@mui/material/Container";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
@@ -9,7 +10,6 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 
-import Container from "../components/global/Container";
 import Video from "../components/videos/Video";
 import VideoSidebar from "../components/videos/VideoSidebar";
 import VideoSidebarLink from "../components/videos/VideoSidebarLink";
