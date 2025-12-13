@@ -6,12 +6,12 @@ import MenuListIcon from "@mui/icons-material/Menu";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
 import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
-import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import IconButton from "@mui/material/IconButton";
-import ListItemText from "@mui/material/ListItemText";
 import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
+import Radio from "@mui/material/Radio";
+import RadioGroup from "@mui/material/RadioGroup";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { useState } from "react";
@@ -67,13 +67,44 @@ function Controls({
         {
             label: "Show recommended moves",
             value: showRecommendedMoves,
-            setValue: setShowRecommendedMoves,
+            setValue: (newValue) => {
+                setShowRecommendedMoves((prev) =>
+                    prev.map((value, index) => {
+                        if (index === id) {
+                            return newValue;
+                        }
+                        return value;
+                    })
+                );
+            },
         },
-        { label: "Show policy", value: showPolicy, setValue: setShowPolicy },
+        {
+            label: "Show policy",
+            value: showPolicy,
+            setValue: (newValue) => {
+                setShowPolicy((prev) =>
+                    prev.map((value, index) => {
+                        if (index === id) {
+                            return newValue;
+                        }
+                        return value;
+                    })
+                );
+            },
+        },
         {
             label: "Show ownership",
             value: showOwnership,
-            setValue: setShowOwnership,
+            setValue: (newValue) => {
+                setShowOwnership((prev) =>
+                    prev.map((value, index) => {
+                        if (index === id) {
+                            return newValue;
+                        }
+                        return value;
+                    })
+                );
+            },
         },
     ];
 
@@ -85,7 +116,8 @@ function Controls({
                 options[i].setValue(false);
             }
         }
-        option.setValue(!option.value);
+        option.setValue(true);
+        handleMenuClose();
     };
 
     return (
@@ -196,18 +228,34 @@ function Controls({
                     horizontal: "right",
                 }}
             >
-                {options.map((option, index) => (
-                    <MenuItem
-                        key={option.label}
-                        onClick={() => {
-                            handleOptionChange(index);
-                        }}
-                        dense
-                    >
-                        <Checkbox checked={option.value} size="small" />
-                        <ListItemText primary={option.label} />
-                    </MenuItem>
-                ))}
+                <RadioGroup
+                    value={options.findIndex((option) => option.value)}
+                    onChange={(event) => {
+                        handleOptionChange(event.target.value);
+                    }}
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1,
+                    }}
+                >
+                    {options.map((option, index) => (
+                        <FormControlLabel
+                            key={index}
+                            value={index}
+                            control={<Radio />}
+                            label={option.label}
+                            sx={{
+                                width: "100%",
+                                px: 2,
+                                margin: 0,
+                                "&:hover": {
+                                    backgroundColor: "action.hover",
+                                },
+                            }}
+                        />
+                    ))}
+                </RadioGroup>
             </Menu>
         </Paper>
     );

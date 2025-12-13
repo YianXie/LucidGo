@@ -1,20 +1,16 @@
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import Backdrop from "@mui/material/Backdrop";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
-import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import api from "../api";
 import GameBoard from "../components/board/GameBoard";
-import Upload from "../components/global/Upload";
 import { SGFSample } from "../constants";
 import { useAuth } from "../contexts/AuthContext";
 import usePageTitle from "../hooks/usePageTitle";
@@ -67,9 +63,7 @@ function Demo() {
 
     const { isAuthenticated } = useAuth();
     const navigate = useNavigate();
-    const [searchParams, setSearchParams] = useSearchParams();
-    const viewSampleParam = searchParams.get("sample");
-    const [file, setFile] = useState("");
+    const [files, setFiles] = useState([null]);
     const [gameData, setGameData] = useState([null]);
     const [analysisData, setAnalysisData] = useState([null]);
     const [winRate, setWinRate] = useState([null]);
@@ -81,6 +75,7 @@ function Demo() {
     const [loadedValue, setLoadedValue] = useState([0]);
     const [maxVisits, setMaxVisits] = useState([500]);
     const [totalBoards, setTotalBoards] = useState(1);
+    const [useSamples, setUseSamples] = useState([null]);
     const [serverAvailable, setServerAvailable] = useState(isServerAvailable());
     const getGameDataURL = "/api/get-game-data/";
     const getAnalysisURL = "/api/analyze/";
@@ -138,7 +133,7 @@ function Demo() {
     }, [gameData, maxVisits, totalBoards]);
 
     useEffect(() => {
-        if (!file && !viewSampleParam) return;
+        if (!files && !useSamples) return;
 
         async function getGameDataAllBoards(SGFContent) {
             try {
@@ -154,17 +149,21 @@ function Demo() {
             }
         }
 
-        if (viewSampleParam) {
-            getGameDataAllBoards(SGFSample);
-        } else {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const fileContent = e.target.result;
-                getGameDataAllBoards(fileContent);
-            };
-            reader.readAsText(file);
+        for (let i = 0; i < totalBoards; i++) {
+            if (useSamples[i]) {
+                getGameDataAllBoards(SGFSample);
+            } else {
+                if (files[i]) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const fileContent = e.target.result;
+                        getGameDataAllBoards(fileContent);
+                    };
+                    reader.readAsText(files[i]);
+                }
+            }
         }
-    }, [file, totalBoards, viewSampleParam]);
+    }, [files, totalBoards, useSamples]);
 
     const getGameData = async (SGFContent, boardIndex) => {
         const gameDataRes = await api.post(getGameDataURL, {
@@ -252,11 +251,10 @@ function Demo() {
         );
     };
 
-    const handleViewSample = (e) => {
-        e.preventDefault();
-        const newSearchParams = new URLSearchParams(searchParams);
-        newSearchParams.set("sample", "true");
-        setSearchParams(newSearchParams);
+    const handleViewSample = (boardIndex) => {
+        setUseSamples((prev) =>
+            prev.map((value, index) => (index === boardIndex ? true : value))
+        );
     };
 
     // Get next available time message
@@ -373,6 +371,10 @@ function Demo() {
                                 analysisData={analysisData[i]}
                                 currentMove={currentMove[i]}
                                 winRate={winRate[i]}
+                                setFiles={setFiles}
+                                handleViewSample={handleViewSample}
+                                useSamples={useSamples}
+                                setUseSamples={setUseSamples}
                                 setMaxVisits={setMaxVisits}
                                 setCurrentMove={setCurrentMove}
                                 loadedValue={loadedValue[i]}
@@ -455,47 +457,6 @@ function Demo() {
                             </Stack>
                         </CardContent>
                     </Card> */}
-                    {!gameData && !viewSampleParam && (
-                        <Backdrop
-                            open={true}
-                            sx={{
-                                color: "#fff",
-                                flexDirection: "column",
-                                gap: 2,
-                                backdropFilter: "blur(4px)",
-                                animation: "fadeIn 0.3s ease",
-                                "@keyframes fadeIn": {
-                                    from: {
-                                        opacity: 0,
-                                    },
-                                    to: {
-                                        opacity: 1,
-                                    },
-                                },
-                            }}
-                        >
-                            <Upload setFile={setFile} accept={".sgf"} />
-                            <Link
-                                component="button"
-                                onClick={handleViewSample}
-                                sx={{
-                                    color: "primary.light",
-                                    textDecoration: "underline",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 0.5,
-                                    cursor: "pointer",
-                                    mt: 2,
-                                    "&:hover": {
-                                        color: "primary.dark",
-                                    },
-                                }}
-                            >
-                                View a sample
-                                <OpenInNewIcon fontSize="small" />
-                            </Link>
-                        </Backdrop>
-                    )}
                 </Box>
             </Container>
         </>

@@ -1,5 +1,8 @@
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import Backdrop from "@mui/material/Backdrop";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
+import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import Board from "@sabaki/go-board";
 import { useEffect, useRef, useState } from "react";
@@ -8,6 +11,7 @@ import board_bg from "../../assets/images/board/board-bg.png";
 import place_stone_sound from "../../assets/sounds/board/place-stone.wav";
 import { GTPLetters } from "../../constants";
 import { toRowColFormat } from "../../utils";
+import Upload from "../global/Upload";
 import Controls from "./Controls";
 
 /**
@@ -26,6 +30,10 @@ function GameBoard({
     winRate,
     setCurrentMove,
     setMaxVisits,
+    setUseSamples,
+    useSamples,
+    setFiles,
+    handleViewSample,
     isLoading,
     loadedValue,
     showRecommendedMoves,
@@ -358,7 +366,7 @@ function GameBoard({
                         width: "100%",
                         height: "100%",
                         backdropFilter: "blur(4px) brightness(0.5)",
-                        zIndex: (theme) => theme.zIndex.drawer + 1,
+                        zIndex: (theme) => theme.zIndex.appBar - 1,
                     }}
                 >
                     <CircularProgress
@@ -387,6 +395,69 @@ function GameBoard({
                             {loadedValue.toFixed(1)}%
                         </Typography>
                     </Box>
+                </Box>
+            )}
+            {useSamples[id] === null && (
+                <Box
+                    sx={{
+                        position: "absolute",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        width: "100%",
+                        height: "100%",
+                        color: "#fff",
+                        flexDirection: "column",
+                        gap: 2,
+                        backdropFilter: "blur(4px) brightness(0.5)",
+                        zIndex: (theme) => theme.zIndex.appBar - 1,
+                        animation: "fadeIn 0.3s ease",
+                        "@keyframes fadeIn": {
+                            from: {
+                                opacity: 0,
+                            },
+                            to: {
+                                opacity: 1,
+                            },
+                        },
+                    }}
+                >
+                    <Upload
+                        setFile={(file) => {
+                            setFiles((prev) =>
+                                prev.map((value, index) =>
+                                    index === id ? file : value
+                                )
+                            );
+                            setUseSamples((prev) =>
+                                prev.map((value, index) =>
+                                    index === id ? false : value
+                                )
+                            );
+                        }}
+                        accept={".sgf"}
+                    />
+                    <Link
+                        component="button"
+                        onClick={() => {
+                            handleViewSample(id);
+                        }}
+                        sx={{
+                            color: "primary.light",
+                            textDecoration: "underline",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.5,
+                            cursor: "pointer",
+                            mt: 2,
+                            "&:hover": {
+                                color: "primary.dark",
+                            },
+                        }}
+                    >
+                        View a sample
+                        <OpenInNewIcon fontSize="small" />
+                    </Link>
                 </Box>
             )}
             <canvas
