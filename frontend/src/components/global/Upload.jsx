@@ -3,7 +3,7 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { useState } from "react";
 
-function Upload({ setFile, accept }) {
+function Upload({ setFile, accept, ...props }) {
     const [isDragging, setIsDragging] = useState(false);
 
     const handleDragOver = (e) => {
@@ -49,13 +49,12 @@ function Upload({ setFile, accept }) {
                 border: 2,
                 borderStyle: "dashed",
                 borderColor: isDragging ? "primary.main" : "divider",
-                backgroundColor: isDragging
-                    ? "action.hover"
-                    : "background.paper",
+                backgroundColor: "background.paper",
+                opacity: isDragging ? 0.8 : 1,
                 transition: "all 0.2s ease-in-out",
                 "&:hover": {
                     borderColor: "primary.main",
-                    backgroundColor: "action.hover",
+                    opacity: 0.8,
                 },
             }}
         >
@@ -78,6 +77,7 @@ function Upload({ setFile, accept }) {
                 accept={accept}
                 style={{ display: "none" }}
                 onChange={handleFileChange}
+                {...props}
             />
         </Paper>
     );

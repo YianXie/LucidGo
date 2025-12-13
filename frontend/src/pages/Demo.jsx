@@ -320,7 +320,7 @@ function Demo() {
                                 variant="body1"
                                 component="div"
                                 fontWeight={600}
-                                sx={{ color: "text.secondary" }}
+                                sx={{ color: "primary.main" }}
                             >
                                 {loadedValue.toFixed(1)}%
                             </Typography>
@@ -385,100 +385,95 @@ function Demo() {
                         minHeight: "calc(100vh - 100px)",
                     }}
                 >
-                    {(gameData || viewSampleParam) && (
-                        <Box
-                            sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                gap: 3,
-                            }}
-                        >
-                            <GameBoard
-                                gameData={gameData}
-                                analysisData={analysisData}
-                                currentMove={currentMove}
-                                setMove={setCurrentMove}
-                                setShowRecommendedMoves={
-                                    setShowRecommendedMoves
-                                }
-                                setShowPolicy={setShowPolicy}
-                                setShowOwnership={setShowOwnership}
-                                showRecommendedMoves={showRecommendedMoves}
-                                showPolicy={showPolicy}
-                                showOwnership={showOwnership}
-                            />
-                        </Box>
-                    )}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: 3,
+                        }}
+                    >
+                        <GameBoard
+                            gameData={gameData}
+                            analysisData={analysisData}
+                            currentMove={currentMove}
+                            setMove={setCurrentMove}
+                            setShowRecommendedMoves={setShowRecommendedMoves}
+                            setShowPolicy={setShowPolicy}
+                            setShowOwnership={setShowOwnership}
+                            showRecommendedMoves={showRecommendedMoves}
+                            showPolicy={showPolicy}
+                            showOwnership={showOwnership}
+                        />
+                    </Box>
 
-                    {gameData || viewSampleParam ? (
-                        <Card
-                            sx={{
-                                width: { xs: "100%", sm: 400 },
-                                maxWidth: "100%",
-                            }}
-                        >
-                            <CardContent>
-                                <Stack spacing={3} alignItems="center">
-                                    <WinRate
-                                        data={winRate}
-                                        maxMove={gameData?.moves.length}
-                                        setMove={setCurrentMove}
-                                        currentMove={currentMove}
-                                    />
-                                    <Box
-                                        sx={{
-                                            width: "100%",
-                                            display: "flex",
-                                            flexDirection: "column",
-                                            gap: 2,
-                                            alignItems: "center",
-                                        }}
-                                    >
-                                        <Typography variant="h6">
-                                            Settings
-                                        </Typography>
-                                        <Box sx={{ width: "100%", px: 2 }}>
-                                            <Typography
-                                                variant="body2"
-                                                gutterBottom
-                                                sx={{ mb: 2 }}
-                                            >
-                                                Max Visits: {maxVisits}
-                                            </Typography>
-                                            <Slider
-                                                value={maxVisits}
-                                                onChange={(e, newValue) =>
-                                                    setMaxVisits(newValue)
-                                                }
-                                                min={100}
-                                                max={1000}
-                                                step={10}
-                                                marks={[
-                                                    {
-                                                        value: 100,
-                                                        label: "100",
-                                                    },
-                                                    {
-                                                        value: 1000,
-                                                        label: "1000",
-                                                    },
-                                                ]}
-                                                aria-label="Max Visits"
-                                            />
-                                        </Box>
-                                        <Button
-                                            variant="contained"
-                                            onClick={handleApply}
-                                            sx={{ mt: 1 }}
+                    <Card
+                        sx={{
+                            width: { xs: "100%", sm: 400 },
+                            maxWidth: "100%",
+                        }}
+                    >
+                        <CardContent>
+                            <Stack spacing={3} alignItems="center">
+                                <WinRate
+                                    data={winRate}
+                                    maxMove={gameData?.moves.length}
+                                    setMove={setCurrentMove}
+                                    currentMove={currentMove}
+                                />
+                                <Box
+                                    sx={{
+                                        width: "100%",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: 2,
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <Typography variant="h6">
+                                        Settings
+                                    </Typography>
+                                    <Box sx={{ width: "100%", px: 2 }}>
+                                        <Typography
+                                            variant="body2"
+                                            gutterBottom
+                                            sx={{ mb: 2 }}
                                         >
-                                            Apply
-                                        </Button>
+                                            Max Visits: {maxVisits}
+                                        </Typography>
+                                        <Slider
+                                            value={maxVisits}
+                                            onChange={(e, newValue) =>
+                                                setMaxVisits(newValue)
+                                            }
+                                            min={100}
+                                            max={1000}
+                                            step={10}
+                                            marks={[
+                                                {
+                                                    value: 100,
+                                                    label: "100",
+                                                },
+                                                {
+                                                    value: 1000,
+                                                    label: "1000",
+                                                },
+                                            ]}
+                                            aria-label="Max Visits"
+                                        />
                                     </Box>
-                                </Stack>
-                            </CardContent>
-                        </Card>
-                    ) : (
+                                    <Button
+                                        variant="contained"
+                                        onClick={handleApply}
+                                        sx={{ mt: 1 }}
+                                    >
+                                        Apply
+                                    </Button>
+                                </Box>
+                            </Stack>
+                        </CardContent>
+                    </Card>
+                    {!gameData && !viewSampleParam && (
                         <Backdrop
                             open={true}
                             sx={{
@@ -509,6 +504,9 @@ function Demo() {
                                     gap: 0.5,
                                     cursor: "pointer",
                                     mt: 2,
+                                    "&:hover": {
+                                        color: "primary.dark",
+                                    },
                                 }}
                             >
                                 View a sample
