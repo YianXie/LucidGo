@@ -148,11 +148,6 @@ function GameBoard({
         showRecommendedMoves,
         showPolicy,
         showOwnership,
-        emptyBoard,
-        game,
-        placeStoneSound,
-        gameData.moves,
-        gameData.size,
     ]);
 
     /**

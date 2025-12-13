@@ -198,7 +198,8 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                 },
             ],
         });
-    }, [blackWinRate, whiteWinRate, maxMove, currentMove, lineData.datasets]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [blackWinRate, whiteWinRate, maxMove, currentMove]);
 
     useEffect(() => {
         setLineData({
@@ -230,7 +231,8 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                 },
             ],
         });
-    }, [currentMove, lineData]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentMove]);
 
     return (
         <>
