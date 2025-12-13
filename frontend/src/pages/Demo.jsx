@@ -24,6 +24,7 @@ import WinRate from "../components/board/WinRate";
 import Upload from "../components/global/Upload";
 import { SGFSample } from "../constants";
 import { useAuth } from "../contexts/AuthContext";
+import usePageTitle from "../hooks/usePageTitle";
 import { toGTPFormat } from "../utils";
 
 /**
@@ -69,11 +70,12 @@ function isServerAvailable() {
 }
 
 function Demo() {
+    usePageTitle("Demo");
+
     const { isAuthenticated } = useAuth();
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const viewSampleParam = searchParams.get("sample");
-    const maxVisitsParam = parseInt(searchParams.get("maxVisits")) || 500;
     const [file, setFile] = useState("");
     const [gameData, setGameData] = useState(null);
     const [analysisData, setAnalysisData] = useState(null);
@@ -143,7 +145,7 @@ function Demo() {
                     boardXSize: gameData.size,
                     boardYSize: gameData.size,
                     analyzeTurns: [i],
-                    maxVisits: maxVisitsParam,
+                    maxVisits: maxVisits,
                     includePolicy: true,
                     includeOwnership: true,
                 };
@@ -185,7 +187,7 @@ function Demo() {
         return () => {
             setLoadedValue(0);
         };
-    }, [gameData, maxVisitsParam]);
+    }, [gameData, maxVisits]);
 
     useEffect(() => {
         if (!file && !viewSampleParam) {

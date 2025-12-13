@@ -14,11 +14,14 @@ import Video from "../components/videos/Video";
 import VideoSidebar from "../components/videos/VideoSidebar";
 import VideoSidebarLink from "../components/videos/VideoSidebarLink";
 import { videoData } from "../constants";
+import usePageTitle from "../hooks/usePageTitle";
 import { capitalize } from "../utils";
 
 const drawerWidth = 256;
 
 function VideoBlog() {
+    usePageTitle("Video Blog");
+
     const { videoId } = useParams();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));

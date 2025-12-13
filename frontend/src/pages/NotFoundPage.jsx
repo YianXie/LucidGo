@@ -6,7 +6,11 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { Link } from "react-router-dom";
 
+import usePageTitle from "../hooks/usePageTitle";
+
 function NotFoundPage() {
+    usePageTitle("404 Not Found");
+
     return (
         <Container>
             <Box

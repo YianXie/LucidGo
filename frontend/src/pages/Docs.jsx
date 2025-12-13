@@ -13,10 +13,13 @@ import HowToUse from "../../docs/how-to-use.mdx";
 import Installation from "../../docs/installation.mdx";
 import Sidebar from "../components/docs/Sidebar";
 import SidebarLink from "../components/docs/SidebarLink";
+import usePageTitle from "../hooks/usePageTitle";
 
 const drawerWidth = 256;
 
 function Docs() {
+    usePageTitle("Docs");
+
     const location = useLocation();
     const navigate = useNavigate();
     const contentRef = useRef(null);

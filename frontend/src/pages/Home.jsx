@@ -13,8 +13,11 @@ import { useNavigate } from "react-router-dom";
 
 import demoPicture from "../assets/images/home/demo.png";
 import { GitHubRepositoryLink } from "../constants";
+import usePageTitle from "../hooks/usePageTitle";
 
 function Home() {
+    usePageTitle("Home");
+
     const navigate = useNavigate();
     const [imageHovered, setImageHovered] = useState(false);
 
