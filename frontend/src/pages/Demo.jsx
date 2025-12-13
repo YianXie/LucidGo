@@ -1,18 +1,12 @@
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import Backdrop from "@mui/material/Backdrop";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Link from "@mui/material/Link";
-import Slider from "@mui/material/Slider";
-import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -20,7 +14,6 @@ import { toast } from "react-toastify";
 
 import api from "../api";
 import GameBoard from "../components/board/GameBoard";
-import WinRate from "../components/board/WinRate";
 import Upload from "../components/global/Upload";
 import { SGFSample } from "../constants";
 import { useAuth } from "../contexts/AuthContext";
@@ -77,16 +70,17 @@ function Demo() {
     const [searchParams, setSearchParams] = useSearchParams();
     const viewSampleParam = searchParams.get("sample");
     const [file, setFile] = useState("");
-    const [gameData, setGameData] = useState(null);
-    const [analysisData, setAnalysisData] = useState(null);
-    const [winRate, setWinRate] = useState(null);
-    const [currentMove, setCurrentMove] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [showRecommendedMoves, setShowRecommendedMoves] = useState(true);
-    const [showPolicy, setShowPolicy] = useState(false);
-    const [showOwnership, setShowOwnership] = useState(false);
-    const [loadedValue, setLoadedValue] = useState(0);
-    const [maxVisits, setMaxVisits] = useState(500);
+    const [gameData, setGameData] = useState([null]);
+    const [analysisData, setAnalysisData] = useState([null]);
+    const [winRate, setWinRate] = useState([null]);
+    const [currentMove, setCurrentMove] = useState([null]);
+    const [loading, setLoading] = useState([false]);
+    const [showRecommendedMoves, setShowRecommendedMoves] = useState([true]);
+    const [showPolicy, setShowPolicy] = useState([false]);
+    const [showOwnership, setShowOwnership] = useState([false]);
+    const [loadedValue, setLoadedValue] = useState([0]);
+    const [maxVisits, setMaxVisits] = useState([500]);
+    const [totalBoards, setTotalBoards] = useState(1);
     const [serverAvailable, setServerAvailable] = useState(isServerAvailable());
     const getGameDataURL = "/api/get-game-data/";
     const getAnalysisURL = "/api/analyze/";
@@ -117,136 +111,151 @@ function Demo() {
     }, []);
 
     useEffect(() => {
-        if (!gameData) {
-            return;
+        if (gameData.includes(null)) return;
+
+        const tempWinRate = [];
+        for (let i = 0; i < totalBoards; i++) {
+            tempWinRate.push(
+                Array.from({ length: gameData[i].moves.length }, () => 50)
+            );
         }
+        setWinRate(tempWinRate);
 
-        setWinRate(Array.from({ length: gameData.moves.length }, () => 50));
-
-        async function analyzeAllMoves() {
-            setLoading(true);
-            const pastMoves = [];
-            const analyzeResults = [];
-            for (let i = 0; i < gameData.moves.length; i++) {
-                const move = gameData.moves[i];
-
-                if (move.includes(null)) {
-                    continue;
-                }
-
-                const [color, [row, col]] = move;
-                pastMoves.push([color, toGTPFormat(row, col)]);
-
-                const request = {
-                    id: `analysis_request_${i}`,
-                    moves: pastMoves,
-                    rules: "japanese",
-                    komi: 6.5,
-                    boardXSize: gameData.size,
-                    boardYSize: gameData.size,
-                    analyzeTurns: [i],
-                    maxVisits: maxVisits,
-                    includePolicy: true,
-                    includeOwnership: true,
-                };
-                try {
-                    const res = await api.post(getAnalysisURL, {
-                        analysis_request: request,
-                    });
-                    const data = res.data;
-                    data.response.moveInfos.sort((a, b) => {
-                        if (a.winrate > b.winrate) {
-                            return -1;
-                        }
-                        if (a.winrate < b.winrate) {
-                            return 1;
-                        }
-                        return 0;
-                    });
-
-                    const winRate = parseFloat(
-                        (data.response.rootInfo.winrate * 100).toFixed(1)
-                    );
-                    setWinRate((prev) =>
-                        prev.map((value, index) =>
-                            index === i ? winRate : value
-                        )
-                    );
-                    analyzeResults.push(data);
-                } catch (error) {
-                    console.error("Error:", error);
-                } finally {
-                    setLoadedValue((100 / gameData.moves.length) * i);
-                }
+        async function analyze() {
+            for (let i = 0; i < totalBoards; i++) {
+                setLoading((prev) =>
+                    prev.map((value, index) => (index === i ? true : value))
+                );
+                await analyzeAllMoves(i);
+                setLoading((prev) =>
+                    prev.map((value, index) => (index === i ? false : value))
+                );
             }
-            setLoading(false);
-            setAnalysisData(analyzeResults);
         }
-        analyzeAllMoves();
+        analyze();
 
-        return () => {
-            setLoadedValue(0);
-        };
-    }, [gameData, maxVisits]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [gameData, maxVisits, totalBoards]);
 
     useEffect(() => {
-        if (!file && !viewSampleParam) {
-            return;
-        }
+        if (!file && !viewSampleParam) return;
 
-        async function getGameData(SGFContent) {
+        async function getGameDataAllBoards(SGFContent) {
             try {
-                setLoading(true);
-                const gameDataRes = await api.post(getGameDataURL, {
-                    sgf_file_data: SGFContent,
-                });
-                const rawGameData = await gameDataRes.data;
-                const gameData = rawGameData.game_data;
-                setGameData(gameData);
-
-                const moves = [];
-                for (let i = 0; i <= gameData.moves.length; i++) {
-                    const move = gameData.moves[i];
-
-                    // Invalid move
-                    if (!move || move.includes(null)) {
-                        continue;
-                    }
-
-                    const [color, [row, col]] = move;
-                    moves.push([color, toGTPFormat(row, col)]);
+                for (let i = 0; i < totalBoards; i++) {
+                    await getGameData(SGFContent, i);
+                    setCurrentMove((prev) =>
+                        prev.map((value, index) => (index === i ? 1 : value))
+                    );
                 }
             } catch (error) {
                 toast.error("Invalid .sgf file");
                 console.error("Error while fetching game data:", error);
-            } finally {
-                setLoading(false);
-                setCurrentMove(1);
             }
         }
 
         if (viewSampleParam) {
-            getGameData(SGFSample);
+            getGameDataAllBoards(SGFSample);
         } else {
             const reader = new FileReader();
             reader.onload = function (e) {
                 const fileContent = e.target.result;
-                getGameData(fileContent);
+                getGameDataAllBoards(fileContent);
             };
             reader.readAsText(file);
         }
-    }, [file, viewSampleParam]);
+    }, [file, totalBoards, viewSampleParam]);
+
+    const getGameData = async (SGFContent, boardIndex) => {
+        const gameDataRes = await api.post(getGameDataURL, {
+            sgf_file_data: SGFContent,
+        });
+        const rawGameData = await gameDataRes.data;
+        const gameData = rawGameData.game_data;
+        setGameData((prev) =>
+            prev.map((value, index) =>
+                index === boardIndex ? gameData : value
+            )
+        );
+    };
+
+    const analyzeAllMoves = async (boardIndex) => {
+        const pastMoves = [];
+        const analyzeResults = [];
+        for (let i = 0; i < gameData[boardIndex].moves.length; i++) {
+            const move = gameData[boardIndex].moves[i];
+
+            if (move.includes(null)) {
+                continue;
+            }
+
+            const [color, [row, col]] = move;
+            pastMoves.push([color, toGTPFormat(row, col)]);
+
+            const request = {
+                id: `analysis_request_${boardIndex}_${i}`,
+                moves: pastMoves,
+                rules: "japanese",
+                komi: 6.5,
+                boardXSize: gameData[boardIndex].size,
+                boardYSize: gameData[boardIndex].size,
+                analyzeTurns: [i],
+                maxVisits: maxVisits[boardIndex],
+                includePolicy: true,
+                includeOwnership: true,
+            };
+            try {
+                const res = await api.post(getAnalysisURL, {
+                    analysis_request: request,
+                });
+                const data = res.data;
+                data.response.moveInfos.sort((a, b) => {
+                    if (a.winrate > b.winrate) {
+                        return -1;
+                    }
+                    if (a.winrate < b.winrate) {
+                        return 1;
+                    }
+                    return 0;
+                });
+
+                const winRate = parseFloat(
+                    (data.response.rootInfo.winrate * 100).toFixed(1)
+                );
+                setWinRate((prev) =>
+                    prev.map((winrate, index) => {
+                        if (index === boardIndex) {
+                            return winrate.map((value, index) =>
+                                index === i ? winRate : value
+                            );
+                        }
+                        return winrate;
+                    })
+                );
+                analyzeResults.push(data);
+            } catch (error) {
+                console.error("Error:", error);
+            } finally {
+                setLoadedValue((prev) =>
+                    prev.map((value, index) =>
+                        index === boardIndex
+                            ? (100 / gameData[boardIndex].moves.length) * i
+                            : value
+                    )
+                );
+            }
+        }
+        setAnalysisData((prev) =>
+            prev.map((value, index) =>
+                index === boardIndex ? analyzeResults : value
+            )
+        );
+    };
 
     const handleViewSample = (e) => {
         e.preventDefault();
         const newSearchParams = new URLSearchParams(searchParams);
         newSearchParams.set("sample", "true");
-        setSearchParams(newSearchParams);
-    };
-
-    const handleApply = () => {
-        const newSearchParams = new URLSearchParams(searchParams);
-        newSearchParams.set("maxVisits", maxVisits);
         setSearchParams(newSearchParams);
     };
 
@@ -297,58 +306,6 @@ function Demo() {
 
     return (
         <>
-            <Backdrop
-                open={loading}
-                sx={{
-                    color: "#fff",
-                    zIndex: (theme) => theme.zIndex.appBar - 1,
-                    backdropFilter: "blur(4px) brightness(0.8)",
-                    flexDirection: "column",
-                    gap: 2,
-                }}
-            >
-                {loadedValue > 0 ? (
-                    <Box
-                        sx={{
-                            position: "relative",
-                            display: "inline-flex",
-                        }}
-                    >
-                        <CircularProgress
-                            size={120}
-                            variant="determinate"
-                            value={loadedValue}
-                        />
-                        <Box
-                            sx={{
-                                top: 0,
-                                left: 0,
-                                bottom: 0,
-                                right: 0,
-                                position: "absolute",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}
-                        >
-                            <Typography
-                                variant="body1"
-                                component="div"
-                                fontWeight={600}
-                                sx={{ color: "primary.main" }}
-                            >
-                                {loadedValue.toFixed(1)}%
-                            </Typography>
-                        </Box>
-                    </Box>
-                ) : (
-                    <>
-                        <CircularProgress size={80} />
-                        <Typography variant="h6">Loading...</Typography>
-                    </>
-                )}
-            </Backdrop>
-
             <Dialog
                 open={!serverAvailable}
                 maxWidth="sm"
@@ -408,21 +365,31 @@ function Demo() {
                             gap: 3,
                         }}
                     >
-                        <GameBoard
-                            gameData={gameData}
-                            analysisData={analysisData}
-                            currentMove={currentMove}
-                            setMove={setCurrentMove}
-                            setShowRecommendedMoves={setShowRecommendedMoves}
-                            setShowPolicy={setShowPolicy}
-                            setShowOwnership={setShowOwnership}
-                            showRecommendedMoves={showRecommendedMoves}
-                            showPolicy={showPolicy}
-                            showOwnership={showOwnership}
-                        />
+                        {Array.from({ length: totalBoards }, (_, i) => (
+                            <GameBoard
+                                key={i}
+                                id={i}
+                                gameData={gameData[i]}
+                                analysisData={analysisData[i]}
+                                currentMove={currentMove[i]}
+                                winRate={winRate[i]}
+                                setMaxVisits={setMaxVisits}
+                                setCurrentMove={setCurrentMove}
+                                loadedValue={loadedValue[i]}
+                                isLoading={loading[i]}
+                                showRecommendedMoves={showRecommendedMoves[i]}
+                                showPolicy={showPolicy[i]}
+                                showOwnership={showOwnership[i]}
+                                setShowRecommendedMoves={
+                                    setShowRecommendedMoves
+                                }
+                                setShowPolicy={setShowPolicy}
+                                setShowOwnership={setShowOwnership}
+                            />
+                        ))}
                     </Box>
 
-                    <Card
+                    {/* <Card
                         sx={{
                             width: { xs: "100%", sm: 400 },
                             maxWidth: "100%",
@@ -454,12 +421,12 @@ function Demo() {
                                             gutterBottom
                                             sx={{ mb: 2 }}
                                         >
-                                            Max Visits: {maxVisits}
+                                            Max Visits: {tempMaxVisits}
                                         </Typography>
                                         <Slider
-                                            value={maxVisits}
+                                            value={tempMaxVisits}
                                             onChange={(e, newValue) =>
-                                                setMaxVisits(newValue)
+                                                setTempMaxVisits(newValue)
                                             }
                                             min={100}
                                             max={1000}
@@ -487,7 +454,7 @@ function Demo() {
                                 </Box>
                             </Stack>
                         </CardContent>
-                    </Card>
+                    </Card> */}
                     {!gameData && !viewSampleParam && (
                         <Backdrop
                             open={true}

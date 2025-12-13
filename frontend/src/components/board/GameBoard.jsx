@@ -1,3 +1,6 @@
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+import Typography from "@mui/material/Typography";
 import Board from "@sabaki/go-board";
 import { useEffect, useRef, useState } from "react";
 
@@ -9,15 +12,22 @@ import Controls from "./Controls";
 
 /**
  * Draws a Weiqi board with Pixi.js
+ * @param {number} id - the id of the board
  * @param {object} data - The data object containing the game data
  * @param {number} moveIndex - The move you want to get to
+ * @param {number} winRate - The win rate of the board
  * @returns The board component
  */
 function GameBoard({
+    id,
     gameData,
     analysisData,
     currentMove,
-    setMove,
+    winRate,
+    setCurrentMove,
+    setMaxVisits,
+    isLoading,
+    loadedValue,
     showRecommendedMoves,
     showPolicy,
     showOwnership,
@@ -337,7 +347,48 @@ function GameBoard({
     };
 
     return (
-        <div>
+        <div className="relative">
+            {isLoading && loadedValue > 0 && (
+                <Box
+                    sx={{
+                        position: "absolute",
+                        display: "inline-flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        width: "100%",
+                        height: "100%",
+                        backdropFilter: "blur(4px) brightness(0.5)",
+                        zIndex: (theme) => theme.zIndex.drawer + 1,
+                    }}
+                >
+                    <CircularProgress
+                        size={120}
+                        variant="determinate"
+                        value={loadedValue}
+                    />
+                    <Box
+                        sx={{
+                            top: 0,
+                            left: 0,
+                            bottom: 0,
+                            right: 0,
+                            position: "absolute",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                        }}
+                    >
+                        <Typography
+                            variant="body1"
+                            component="div"
+                            fontWeight={600}
+                            sx={{ color: "primary.main" }}
+                        >
+                            {loadedValue.toFixed(1)}%
+                        </Typography>
+                    </Box>
+                </Box>
+            )}
             <canvas
                 ref={canvasRef}
                 className="size-200"
@@ -345,8 +396,9 @@ function GameBoard({
                 height={canvasSize}
             />
             <Controls
+                id={id}
                 currentMove={currentMove}
-                setMove={setMove}
+                setCurrentMove={setCurrentMove}
                 maxMove={gameData?.moves.length}
                 setShowRecommendedMoves={setShowRecommendedMoves}
                 setShowPolicy={setShowPolicy}

@@ -18,15 +18,17 @@ import { useState } from "react";
 
 /**
  * A control panel for the game board
+ * @param {number} id - the id of the board
  * @param {number} move - the current move, should be a state
- * @param {callback} setMove - the function that set the move state
+ * @param {callback} setCurrentMove - the function that set the move state
  * @param {number} maxMove - the maximum possible move
  * @param {object} tools - an object that contains all the callbacks for different function buttons
  * @returns
  */
 function Controls({
+    id,
     currentMove,
-    setMove,
+    setCurrentMove,
     maxMove,
     setShowRecommendedMoves,
     showRecommendedMoves,
@@ -48,12 +50,17 @@ function Controls({
     };
 
     const handleMove = (amount) => {
-        setMove((prev) => {
-            if (prev + amount > maxMove - 1 || prev + amount < 1) {
-                return amount < 1 ? 1 : maxMove - 1;
-            }
-            return prev + amount;
-        });
+        setCurrentMove((prev) =>
+            prev.map((value, index) => {
+                if (index === id) {
+                    if (value + amount > maxMove - 1 || value + amount < 1) {
+                        return amount < 1 ? 1 : maxMove - 1;
+                    }
+                    return value + amount;
+                }
+                return value;
+            })
+        );
     };
 
     const options = [
