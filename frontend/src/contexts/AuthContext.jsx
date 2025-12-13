@@ -30,9 +30,6 @@ export const AuthProvider = ({ children }) => {
                             setAccessToken(accessToken);
                             setRefreshToken(refreshToken);
                             setIsAuthenticated(true);
-                        } else {
-                            console.log("refreshing access token");
-                            await refreshAccessToken();
                         }
                     } catch (error) {
                         console.error(error);
