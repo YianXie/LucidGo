@@ -60,12 +60,12 @@ else
     exit 1
 fi
 
-# Run security checks
-echo "Running safety scan..."
-if safety scan; then
-    print_status "Safety scan passed"
+# Run pip audit (security checks)
+echo "Running pip audit..."
+if pip-audit --desc; then
+    print_status "pip audit passed"
 else
-    print_warning "Safety scan found issues"
+    print_warning "pip audit found issues"
 fi
 
 echo "Running bandit security check..."

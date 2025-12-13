@@ -128,11 +128,9 @@ jobs:
               run: |
                   pip install -r requirements.txt
 
-            - name: Run Safety CLI to check for vulnerabilities
-              uses: pyupio/safety-action@v1
-              with:
-                  api-key: ${{ secrets.SAFETY_API_KEY }}
-                  args: --detailed-output
+            - name: Run pip audit (security checks)
+              working-directory: ./backend
+              run: pip-audit --desc
 
             - name: Run bandit (security linting)
               working-directory: ./backend
