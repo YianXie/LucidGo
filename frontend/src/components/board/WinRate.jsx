@@ -198,7 +198,7 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                 },
             ],
         });
-    }, [blackWinRate, whiteWinRate, maxMove, currentMove]);
+    }, [blackWinRate, whiteWinRate, maxMove, currentMove, lineData.datasets]);
 
     useEffect(() => {
         setLineData({
@@ -230,7 +230,7 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                 },
             ],
         });
-    }, [currentMove]);
+    }, [currentMove, lineData]);
 
     return (
         <>

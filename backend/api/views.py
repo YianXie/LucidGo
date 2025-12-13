@@ -1,5 +1,5 @@
 import httpx
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,7 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 @method_decorator(csrf_exempt, name="dispatch")
 class AnalyzeView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request: Request) -> Response:
         analysis_request = request.data.get("analysis_request")
@@ -37,7 +37,7 @@ class AnalyzeView(APIView):
 
 @method_decorator(csrf_exempt, name="dispatch")
 class GetGameDataView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request: Request) -> Response:
         sgf_file_data = request.data.get("sgf_file_data")

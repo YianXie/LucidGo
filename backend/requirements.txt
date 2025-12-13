@@ -35,12 +35,9 @@ license-expression==30.4.4
 markdown-it-py==4.0.0
 mdurl==0.1.2
 msgpack==1.1.2
-mypy==1.18.2
-mypy_extensions==1.1.0
 nodeenv==1.9.1
 packageurl-python==0.17.6
 packaging==25.0
-pathspec==0.12.1
 pip-api==0.0.34
 pip-autoremove==0.10.0
 pip-requirements-parser==32.0.1

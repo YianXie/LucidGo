@@ -3,6 +3,9 @@ from unittest.mock import MagicMock, patch
 import httpx
 from rest_framework import status
 from rest_framework.test import APITestCase
+from rest_framework_simplejwt.tokens import AccessToken
+
+from django.contrib.auth.models import User
 
 
 class AnalyzeViewTestCase(APITestCase):
@@ -11,6 +14,11 @@ class AnalyzeViewTestCase(APITestCase):
     def setUp(self):
         """Set up test data"""
         self.analyze_url = "/api/analyze/"
+        self.user = User.objects.create_user(
+            username="testuser", password="testpassword123"
+        )
+        self.access = AccessToken.for_user(self.user)
+        self.headers = {"Authorization": f"Bearer {self.access}"}
         self.valid_analysis_request = {
             "id": "analysis_request_1",
             "moves": [
@@ -81,7 +89,9 @@ class AnalyzeViewTestCase(APITestCase):
 
     def test_analyze_with_missing_analysis_request(self):
         """Test analyze endpoint with missing analysis_request"""
-        response = self.client.post(self.analyze_url, {}, format="json")
+        response = self.client.post(
+            self.analyze_url, {}, format="json", headers=self.headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("error", response.data)
@@ -93,6 +103,7 @@ class AnalyzeViewTestCase(APITestCase):
             self.analyze_url,
             {"analysis_request": None},
             format="json",
+            headers=self.headers,
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -118,6 +129,7 @@ class AnalyzeViewTestCase(APITestCase):
                 self.analyze_url,
                 {"analysis_request": self.valid_analysis_request},
                 format="json",
+                headers=self.headers,
             )
 
             self.assertEqual(response.status_code, status.HTTP_502_BAD_GATEWAY)
@@ -135,6 +147,7 @@ class AnalyzeViewTestCase(APITestCase):
                 self.analyze_url,
                 {"analysis_request": self.valid_analysis_request},
                 format="json",
+                headers=self.headers,
             )
 
             self.assertEqual(response.status_code, status.HTTP_502_BAD_GATEWAY)
@@ -152,6 +165,7 @@ class AnalyzeViewTestCase(APITestCase):
                 self.analyze_url,
                 {"analysis_request": self.valid_analysis_request},
                 format="json",
+                headers=self.headers,
             )
 
             self.assertEqual(response.status_code, status.HTTP_502_BAD_GATEWAY)
@@ -169,6 +183,7 @@ class AnalyzeViewTestCase(APITestCase):
                 self.analyze_url,
                 {"analysis_request": self.valid_analysis_request},
                 format="json",
+                headers=self.headers,
             )
 
             self.assertEqual(response.status_code, status.HTTP_502_BAD_GATEWAY)
@@ -176,13 +191,15 @@ class AnalyzeViewTestCase(APITestCase):
 
     def test_analyze_allows_post_method(self):
         """Test that analyze endpoint only accepts POST requests"""
-        response = self.client.get(self.analyze_url)
+        response = self.client.get(self.analyze_url, headers=self.headers)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-        response = self.client.put(self.analyze_url, {}, format="json")
+        response = self.client.put(
+            self.analyze_url, {}, format="json", headers=self.headers
+        )
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-        response = self.client.delete(self.analyze_url)
+        response = self.client.delete(self.analyze_url, headers=self.headers)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
@@ -192,6 +209,11 @@ class GetGameDataViewTestCase(APITestCase):
     def setUp(self):
         """Set up test data"""
         self.get_game_data_url = "/api/get-game-data/"
+        self.user = User.objects.create_user(
+            username="testuser", password="testpassword123"
+        )
+        self.access = AccessToken.for_user(self.user)
+        self.headers = {"Authorization": f"Bearer {self.access}"}
         self.valid_sgf_data = """(;FF[4]CA[UTF-8]SZ[19]KM[7.5]PB[Player1]PW[Player2]
 ;B[qd];W[dd];B[pq];W[dp];B[fc];W[cf])"""
 
@@ -201,6 +223,7 @@ class GetGameDataViewTestCase(APITestCase):
             self.get_game_data_url,
             {"sgf_file_data": self.valid_sgf_data},
             format="json",
+            headers=self.headers,
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -215,7 +238,9 @@ class GetGameDataViewTestCase(APITestCase):
 
     def test_get_game_data_with_missing_sgf_file_data(self):
         """Test get-game-data endpoint with missing sgf_file_data"""
-        response = self.client.post(self.get_game_data_url, {}, format="json")
+        response = self.client.post(
+            self.get_game_data_url, {}, format="json", headers=self.headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("error", response.data)
@@ -227,6 +252,7 @@ class GetGameDataViewTestCase(APITestCase):
             self.get_game_data_url,
             {"sgf_file_data": None},
             format="json",
+            headers=self.headers,
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -240,6 +266,7 @@ class GetGameDataViewTestCase(APITestCase):
             self.get_game_data_url,
             {"sgf_file_data": invalid_sgf},
             format="json",
+            headers=self.headers,
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -253,6 +280,7 @@ class GetGameDataViewTestCase(APITestCase):
             self.get_game_data_url,
             {"sgf_file_data": malformed_sgf},
             format="json",
+            headers=self.headers,
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -267,6 +295,7 @@ class GetGameDataViewTestCase(APITestCase):
             self.get_game_data_url,
             {"sgf_file_data": sgf_with_info},
             format="json",
+            headers=self.headers,
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -285,6 +314,7 @@ class GetGameDataViewTestCase(APITestCase):
             self.get_game_data_url,
             {"sgf_file_data": minimal_sgf},
             format="json",
+            headers=self.headers,
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -301,6 +331,7 @@ class GetGameDataViewTestCase(APITestCase):
             self.get_game_data_url,
             {"sgf_file_data": sgf_13x13},
             format="json",
+            headers=self.headers,
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -311,6 +342,7 @@ class GetGameDataViewTestCase(APITestCase):
             self.get_game_data_url,
             {"sgf_file_data": sgf_9x9},
             format="json",
+            headers=self.headers,
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -318,11 +350,13 @@ class GetGameDataViewTestCase(APITestCase):
 
     def test_get_game_data_allows_post_method(self):
         """Test that get-game-data endpoint only accepts POST requests"""
-        response = self.client.get(self.get_game_data_url)
+        response = self.client.get(self.get_game_data_url, headers=self.headers)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-        response = self.client.put(self.get_game_data_url, {}, format="json")
+        response = self.client.put(
+            self.get_game_data_url, {}, format="json", headers=self.headers
+        )
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-        response = self.client.delete(self.get_game_data_url)
+        response = self.client.delete(self.get_game_data_url, headers=self.headers)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)

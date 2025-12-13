@@ -67,6 +67,7 @@ function GameBoard({
                 ctx.getImageData(0, 0, canvasSize * dpr, canvasSize * dpr)
             );
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [size]);
 
     useEffect(() => {
@@ -140,12 +141,18 @@ function GameBoard({
                 }
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         currentMove,
         analysisData,
         showRecommendedMoves,
         showPolicy,
         showOwnership,
+        emptyBoard,
+        game,
+        placeStoneSound,
+        gameData.moves,
+        gameData.size,
     ]);
 
     /**

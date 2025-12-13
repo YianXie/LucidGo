@@ -19,6 +19,7 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { GitHubRepositoryLink } from "../../constants";
+import { useAuth } from "../../contexts/AuthContext";
 import logo from "/logo.png";
 
 function HideOnScroll({ children }) {
@@ -39,6 +40,7 @@ function Header() {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const [mobileOpen, setMobileOpen] = useState(false);
+    const { isAuthenticated } = useAuth();
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
@@ -48,6 +50,9 @@ function Header() {
         { label: "Docs", path: "/docs" },
         { label: "Video Blog", path: "/video-blog" },
         { label: "Demo", path: "/demo" },
+        ...(isAuthenticated
+            ? [{ label: "Logout", path: "/logout" }]
+            : [{ label: "Login", path: "/login" }]),
     ];
 
     const drawer = (

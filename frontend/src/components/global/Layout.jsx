@@ -22,7 +22,7 @@ function Layout() {
                 <Outlet />
             </Box>
             <ToastContainer
-                position="top-right"
+                position="bottom-left"
                 autoClose={5000}
                 hideProgressBar={false}
                 newestOnTop={false}

@@ -14,7 +14,7 @@ import Slider from "@mui/material/Slider";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import api from "../api";
@@ -23,6 +23,7 @@ import WinRate from "../components/board/WinRate";
 import Container from "../components/global/Container";
 import Upload from "../components/global/Upload";
 import { SGFSample } from "../constants";
+import { useAuth } from "../contexts/AuthContext";
 import { toGTPFormat } from "../utils";
 
 /**
@@ -68,6 +69,8 @@ function isServerAvailable() {
 }
 
 function Demo() {
+    const { isAuthenticated } = useAuth();
+    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const viewSampleParam = searchParams.get("sample");
     const maxVisitsParam = parseInt(searchParams.get("maxVisits")) || 500;
@@ -85,6 +88,16 @@ function Demo() {
     const [serverAvailable, setServerAvailable] = useState(isServerAvailable());
     const getGameDataURL = "/api/get-game-data/";
     const getAnalysisURL = "/api/analyze/";
+
+    useEffect(() => {
+        if (isAuthenticated === null) return;
+        if (isAuthenticated === false) {
+            navigate("/login");
+            toast.error("Please login to use the demo");
+            return;
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isAuthenticated]);
 
     // Check server availability periodically
     useEffect(() => {
