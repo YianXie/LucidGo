@@ -14,6 +14,9 @@ import { toRowColFormat } from "../../utils";
 import Upload from "../global/Upload";
 import Controls from "./Controls";
 
+// Create audio instance once, outside component to avoid recreating on every render
+const placeStoneSound = new Audio(place_stone_sound);
+
 /**
  * Draws a Weiqi board with Pixi.js
  * @param {number} id - the id of the board
@@ -55,9 +58,6 @@ function GameBoard({
     const canvasRef = useRef(null);
     const [emptyBoard, setEmptyBoard] = useState(null);
 
-    // Assets
-    const placeStoneSound = new Audio(place_stone_sound);
-
     useEffect(() => {
         if (size > 19 || size < 2) {
             throw new RangeError(
@@ -67,6 +67,8 @@ function GameBoard({
 
         // Adjust the canvas' size based on the screen
         const canvas = canvasRef.current;
+        if (!canvas) return;
+        
         const ctx = canvas.getContext("2d");
         const dpr = window.devicePixelRatio || 1;
         canvas.width = canvasSize * dpr;
@@ -79,8 +81,8 @@ function GameBoard({
 
         boardBg.onload = () => {
             ctx.drawImage(boardBg, 0, 0, canvasSize, canvasSize);
-            drawBoard();
-            drawCoords();
+            drawBoard(ctx);
+            drawCoords(ctx);
             setEmptyBoard(
                 ctx.getImageData(0, 0, canvasSize * dpr, canvasSize * dpr)
             );
@@ -94,6 +96,8 @@ function GameBoard({
         }
 
         const canvas = canvasRef.current;
+        if (!canvas) return;
+        
         const ctx = canvas.getContext("2d");
         emptyBoard ? ctx.putImageData(emptyBoard, 0, 0) : ""; // idk why but if I don't check if emptyBoard exists first, sometimes error occurs
         game.clear();
@@ -109,7 +113,7 @@ function GameBoard({
             placeStone(move);
         }
         placeStoneSound.play();
-        drawStones();
+        drawStones(ctx);
 
         // Draw the recommended move if it exists
         if (analysisData && analysisData[currentMove]) {
@@ -129,7 +133,7 @@ function GameBoard({
                     const rawWinRate =
                         currentMove % 2 === 0 ? move.winrate : 1 - move.winrate;
                     const winRate = (rawWinRate * 100).toFixed(1);
-                    drawStone(row, col, color, false, winRate, "white");
+                    drawStone(ctx, row, col, color, false, winRate, "white");
                 }
             }
 
@@ -149,6 +153,7 @@ function GameBoard({
                             ? `rgba(0, 0, 0, ${alpha})`
                             : `rgba(255, 255, 255, ${alpha})`;
                     drawStone(
+                        ctx,
                         row,
                         col,
                         color,
@@ -170,11 +175,9 @@ function GameBoard({
 
     /**
      * Draw the game board with lines
+     * @param {CanvasRenderingContext2D} ctx - The canvas context
      */
-    const drawBoard = () => {
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
-
+    const drawBoard = (ctx) => {
         for (let i = 0; i < size; i++) {
             if (i === 0 || i === size - 1) {
                 ctx.lineWidth = 1.25;
@@ -217,10 +220,9 @@ function GameBoard({
 
     /**
      * Draw the game board's coords at both side (letter + number, GTP format)
+     * @param {CanvasRenderingContext2D} ctx - The canvas context
      */
-    const drawCoords = () => {
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
+    const drawCoords = (ctx) => {
         ctx.font = "15px Arial";
         ctx.textBaseline = "middle";
         ctx.textAlign = "center";
@@ -260,8 +262,9 @@ function GameBoard({
 
     /**
      * Draw all the stones out until moveIndex
+     * @param {CanvasRenderingContext2D} ctx - The canvas context
      */
-    const drawStones = () => {
+    const drawStones = (ctx) => {
         // Get the most recent move to highlight
         const lastMove =
             currentMove > 0 && currentMove < gameData.moves.length
@@ -290,6 +293,7 @@ function GameBoard({
                     lastMoveCoords[1] === col;
 
                 drawStone(
+                    ctx,
                     row,
                     col,
                     color === 1 ? "black" : "white",
@@ -303,6 +307,7 @@ function GameBoard({
 
     /**
      * Draw a stone based on the given information
+     * @param {CanvasRenderingContext2D} ctx - The canvas context
      * @param {number} row - the row of the move
      * @param {number} col - the column of the move
      * @param {string} color the color of the move
@@ -310,9 +315,7 @@ function GameBoard({
      * @param {string} text the text to draw on the stone
      * @param {string} textColor the color of the text
      */
-    const drawStone = (row, col, color, highlight, text, textColor) => {
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
+    const drawStone = (ctx, row, col, color, highlight, text, textColor) => {
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.arc(

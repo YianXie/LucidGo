@@ -11,7 +11,7 @@ import {
     Tooltip,
 } from "chart.js";
 import { getRelativePosition } from "chart.js/helpers";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Line } from "react-chartjs-2";
 
 ChartJS.register(
@@ -26,10 +26,10 @@ ChartJS.register(
 
 function WinRate({ data, maxMove, setMove, currentMove }) {
     const [hoverX, setHoverX] = useState(null);
-    const [blackWinRate, setBlackWinRate] = useState([]);
-    const [whiteWinRate, setWhiteWinRate] = useState([]);
     const chartRef = useRef(null);
-    const options = {
+    
+    // Memoize options to avoid recreating on every render
+    const options = useMemo(() => ({
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -101,29 +101,9 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
             );
             setMove(xValue);
         },
-    };
-    const [lineData, setLineData] = useState({
-        labels: [],
-        datasets: [
-            {
-                label: "Black",
-                data: [],
-                fill: false,
-                borderColor: "black",
-                tension: 0.2,
-                pointRadius: 0,
-            },
-            {
-                label: "White",
-                data: [],
-                fill: false,
-                borderColor: "white",
-                tension: 0.2,
-                pointRadius: 0,
-            },
-        ],
-    });
-    const plugins = [
+    }), [hoverX, maxMove, setMove]);
+
+    const plugins = useMemo(() => [
         {
             id: "customCanvasBackgroundColor",
             beforeDraw: (chart, _, options) => {
@@ -167,46 +147,47 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                 }
             },
         },
-    ];
+    ], []);
 
-    useEffect(() => {
-        if (!data) {
-            return;
+    // Consolidate all data processing into a single effect
+    const lineData = useMemo(() => {
+        if (!data || data.length === 0) {
+            return {
+                labels: [],
+                datasets: [
+                    {
+                        label: "Black",
+                        data: [],
+                        fill: false,
+                        borderColor: "black",
+                        tension: 0.2,
+                        pointRadius: 0,
+                    },
+                    {
+                        label: "White",
+                        data: [],
+                        fill: false,
+                        borderColor: "white",
+                        tension: 0.2,
+                        pointRadius: 0,
+                    },
+                ],
+            };
         }
 
-        const black = [],
-            white = [];
-        for (let i = 0; i < data.length; i++) {
-            black.push(data[i]);
-            white.push(100 - data[i]);
-        }
-        setBlackWinRate(black);
-        setWhiteWinRate(white);
-    }, [data]);
+        const blackWinRate = data;
+        const whiteWinRate = data.map(rate => 100 - rate);
 
-    useEffect(() => {
-        setLineData({
+        return {
             labels: Array.from({ length: maxMove }, (_, i) => i + 1),
             datasets: [
                 {
-                    ...lineData.datasets[0],
+                    label: "Black",
                     data: blackWinRate,
-                },
-                {
-                    ...lineData.datasets[1],
-                    data: whiteWinRate,
-                },
-            ],
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [blackWinRate, whiteWinRate, maxMove, currentMove]);
-
-    useEffect(() => {
-        setLineData({
-            ...lineData,
-            datasets: [
-                {
-                    ...lineData.datasets[0],
+                    fill: false,
+                    borderColor: "black",
+                    tension: 0.2,
+                    pointRadius: 0,
                     segment: {
                         borderColor: (ctx) => {
                             const x = ctx.p0.parsed.x + 1;
@@ -218,7 +199,12 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                     },
                 },
                 {
-                    ...lineData.datasets[1],
+                    label: "White",
+                    data: whiteWinRate,
+                    fill: false,
+                    borderColor: "white",
+                    tension: 0.2,
+                    pointRadius: 0,
                     segment: {
                         borderColor: (ctx) => {
                             const x = ctx.p0.parsed.x + 1;
@@ -230,9 +216,8 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                     },
                 },
             ],
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentMove]);
+        };
+    }, [data, maxMove, currentMove]);
 
     return (
         <>
