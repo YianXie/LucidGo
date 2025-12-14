@@ -9,8 +9,9 @@ cd /home/ubuntu/lucid-go/app/backend
 # 2. Delete all .pyc files
 find /home/ubuntu/lucid-go/app/backend -type f -name '*.pyc' -delete
 
-# 3. Activate the virtual environment
+# 3. Activate the virtual environment and install dependencies
 source /home/ubuntu/lucid-go/app/env/bin/activate
+pip install -r requirements.txt
 
 # 4. Run the migrations
 python manage.py migrate --no-input
