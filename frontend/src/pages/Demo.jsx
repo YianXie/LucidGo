@@ -355,108 +355,41 @@ function Demo() {
                         minHeight: "calc(100vh - 100px)",
                     }}
                 >
-                    <Box
-                        sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            gap: 3,
-                        }}
-                    >
+                    <Box>
                         {Array.from({ length: totalBoards }, (_, i) => (
-                            <GameBoard
-                                key={i}
-                                id={i}
-                                gameData={gameData[i]}
-                                analysisData={analysisData[i]}
-                                currentMove={currentMove[i]}
-                                winRate={winRate[i]}
-                                setFiles={setFiles}
-                                handleViewSample={handleViewSample}
-                                useSamples={useSamples}
-                                setUseSamples={setUseSamples}
-                                setMaxVisits={setMaxVisits}
-                                setCurrentMove={setCurrentMove}
-                                loadedValue={loadedValue[i]}
-                                isLoading={loading[i]}
-                                showRecommendedMoves={showRecommendedMoves[i]}
-                                showPolicy={showPolicy[i]}
-                                showOwnership={showOwnership[i]}
-                                setShowRecommendedMoves={
-                                    setShowRecommendedMoves
-                                }
-                                setShowPolicy={setShowPolicy}
-                                setShowOwnership={setShowOwnership}
-                            />
+                            <>
+                                <Typography variant="h6">
+                                    Board {i + 1}
+                                </Typography>
+                                <GameBoard
+                                    key={i}
+                                    id={i}
+                                    gameData={gameData[i]}
+                                    analysisData={analysisData[i]}
+                                    currentMove={currentMove[i]}
+                                    setFiles={setFiles}
+                                    handleViewSample={handleViewSample}
+                                    useSamples={useSamples}
+                                    setUseSamples={setUseSamples}
+                                    maxVisits={maxVisits[i]}
+                                    setMaxVisits={setMaxVisits}
+                                    setCurrentMove={setCurrentMove}
+                                    loadedValue={loadedValue[i]}
+                                    isLoading={loading[i]}
+                                    showRecommendedMoves={
+                                        showRecommendedMoves[i]
+                                    }
+                                    showPolicy={showPolicy[i]}
+                                    showOwnership={showOwnership[i]}
+                                    setShowRecommendedMoves={
+                                        setShowRecommendedMoves
+                                    }
+                                    setShowPolicy={setShowPolicy}
+                                    setShowOwnership={setShowOwnership}
+                                />
+                            </>
                         ))}
                     </Box>
-
-                    {/* <Card
-                        sx={{
-                            width: { xs: "100%", sm: 400 },
-                            maxWidth: "100%",
-                        }}
-                    >
-                        <CardContent>
-                            <Stack spacing={3} alignItems="center">
-                                <WinRate
-                                    data={winRate}
-                                    maxMove={gameData?.moves.length}
-                                    setMove={setCurrentMove}
-                                    currentMove={currentMove}
-                                />
-                                <Box
-                                    sx={{
-                                        width: "100%",
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: 2,
-                                        alignItems: "center",
-                                    }}
-                                >
-                                    <Typography variant="h6">
-                                        Settings
-                                    </Typography>
-                                    <Box sx={{ width: "100%", px: 2 }}>
-                                        <Typography
-                                            variant="body2"
-                                            gutterBottom
-                                            sx={{ mb: 2 }}
-                                        >
-                                            Max Visits: {tempMaxVisits}
-                                        </Typography>
-                                        <Slider
-                                            value={tempMaxVisits}
-                                            onChange={(e, newValue) =>
-                                                setTempMaxVisits(newValue)
-                                            }
-                                            min={100}
-                                            max={1000}
-                                            step={10}
-                                            marks={[
-                                                {
-                                                    value: 100,
-                                                    label: "100",
-                                                },
-                                                {
-                                                    value: 1000,
-                                                    label: "1000",
-                                                },
-                                            ]}
-                                            aria-label="Max Visits"
-                                        />
-                                    </Box>
-                                    <Button
-                                        variant="contained"
-                                        onClick={handleApply}
-                                        sx={{ mt: 1 }}
-                                    >
-                                        Apply
-                                    </Button>
-                                </Box>
-                            </Stack>
-                        </CardContent>
-                    </Card> */}
                 </Box>
             </Container>
         </>

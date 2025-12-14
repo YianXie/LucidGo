@@ -27,8 +27,8 @@ function GameBoard({
     gameData,
     analysisData,
     currentMove,
-    winRate,
     setCurrentMove,
+    maxVisits,
     setMaxVisits,
     setUseSamples,
     useSamples,
@@ -470,6 +470,8 @@ function GameBoard({
                 id={id}
                 currentMove={currentMove}
                 setCurrentMove={setCurrentMove}
+                maxVisits={maxVisits}
+                setMaxVisits={setMaxVisits}
                 maxMove={gameData?.moves.length}
                 setShowRecommendedMoves={setShowRecommendedMoves}
                 setShowPolicy={setShowPolicy}
