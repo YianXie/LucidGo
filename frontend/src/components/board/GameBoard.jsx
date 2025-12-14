@@ -5,7 +5,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import Board from "@sabaki/go-board";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import board_bg from "../../assets/images/board/board-bg.png";
 import place_stone_sound from "../../assets/sounds/board/place-stone.wav";
@@ -58,11 +58,6 @@ function GameBoard({
     const canvasRef = useRef(null);
     const [emptyBoard, setEmptyBoard] = useState(null);
 
-    // Memoize canvas context to avoid repeated getContext calls
-    const getCanvasContext = useMemo(() => {
-        return () => canvasRef.current?.getContext("2d");
-    }, []);
-
     useEffect(() => {
         if (size > 19 || size < 2) {
             throw new RangeError(
@@ -72,9 +67,9 @@ function GameBoard({
 
         // Adjust the canvas' size based on the screen
         const canvas = canvasRef.current;
-        const ctx = getCanvasContext();
-        if (!ctx) return;
+        if (!canvas) return;
         
+        const ctx = canvas.getContext("2d");
         const dpr = window.devicePixelRatio || 1;
         canvas.width = canvasSize * dpr;
         canvas.height = canvasSize * dpr;
@@ -100,9 +95,10 @@ function GameBoard({
             return;
         }
 
-        const ctx = getCanvasContext();
-        if (!ctx) return;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
         
+        const ctx = canvas.getContext("2d");
         emptyBoard ? ctx.putImageData(emptyBoard, 0, 0) : ""; // idk why but if I don't check if emptyBoard exists first, sometimes error occurs
         game.clear();
 

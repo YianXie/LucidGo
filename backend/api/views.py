@@ -14,9 +14,17 @@ _http_client = None
 def get_http_client() -> httpx.Client:
     """Get or create a reusable HTTP client instance."""
     global _http_client
-    if _http_client is None:
+    if _http_client is None or _http_client.is_closed:
         _http_client = httpx.Client(timeout=settings.API_TIMEOUT)
     return _http_client
+
+
+def close_http_client():
+    """Close the HTTP client if it exists."""
+    global _http_client
+    if _http_client is not None and not _http_client.is_closed:
+        _http_client.close()
+        _http_client = None
 
 
 # @method_decorator(csrf_exempt, name="dispatch")
