@@ -121,10 +121,8 @@ class AnalyzeViewTestCase(APITestCase):
 
         mock_client = MagicMock()
         mock_client.post.return_value = mock_response
-        mock_client.__enter__.return_value = mock_client
-        mock_client.__exit__.return_value = None
 
-        with patch("api.views.httpx.Client", return_value=mock_client):
+        with patch("api.views.get_http_client", return_value=mock_client):
             response = self.client.post(
                 self.analyze_url,
                 {"analysis_request": self.valid_analysis_request},
@@ -139,10 +137,8 @@ class AnalyzeViewTestCase(APITestCase):
         """Test analyze endpoint when external API times out"""
         mock_client = MagicMock()
         mock_client.post.side_effect = httpx.TimeoutException("Request timed out")
-        mock_client.__enter__.return_value = mock_client
-        mock_client.__exit__.return_value = None
 
-        with patch("api.views.httpx.Client", return_value=mock_client):
+        with patch("api.views.get_http_client", return_value=mock_client):
             response = self.client.post(
                 self.analyze_url,
                 {"analysis_request": self.valid_analysis_request},
@@ -157,10 +153,8 @@ class AnalyzeViewTestCase(APITestCase):
         """Test analyze endpoint when external API connection fails"""
         mock_client = MagicMock()
         mock_client.post.side_effect = httpx.ConnectError("Connection failed")
-        mock_client.__enter__.return_value = mock_client
-        mock_client.__exit__.return_value = None
 
-        with patch("api.views.httpx.Client", return_value=mock_client):
+        with patch("api.views.get_http_client", return_value=mock_client):
             response = self.client.post(
                 self.analyze_url,
                 {"analysis_request": self.valid_analysis_request},
@@ -175,10 +169,8 @@ class AnalyzeViewTestCase(APITestCase):
         """Test analyze endpoint when external API request error occurs"""
         mock_client = MagicMock()
         mock_client.post.side_effect = httpx.RequestError("Request error")
-        mock_client.__enter__.return_value = mock_client
-        mock_client.__exit__.return_value = None
 
-        with patch("api.views.httpx.Client", return_value=mock_client):
+        with patch("api.views.get_http_client", return_value=mock_client):
             response = self.client.post(
                 self.analyze_url,
                 {"analysis_request": self.valid_analysis_request},

@@ -7,6 +7,17 @@ from sgfmill import sgf
 
 from django.conf import settings
 
+# Reusable HTTP client to avoid connection overhead
+_http_client = None
+
+
+def get_http_client() -> httpx.Client:
+    """Get or create a reusable HTTP client instance."""
+    global _http_client
+    if _http_client is None:
+        _http_client = httpx.Client(timeout=settings.API_TIMEOUT)
+    return _http_client
+
 
 # @method_decorator(csrf_exempt, name="dispatch")
 class AnalyzeView(APIView):
@@ -18,13 +29,13 @@ class AnalyzeView(APIView):
             return Response({"error": "No analysis request provided"}, status=400)
 
         try:
-            with httpx.Client(timeout=settings.API_TIMEOUT) as client:
-                r = client.post(
-                    f"{settings.API_ENDPOINT}/katago/analyze",
-                    json={"request": analysis_request},
-                )
-                r.raise_for_status()
-                response = r.json()
+            client = get_http_client()
+            r = client.post(
+                f"{settings.API_ENDPOINT}/katago/analyze",
+                json={"request": analysis_request},
+            )
+            r.raise_for_status()
+            response = r.json()
         except httpx.HTTPError as e:
             return Response({"error": str(e)}, status=502)
 
@@ -47,23 +58,22 @@ class GetGameDataView(APIView):
         except ValueError as error:
             return Response({"message": f"Invalid sgf data: {error}"}, status=400)
         moves = [node.get_move() for node in game.get_main_sequence()]
+        # Optimize conditional checks by calling methods once
+        game_size = game.get_size()
+        game_komi = game.get_komi()
+        black_player = game.get_player_name("b")
+        white_player = game.get_player_name("w")
+        winner = game.get_winner()
+
         game_data = {
             "moves": moves,
-            "size": game.get_size() if game.get_size() else "Unknown",
-            "komi": game.get_komi() if game.get_komi() else "Unknown",
+            "size": game_size if game_size else "Unknown",
+            "komi": game_komi if game_komi else "Unknown",
             "players": {
-                "black": (
-                    game.get_player_name("b")
-                    if game.get_player_name("b")
-                    else "Unknown"
-                ),
-                "white": (
-                    game.get_player_name("w")
-                    if game.get_player_name("w")
-                    else "Unknown"
-                ),
+                "black": black_player if black_player else "Unknown",
+                "white": white_player if white_player else "Unknown",
             },
-            "winner": game.get_winner() if game.get_winner() else "Unknown",
+            "winner": winner if winner else "Unknown",
         }
 
         return Response(
