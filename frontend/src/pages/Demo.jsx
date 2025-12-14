@@ -5,7 +5,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Typography from "@mui/material/Typography";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -17,15 +17,10 @@ import usePageTitle from "../hooks/usePageTitle";
 import { toGTPFormat } from "../utils";
 
 /**
- * Check if the server is currently available based on GMT+8 timezone
- * Server starts at 15:00 GMT+8 on weekdays, 08:00 GMT+8 on weekends
- * Server stops at 22:00 GMT+8 every day
- * @returns {boolean} - True if server is available, false otherwise
+ * Get GMT+8 time information using cached formatter
+ * @returns {object} - Object with hours, minutes, and dayOfWeek
  */
-function isServerAvailable() {
-    const now = new Date();
-
-    // Get GMT+8 time using Intl.DateTimeFormat for accurate timezone conversion
+const getGMT8Time = (() => {
     const formatter = new Intl.DateTimeFormat("en-US", {
         timeZone: "Asia/Shanghai",
         hour: "numeric",
@@ -34,10 +29,25 @@ function isServerAvailable() {
         hour12: false,
     });
 
-    const parts = formatter.formatToParts(now);
-    const hours = parseInt(parts.find((p) => p.type === "hour").value);
-    const minutes = parseInt(parts.find((p) => p.type === "minute").value);
-    const dayOfWeek = parts.find((p) => p.type === "weekday").value;
+    return (now) => {
+        const parts = formatter.formatToParts(now);
+        return {
+            hours: parseInt(parts.find((p) => p.type === "hour").value),
+            minutes: parseInt(parts.find((p) => p.type === "minute").value),
+            dayOfWeek: parts.find((p) => p.type === "weekday").value,
+        };
+    };
+})();
+
+/**
+ * Check if the server is currently available based on GMT+8 timezone
+ * Server starts at 15:00 GMT+8 on weekdays, 08:00 GMT+8 on weekends
+ * Server stops at 22:00 GMT+8 every day
+ * @returns {boolean} - True if server is available, false otherwise
+ */
+function isServerAvailable() {
+    const now = new Date();
+    const { hours, minutes, dayOfWeek } = getGMT8Time(now);
 
     const currentTimeInMinutes = hours * 60 + minutes;
     const stopTimeInMinutes = 22 * 60; // 22:00
@@ -262,20 +272,7 @@ function Demo() {
     // Get next available time message
     const getNextAvailableTime = () => {
         const now = new Date();
-
-        // Get GMT+8 time using Intl.DateTimeFormat
-        const formatter = new Intl.DateTimeFormat("en-US", {
-            timeZone: "Asia/Singapore",
-            hour: "numeric",
-            minute: "numeric",
-            weekday: "long",
-            hour12: false,
-        });
-
-        const parts = formatter.formatToParts(now);
-        const hours = parseInt(parts.find((p) => p.type === "hour").value);
-        const minutes = parseInt(parts.find((p) => p.type === "minute").value);
-        const dayOfWeek = parts.find((p) => p.type === "weekday").value;
+        const { hours, minutes, dayOfWeek } = getGMT8Time(now);
 
         const isWeekend = dayOfWeek === "Saturday" || dayOfWeek === "Sunday";
         const currentTimeInMinutes = hours * 60 + minutes;
@@ -285,16 +282,10 @@ function Demo() {
             // Server will be available tomorrow
             const tomorrow = new Date(now);
             tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-            const tomorrowFormatter = new Intl.DateTimeFormat("en-US", {
-                timeZone: "Asia/Singapore",
-                weekday: "long",
-            });
-            const tomorrowDayOfWeek = tomorrowFormatter
-                .formatToParts(tomorrow)
-                .find((p) => p.type === "weekday").value;
+            const tomorrowInfo = getGMT8Time(tomorrow);
             const tomorrowIsWeekend =
-                tomorrowDayOfWeek === "Saturday" ||
-                tomorrowDayOfWeek === "Sunday";
+                tomorrowInfo.dayOfWeek === "Saturday" ||
+                tomorrowInfo.dayOfWeek === "Sunday";
             const startTime = tomorrowIsWeekend ? "08:00" : "15:00";
             return `The server will be available tomorrow at ${startTime} GMT+8`;
         } else {
