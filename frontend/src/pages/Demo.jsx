@@ -66,6 +66,7 @@ function Demo() {
     const [files, setFiles] = useState([null]);
     const [gameData, setGameData] = useState([null]);
     const [analysisData, setAnalysisData] = useState([null]);
+    // eslint-disable-next-line no-unused-vars
     const [winRate, setWinRate] = useState([null]);
     const [currentMove, setCurrentMove] = useState([null]);
     const [loading, setLoading] = useState([false]);
@@ -74,6 +75,7 @@ function Demo() {
     const [showOwnership, setShowOwnership] = useState([false]);
     const [loadedValue, setLoadedValue] = useState([0]);
     const [maxVisits, setMaxVisits] = useState([500]);
+    // eslint-disable-next-line no-unused-vars
     const [totalBoards, setTotalBoards] = useState(1);
     const [useSamples, setUseSamples] = useState([null]);
     const [serverAvailable, setServerAvailable] = useState(isServerAvailable());
