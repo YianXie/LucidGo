@@ -68,7 +68,7 @@ function GameBoard({
         // Adjust the canvas' size based on the screen
         const canvas = canvasRef.current;
         if (!canvas) return;
-        
+
         const ctx = canvas.getContext("2d");
         const dpr = window.devicePixelRatio || 1;
         canvas.width = canvasSize * dpr;
@@ -97,7 +97,7 @@ function GameBoard({
 
         const canvas = canvasRef.current;
         if (!canvas) return;
-        
+
         const ctx = canvas.getContext("2d");
         emptyBoard ? ctx.putImageData(emptyBoard, 0, 0) : ""; // idk why but if I don't check if emptyBoard exists first, sometimes error occurs
         game.clear();

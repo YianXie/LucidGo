@@ -11,7 +11,7 @@ import {
     Tooltip,
 } from "chart.js";
 import { getRelativePosition } from "chart.js/helpers";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Line } from "react-chartjs-2";
 
 ChartJS.register(
@@ -27,127 +27,136 @@ ChartJS.register(
 function WinRate({ data, maxMove, setMove, currentMove }) {
     const [hoverX, setHoverX] = useState(null);
     const chartRef = useRef(null);
-    
+
     // Memoize options to avoid recreating on every render
-    const options = useMemo(() => ({
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: "top",
-            },
-            title: {
-                display: true,
-                text: "Win Rate",
-            },
-            customCanvasBackgroundColor: {
-                color: "rgb(160, 160, 160)",
-            },
-            verticalLine: {
-                hoverX: hoverX,
-            },
-        },
-        scales: {
-            y: {
-                suggestedMin: 0,
-                suggestedMax: 100,
+    const options = useMemo(
+        () => ({
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: "top",
+                },
                 title: {
                     display: true,
-                    text: "Win Rate (%)",
+                    text: "Win Rate",
+                },
+                customCanvasBackgroundColor: {
+                    color: "rgb(160, 160, 160)",
+                },
+                verticalLine: {
+                    hoverX: hoverX,
                 },
             },
-            x: {
-                title: {
-                    display: true,
-                    text: "Move",
+            scales: {
+                y: {
+                    suggestedMin: 0,
+                    suggestedMax: 100,
+                    title: {
+                        display: true,
+                        text: "Win Rate (%)",
+                    },
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: "Move",
+                    },
                 },
             },
-        },
-        onHover: (event) => {
-            const chart = chartRef.current;
-            if (!chart) {
-                return;
-            }
-
-            const chartArea = chart.chartArea;
-            const chartWidth = chartArea.right - chartArea.left;
-            const xScale = chart.scales.x;
-
-            const { x, y } = getRelativePosition(event, chartArea);
-            const xValue = xScale.getValueForPixel(x); // x-axis is 0-based, so we need to add 1
-
-            if (
-                x < chartArea.left ||
-                x > chartArea.right ||
-                y < chartArea.top ||
-                y > chartArea.bottom
-            ) {
-                setHoverX(null);
-            } else {
-                setHoverX(xValue * (chartWidth / xScale.max) + chartArea.left);
-            }
-        },
-        onClick: (event) => {
-            const chart = chartRef.current;
-            if (!chart) {
-                return;
-            }
-
-            const { x } = getRelativePosition(event, chart.chartArea);
-            const xScale = chart.scales.x;
-            const xValue = Math.min(
-                xScale.getValueForPixel(x) + 1,
-                maxMove - 1
-            );
-            setMove(xValue);
-        },
-    }), [hoverX, maxMove, setMove]);
-
-    const plugins = useMemo(() => [
-        {
-            id: "customCanvasBackgroundColor",
-            beforeDraw: (chart, _, options) => {
-                const { ctx } = chart;
-                ctx.save();
-                ctx.globalCompositeOperation = "destination-over";
-                ctx.fillStyle = options.color || "#99ffff";
-                ctx.fillRect(0, 0, chart.width, chart.height);
-                ctx.restore();
-            },
-        },
-        {
-            id: "verticalLine",
-            afterDraw: (chart) => {
-                const hoverXValue = chart.options.plugins.verticalLine?.hoverX;
-
-                if (!hoverXValue) {
+            onHover: (event) => {
+                const chart = chartRef.current;
+                if (!chart) {
                     return;
                 }
 
-                const { ctx } = chart;
-                const { chartArea } = chart;
+                const chartArea = chart.chartArea;
+                const chartWidth = chartArea.right - chartArea.left;
+                const xScale = chart.scales.x;
 
-                ctx.save();
-                ctx.beginPath();
-                ctx.moveTo(hoverXValue, chartArea.top);
-                ctx.lineTo(hoverXValue, chartArea.bottom);
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = "rgba(255, 0, 0, 0.8)";
-                ctx.setLineDash([5, 5]);
-                ctx.stroke();
-                ctx.restore();
-            },
-        },
-        {
-            id: "eventListener",
-            beforeEvent: (chart, args) => {
-                const event = args.event;
-                if (event.type === "mouseout") {
+                const { x, y } = getRelativePosition(event, chartArea);
+                const xValue = xScale.getValueForPixel(x); // x-axis is 0-based, so we need to add 1
+
+                if (
+                    x < chartArea.left ||
+                    x > chartArea.right ||
+                    y < chartArea.top ||
+                    y > chartArea.bottom
+                ) {
                     setHoverX(null);
+                } else {
+                    setHoverX(
+                        xValue * (chartWidth / xScale.max) + chartArea.left
+                    );
                 }
             },
-        },
-    ], []);
+            onClick: (event) => {
+                const chart = chartRef.current;
+                if (!chart) {
+                    return;
+                }
+
+                const { x } = getRelativePosition(event, chart.chartArea);
+                const xScale = chart.scales.x;
+                const xValue = Math.min(
+                    xScale.getValueForPixel(x) + 1,
+                    maxMove - 1
+                );
+                setMove(xValue);
+            },
+        }),
+        [hoverX, maxMove, setMove]
+    );
+
+    const plugins = useMemo(
+        () => [
+            {
+                id: "customCanvasBackgroundColor",
+                beforeDraw: (chart, _, options) => {
+                    const { ctx } = chart;
+                    ctx.save();
+                    ctx.globalCompositeOperation = "destination-over";
+                    ctx.fillStyle = options.color || "#99ffff";
+                    ctx.fillRect(0, 0, chart.width, chart.height);
+                    ctx.restore();
+                },
+            },
+            {
+                id: "verticalLine",
+                afterDraw: (chart) => {
+                    const hoverXValue =
+                        chart.options.plugins.verticalLine?.hoverX;
+
+                    if (!hoverXValue) {
+                        return;
+                    }
+
+                    const { ctx } = chart;
+                    const { chartArea } = chart;
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(hoverXValue, chartArea.top);
+                    ctx.lineTo(hoverXValue, chartArea.bottom);
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = "rgba(255, 0, 0, 0.8)";
+                    ctx.setLineDash([5, 5]);
+                    ctx.stroke();
+                    ctx.restore();
+                },
+            },
+            {
+                id: "eventListener",
+                beforeEvent: (chart, args) => {
+                    const event = args.event;
+                    if (event.type === "mouseout") {
+                        setHoverX(null);
+                    }
+                },
+            },
+        ],
+        []
+    );
 
     // Consolidate all data processing into a single effect
     const lineData = useMemo(() => {
@@ -176,7 +185,7 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
         }
 
         const blackWinRate = data;
-        const whiteWinRate = data.map(rate => 100 - rate);
+        const whiteWinRate = data.map((rate) => 100 - rate);
 
         return {
             labels: Array.from({ length: maxMove }, (_, i) => i + 1),
