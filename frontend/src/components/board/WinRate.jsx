@@ -11,7 +11,7 @@ import {
     Tooltip,
 } from "chart.js";
 import { getRelativePosition } from "chart.js/helpers";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Line } from "react-chartjs-2";
 
 ChartJS.register(
