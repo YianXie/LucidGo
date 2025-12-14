@@ -29,7 +29,7 @@ function Login() {
         const data = new FormData(event.currentTarget);
         try {
             setIsLoading(true);
-            const response = await api.post("/api/token/", {
+            const response = await api.post("/auth/token/", {
                 username: data.get("username"),
                 password: data.get("password"),
             });

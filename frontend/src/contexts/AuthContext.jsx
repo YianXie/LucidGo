@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
     const refreshAccessToken = useCallback(
         async (refreshToken) => {
             try {
-                const response = await api.post("/api/token/refresh/", {
+                const response = await api.post("/auth/token/refresh/", {
                     refresh: refreshToken,
                 });
                 setAccessToken(response.data.access);
