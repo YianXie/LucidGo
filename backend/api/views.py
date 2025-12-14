@@ -6,11 +6,9 @@ from rest_framework.views import APIView
 from sgfmill import sgf
 
 from django.conf import settings
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 
 
-@method_decorator(csrf_exempt, name="dispatch")
+# @method_decorator(csrf_exempt, name="dispatch")
 class AnalyzeView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -35,7 +33,7 @@ class AnalyzeView(APIView):
         )
 
 
-@method_decorator(csrf_exempt, name="dispatch")
+# @method_decorator(csrf_exempt, name="dispatch")
 class GetGameDataView(APIView):
     permission_classes = [IsAuthenticated]
 

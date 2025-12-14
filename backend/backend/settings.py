@@ -148,14 +148,12 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
     "https://www.lucidgo.org",
-    "https://api.lucidgo.org",
+    "https://lucidgo.org",
 ]
 
+CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
-    "https://api.lucidgo.org",
     "https://www.lucidgo.org",
 ]
 
@@ -190,8 +188,6 @@ if ENVIRONMENT == "production":
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-
-CORS_ALLOW_CREDENTIALS = True
 
 CORS_PREFLIGHT_MAX_AGE = 86400
 
