@@ -74,14 +74,14 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                 const chartWidth = chartArea.right - chartArea.left;
                 const xScale = chart.scales.x;
 
-                const { x, y } = getRelativePosition(event, chartArea);
-                const xValue = xScale.getValueForPixel(x); // x-axis is 0-based, so we need to add 1
+                const { x: mouseX, y: mouseY } = getRelativePosition(event, chartArea);
+                const xValue = xScale.getValueForPixel(mouseX); // x-axis is 0-based, so we need to add 1
 
                 if (
-                    x < chartArea.left ||
-                    x > chartArea.right ||
-                    y < chartArea.top ||
-                    y > chartArea.bottom
+                    mouseX < chartArea.left ||
+                    mouseX > chartArea.right ||
+                    mouseY < chartArea.top ||
+                    mouseY > chartArea.bottom
                 ) {
                     setHoverX(null);
                 } else {
@@ -96,10 +96,10 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                     return;
                 }
 
-                const { x } = getRelativePosition(event, chart.chartArea);
+                const { x: mouseX } = getRelativePosition(event, chart.chartArea);
                 const xScale = chart.scales.x;
                 const xValue = Math.min(
-                    xScale.getValueForPixel(x) + 1,
+                    xScale.getValueForPixel(mouseX) + 1,
                     maxMove - 1
                 );
                 setMove(xValue);
@@ -113,12 +113,12 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
             {
                 id: "customCanvasBackgroundColor",
                 beforeDraw: (chart, _, options) => {
-                    const { ctx } = chart;
-                    ctx.save();
-                    ctx.globalCompositeOperation = "destination-over";
-                    ctx.fillStyle = options.color || "#99ffff";
-                    ctx.fillRect(0, 0, chart.width, chart.height);
-                    ctx.restore();
+                    const { ctx: canvasContext } = chart;
+                    canvasContext.save();
+                    canvasContext.globalCompositeOperation = "destination-over";
+                    canvasContext.fillStyle = options.color || "#99ffff";
+                    canvasContext.fillRect(0, 0, chart.width, chart.height);
+                    canvasContext.restore();
                 },
             },
             {
@@ -131,18 +131,18 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                         return;
                     }
 
-                    const { ctx } = chart;
+                    const { ctx: canvasContext } = chart;
                     const { chartArea } = chart;
 
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.moveTo(hoverXValue, chartArea.top);
-                    ctx.lineTo(hoverXValue, chartArea.bottom);
-                    ctx.lineWidth = 2;
-                    ctx.strokeStyle = "rgba(255, 0, 0, 0.8)";
-                    ctx.setLineDash([5, 5]);
-                    ctx.stroke();
-                    ctx.restore();
+                    canvasContext.save();
+                    canvasContext.beginPath();
+                    canvasContext.moveTo(hoverXValue, chartArea.top);
+                    canvasContext.lineTo(hoverXValue, chartArea.bottom);
+                    canvasContext.lineWidth = 2;
+                    canvasContext.strokeStyle = "rgba(255, 0, 0, 0.8)";
+                    canvasContext.setLineDash([5, 5]);
+                    canvasContext.stroke();
+                    canvasContext.restore();
                 },
             },
             {
@@ -199,8 +199,8 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                     pointRadius: 0,
                     segment: {
                         borderColor: (ctx) => {
-                            const x = ctx.p0.parsed.x + 1;
-                            if (x < currentMove) {
+                            const moveIndex = ctx.p0.parsed.x + 1;
+                            if (moveIndex < currentMove) {
                                 return "black";
                             }
                             return "rgba(0, 0, 0, 0.2)";
@@ -216,8 +216,8 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                     pointRadius: 0,
                     segment: {
                         borderColor: (ctx) => {
-                            const x = ctx.p0.parsed.x + 1;
-                            if (x < currentMove) {
+                            const moveIndex = ctx.p0.parsed.x + 1;
+                            if (moveIndex < currentMove) {
                                 return "white";
                             }
                             return "rgba(255, 255, 255, 0.2)";

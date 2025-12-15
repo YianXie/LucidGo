@@ -38,12 +38,12 @@ class AnalyzeView(APIView):
 
         try:
             client = get_http_client()
-            r = client.post(
+            http_response = client.post(
                 f"{settings.API_ENDPOINT}/katago/analyze",
                 json={"request": analysis_request},
             )
-            r.raise_for_status()
-            response = r.json()
+            http_response.raise_for_status()
+            response = http_response.json()
         except httpx.HTTPError as e:
             return Response({"error": str(e)}, status=502)
 

@@ -71,21 +71,21 @@ api.interceptors.response.use(
                 refresh: refreshToken,
             });
 
-            const newAccess = data.access; // adjust if your backend uses a different key
-            localStorage.setItem("access", newAccess);
+            const newAccessToken = data.access; // adjust if your backend uses a different key
+            localStorage.setItem("access", newAccessToken);
 
-            processQueue(null, newAccess);
+            processQueue(null, newAccessToken);
 
             // Retry the original request with the new token
-            originalRequest.headers.Authorization = `Bearer ${newAccess}`;
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
             return api(originalRequest);
-        } catch (refreshErr) {
-            processQueue(refreshErr, null);
+        } catch (refreshError) {
+            processQueue(refreshError, null);
 
             // Refresh failed => clear tokens and force logout
             localStorage.removeItem("access");
             localStorage.removeItem("refresh");
-            return Promise.reject(refreshErr);
+            return Promise.reject(refreshError);
         } finally {
             isRefreshing = false;
         }
