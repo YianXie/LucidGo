@@ -1,5 +1,4 @@
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import Backdrop from "@mui/material/Backdrop";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import Link from "@mui/material/Link";
@@ -65,7 +64,7 @@ function GameBoard({
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
         const dpr = window.devicePixelRatio || 1;
         canvas.width = canvasSize * dpr;
         canvas.height = canvasSize * dpr;

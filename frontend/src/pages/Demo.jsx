@@ -1,9 +1,11 @@
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import React from "react";
 import { useEffect, useState } from "react";
@@ -74,22 +76,30 @@ function Demo() {
 
     const { isAuthenticated } = useAuth();
     const navigate = useNavigate();
+
+    // Board state management - using arrays indexed by board ID
+    const [totalBoards, setTotalBoards] = useState(1);
     const [files, setFiles] = useState([null]);
     const [gameData, setGameData] = useState([null]);
     const [analysisData, setAnalysisData] = useState([null]);
-    // eslint-disable-next-line no-unused-vars
     const [winRate, setWinRate] = useState([null]);
     const [currentMove, setCurrentMove] = useState([null]);
     const [loading, setLoading] = useState([false]);
+    const [useSamples, setUseSamples] = useState([null]);
+
+    // Display settings
     const [showRecommendedMoves, setShowRecommendedMoves] = useState([true]);
     const [showPolicy, setShowPolicy] = useState([false]);
     const [showOwnership, setShowOwnership] = useState([false]);
-    const [loadedValue, setLoadedValue] = useState([0]);
+
+    // Analysis settings
     const [maxVisits, setMaxVisits] = useState([500]);
-    // eslint-disable-next-line no-unused-vars
-    const [totalBoards, setTotalBoards] = useState(1);
-    const [useSamples, setUseSamples] = useState([null]);
+    const [maxVisitsVersion, setMaxVisitsVersion] = useState([0]); // Track changes to force re-analysis
+    const [loadedValue, setLoadedValue] = useState([0]);
+
+    // Server state
     const [serverAvailable, setServerAvailable] = useState(isServerAvailable());
+
     const getGameDataURL = "/api/get-game-data/";
     const getAnalysisURL = "/api/analyze/";
 
@@ -118,85 +128,102 @@ function Demo() {
         return () => clearInterval(interval);
     }, []);
 
+    // Effect to trigger analysis when gameData changes or maxVisits changes for a specific board
     useEffect(() => {
-        if (gameData.includes(null)) return;
-
-        const tempWinRate = [];
         for (let i = 0; i < totalBoards; i++) {
-            tempWinRate.push(
-                Array.from({ length: gameData[i].moves.length }, () => 50)
-            );
-        }
-        setWinRate(tempWinRate);
+            // Skip if no game data
+            if (!gameData || !gameData[i] || gameData[i] === null) continue;
 
-        async function analyze() {
-            for (let i = 0; i < totalBoards; i++) {
-                setLoading((prev) =>
-                    prev.map((value, index) => (index === i ? true : value))
-                );
-                await analyzeAllMoves(i);
-                setLoading((prev) =>
-                    prev.map((value, index) => (index === i ? false : value))
+            // Initialize win rate if needed
+            if (!winRate[i] || winRate[i].length !== gameData[i].moves.length) {
+                setWinRate((prev) =>
+                    prev.map((value, index) =>
+                        index === i
+                            ? Array.from(
+                                  { length: gameData[i].moves.length },
+                                  () => 50
+                              )
+                            : value
+                    )
                 );
             }
-        }
-        analyze();
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [gameData, maxVisits, totalBoards]);
+            // Check if analysis is needed for this board
+            // Analysis is needed if:
+            // 1. No analysis data exists, OR
+            // 2. maxVisits changed (tracked by maxVisitsVersion > 0)
+            const hasAnalysisData =
+                analysisData[i] && analysisData[i].length > 0;
+            const maxVisitsChanged = maxVisitsVersion[i] > 0;
+            const needsAnalysis = !hasAnalysisData || maxVisitsChanged;
 
-    useEffect(() => {
-        if (!files && !useSamples) return;
-
-        async function getGameDataAllBoards(SGFContent) {
-            try {
-                for (let i = 0; i < totalBoards; i++) {
-                    await getGameData(SGFContent, i);
-                    setCurrentMove((prev) =>
-                        prev.map((value, index) => (index === i ? 1 : value))
+            if (needsAnalysis) {
+                async function analyze() {
+                    setLoading((prev) =>
+                        prev.map((value, index) => (index === i ? true : value))
+                    );
+                    await analyzeAllMoves(i);
+                    setLoading((prev) =>
+                        prev.map((value, index) =>
+                            index === i ? false : value
+                        )
+                    );
+                    // Reset the version tracker after analysis completes
+                    setMaxVisitsVersion((prev) =>
+                        prev.map((value, index) => (index === i ? 0 : value))
                     );
                 }
-            } catch (error) {
-                toast.error("Invalid .sgf file");
-                console.error("Error while fetching game data:", error);
+                analyze();
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [gameData, maxVisitsVersion, totalBoards]);
 
+    async function getGameData(SGFContent, boardIndex) {
+        try {
+            const gameDataRes = await api.post(getGameDataURL, {
+                sgf_file_data: SGFContent,
+            });
+            const rawGameData = await gameDataRes.data;
+            const gameData = rawGameData.game_data;
+            setGameData((prev) =>
+                prev.map((value, index) =>
+                    index === boardIndex ? gameData : value
+                )
+            );
+            setCurrentMove((prev) =>
+                prev.map((value, index) => (index === boardIndex ? 1 : value))
+            );
+        } catch (error) {
+            toast.error("Invalid .sgf file");
+            console.error("Error while fetching game data:", error);
+        }
+    }
+
+    useEffect(() => {
         for (let i = 0; i < totalBoards; i++) {
+            if (!files[i] && !useSamples[i]) continue;
+            if (gameData[i] && gameData[i].moves.length > 0) continue;
             if (useSamples[i]) {
-                getGameDataAllBoards(SGFSample);
+                getGameData(SGFSample, i);
             } else {
                 if (files[i]) {
                     const reader = new FileReader();
                     reader.onload = function (e) {
                         const fileContent = e.target.result;
-                        getGameDataAllBoards(fileContent);
+                        getGameData(fileContent, i);
                     };
                     reader.readAsText(files[i]);
                 }
             }
         }
-    }, [files, totalBoards, useSamples]);
-
-    const getGameData = async (SGFContent, boardIndex) => {
-        const gameDataRes = await api.post(getGameDataURL, {
-            sgf_file_data: SGFContent,
-        });
-        const rawGameData = await gameDataRes.data;
-        const gameData = rawGameData.game_data;
-        setGameData((prev) =>
-            prev.map((value, index) =>
-                index === boardIndex ? gameData : value
-            )
-        );
-    };
+    }, [files, gameData, totalBoards, useSamples]);
 
     const analyzeAllMoves = async (boardIndex) => {
         const pastMoves = [];
         const analyzeResults = [];
         for (let i = 0; i < gameData[boardIndex].moves.length; i++) {
             const move = gameData[boardIndex].moves[i];
-
             if (move.includes(null)) {
                 continue;
             }
@@ -270,6 +297,59 @@ function Demo() {
         );
     };
 
+    // Wrapper function to handle maxVisits changes and trigger re-analysis
+    const handleMaxVisitsChange = (updater) => {
+        if (typeof updater === "function") {
+            setMaxVisits((prev) => {
+                const newMaxVisits = updater(prev);
+                // Find which board(s) had their maxVisits changed and update accordingly
+                const changedBoards = [];
+                prev.forEach((oldValue, index) => {
+                    if (oldValue !== newMaxVisits[index]) {
+                        changedBoards.push(index);
+                    }
+                });
+
+                // Clear analysis data for changed boards
+                if (changedBoards.length > 0) {
+                    setAnalysisData((prevAnalysis) =>
+                        prevAnalysis.map((analysis, i) =>
+                            changedBoards.includes(i) ? null : analysis
+                        )
+                    );
+                    // Increment version for changed boards
+                    setMaxVisitsVersion((prevVersion) =>
+                        prevVersion.map((version, i) =>
+                            changedBoards.includes(i) ? version + 1 : version
+                        )
+                    );
+                }
+
+                return newMaxVisits;
+            });
+        } else {
+            // Handle direct array assignment (shouldn't happen in normal flow)
+            setMaxVisits(updater);
+        }
+    };
+
+    const handleNewBoard = () => {
+        setUseSamples((prev) => [...prev, null]);
+        setGameData((prev) => [...prev, null]);
+        setAnalysisData((prev) => [...prev, null]);
+        setCurrentMove((prev) => [...prev, null]);
+        setLoading((prev) => [...prev, false]);
+        setShowRecommendedMoves((prev) => [...prev, true]);
+        setShowPolicy((prev) => [...prev, false]);
+        setShowOwnership((prev) => [...prev, false]);
+        setLoadedValue((prev) => [...prev, 0]);
+        setMaxVisits((prev) => [...prev, 500]);
+        setMaxVisitsVersion((prev) => [...prev, 0]);
+        setWinRate((prev) => [...prev, null]);
+        setFiles((prev) => [...prev, null]);
+        setTotalBoards(totalBoards + 1);
+    };
+
     // Get next available time message
     const getNextAvailableTime = () => {
         const now = new Date();
@@ -341,7 +421,7 @@ function Demo() {
                 <Box
                     sx={{
                         display: "flex",
-                        flexDirection: { xs: "column", lg: "row" },
+                        flexDirection: "column",
                         alignItems: "center",
                         justifyContent: "center",
                         gap: 4,
@@ -349,9 +429,15 @@ function Demo() {
                         minHeight: "calc(100vh - 100px)",
                     }}
                 >
-                    <Box>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 4,
+                        }}
+                    >
                         {Array.from({ length: totalBoards }, (_, i) => (
-                            <React.Fragment key={i}>
+                            <Stack key={i}>
                                 <Typography variant="h6">
                                     Board {i + 1}
                                 </Typography>
@@ -361,13 +447,13 @@ function Demo() {
                                     gameData={gameData[i]}
                                     analysisData={analysisData[i]}
                                     currentMove={currentMove[i]}
+                                    setCurrentMove={setCurrentMove}
                                     setFiles={setFiles}
                                     handleViewSample={handleViewSample}
                                     useSamples={useSamples}
                                     setUseSamples={setUseSamples}
                                     maxVisits={maxVisits[i]}
-                                    setMaxVisits={setMaxVisits}
-                                    setCurrentMove={setCurrentMove}
+                                    setMaxVisits={handleMaxVisitsChange}
                                     loadedValue={loadedValue[i]}
                                     isLoading={loading[i]}
                                     showRecommendedMoves={
@@ -381,9 +467,18 @@ function Demo() {
                                     setShowPolicy={setShowPolicy}
                                     setShowOwnership={setShowOwnership}
                                 />
-                            </React.Fragment>
+                            </Stack>
                         ))}
                     </Box>
+                    <Button
+                        variant="outlined"
+                        sx={{
+                            borderColor: "divider",
+                        }}
+                        onClick={handleNewBoard}
+                    >
+                        Add Board
+                    </Button>
                 </Box>
             </Container>
         </>

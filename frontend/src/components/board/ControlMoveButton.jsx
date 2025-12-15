@@ -2,6 +2,8 @@ import IconButton from "@mui/material/IconButton";
 
 import placeStoneSound from "../../assets/sounds/board/place-stone.wav";
 
+const placeStoneSoundInstance = new Audio(placeStoneSound);
+
 /**
  * ControlMoveButton component
  * @param {React.ReactNode} icon The icon to display
@@ -12,8 +14,6 @@ import placeStoneSound from "../../assets/sounds/board/place-stone.wav";
  * @returns {React.ReactNode} The button component
  */
 function ControlMoveButton({ icon, label, amount, handleMove, disabled }) {
-    const placeStoneSoundInstance = new Audio(placeStoneSound);
-
     return (
         <IconButton
             disabled={disabled}

@@ -11,6 +11,7 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Slide from "@mui/material/Slide";
 import Toolbar from "@mui/material/Toolbar";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -162,18 +163,20 @@ function Header() {
                                         {item.label}
                                     </Button>
                                 ))}
-                                <IconButton
-                                    onClick={() =>
-                                        window.open(
-                                            GitHubRepositoryLink,
-                                            "_blank"
-                                        )
-                                    }
-                                    color="inherit"
-                                    aria-label="GitHub Repository"
-                                >
-                                    <GitHubIcon />
-                                </IconButton>
+                                <Tooltip title="GitHub Repository" arrow>
+                                    <IconButton
+                                        onClick={() =>
+                                            window.open(
+                                                GitHubRepositoryLink,
+                                                "_blank"
+                                            )
+                                        }
+                                        color="inherit"
+                                        aria-label="GitHub Repository"
+                                    >
+                                        <GitHubIcon />
+                                    </IconButton>
+                                </Tooltip>
                             </Box>
                         )}
                     </Toolbar>

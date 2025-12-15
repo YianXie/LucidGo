@@ -52,13 +52,11 @@ function Settings({ open, setOpen, maxVisits, setMaxVisits, id }) {
                                 alignItems: "center",
                             }}
                         >
-                            <Typography variant="h6">Settings</Typography>
+                            <Typography variant="h6" gutterBottom>
+                                Settings for Board {id + 1}
+                            </Typography>
                             <Box sx={{ width: "100%", px: 2 }}>
-                                <Typography
-                                    variant="body2"
-                                    gutterBottom
-                                    sx={{ mb: 2 }}
-                                >
+                                <Typography variant="body2" gutterBottom>
                                     Max Visits: {tempMaxVisits}
                                 </Typography>
                                 <Slider
