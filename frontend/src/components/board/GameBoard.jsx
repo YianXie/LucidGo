@@ -8,14 +8,10 @@ import Board from "@sabaki/go-board";
 import { useEffect, useRef, useState } from "react";
 
 import board_bg from "../../assets/images/board/board-bg.png";
-import place_stone_sound from "../../assets/sounds/board/place-stone.wav";
 import { GTPLetters } from "../../constants";
 import { toRowColFormat } from "../../utils";
 import Upload from "../global/Upload";
 import Controls from "./Controls";
-
-// Create audio instance once, outside component to avoid recreating on every render
-const placeStoneSound = new Audio(place_stone_sound);
 
 /**
  * Draws a Weiqi board with Pixi.js
@@ -112,7 +108,6 @@ function GameBoard({
 
             placeStone(move);
         }
-        placeStoneSound.play();
         drawStones(ctx);
 
         // Draw the recommended move if it exists

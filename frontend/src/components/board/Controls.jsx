@@ -18,6 +18,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { useState } from "react";
 
+import ControlMoveButton from "./ControlMoveButton";
 import Settings from "./Settings";
 
 /**
@@ -163,30 +164,27 @@ function Controls({
                 </IconButton>
 
                 <Stack direction="row" spacing={0.5} sx={{ ml: "auto" }}>
-                    <IconButton
-                        onClick={() => handleMove(-maxMove)}
+                    <ControlMoveButton
+                        amount={-maxMove}
+                        icon={<SkipPreviousIcon />}
+                        label="Move to the beginning"
+                        handleMove={handleMove}
                         disabled={currentMove <= 1}
-                        aria-label="Move to the beginning"
-                        size="small"
-                    >
-                        <SkipPreviousIcon />
-                    </IconButton>
-                    <IconButton
-                        onClick={() => handleMove(-fastForwardAmount)}
+                    />
+                    <ControlMoveButton
+                        amount={-fastForwardAmount}
+                        icon={<FastRewindIcon />}
+                        label={`Rewind ${fastForwardAmount} moves`}
+                        handleMove={handleMove}
                         disabled={currentMove <= 1}
-                        aria-label={`Rewind ${fastForwardAmount} moves`}
-                        size="small"
-                    >
-                        <FastRewindIcon />
-                    </IconButton>
-                    <IconButton
-                        onClick={() => handleMove(-1)}
+                    />
+                    <ControlMoveButton
+                        amount={-1}
+                        icon={<ArrowBackIosIcon />}
+                        label="Move backward 1 move"
+                        handleMove={handleMove}
                         disabled={currentMove <= 1}
-                        aria-label="Move backward 1 move"
-                        size="small"
-                    >
-                        <ArrowBackIosIcon fontSize="small" />
-                    </IconButton>
+                    />
                 </Stack>
 
                 <Typography
@@ -201,30 +199,27 @@ function Controls({
                 </Typography>
 
                 <Stack direction="row" spacing={0.5} sx={{ mr: "auto" }}>
-                    <IconButton
-                        onClick={() => handleMove(1)}
+                    <ControlMoveButton
+                        amount={1}
+                        icon={<ArrowForwardIosIcon fontSize="small" />}
+                        label="Move forward 1 move"
+                        handleMove={handleMove}
                         disabled={currentMove >= maxMove - 1}
-                        aria-label="Move forward 1 move"
-                        size="small"
-                    >
-                        <ArrowForwardIosIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                        onClick={() => handleMove(fastForwardAmount)}
+                    />
+                    <ControlMoveButton
+                        amount={fastForwardAmount}
+                        icon={<FastForwardIcon />}
+                        label={`Fast forward ${fastForwardAmount} moves`}
+                        handleMove={handleMove}
                         disabled={currentMove >= maxMove - 1}
-                        aria-label={`Fast forward ${fastForwardAmount} moves`}
-                        size="small"
-                    >
-                        <FastForwardIcon />
-                    </IconButton>
-                    <IconButton
-                        onClick={() => handleMove(maxMove)}
+                    />
+                    <ControlMoveButton
+                        amount={maxMove}
+                        icon={<SkipNextIcon />}
+                        label="Move to the end"
+                        handleMove={handleMove}
                         disabled={currentMove >= maxMove - 1}
-                        aria-label="Move to the end"
-                        size="small"
-                    >
-                        <SkipNextIcon />
-                    </IconButton>
+                    />
                 </Stack>
 
                 <IconButton

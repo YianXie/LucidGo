@@ -5,6 +5,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Typography from "@mui/material/Typography";
+import React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -350,7 +351,7 @@ function Demo() {
                 >
                     <Box>
                         {Array.from({ length: totalBoards }, (_, i) => (
-                            <>
+                            <React.Fragment key={i}>
                                 <Typography variant="h6">
                                     Board {i + 1}
                                 </Typography>
@@ -380,7 +381,7 @@ function Demo() {
                                     setShowPolicy={setShowPolicy}
                                     setShowOwnership={setShowOwnership}
                                 />
-                            </>
+                            </React.Fragment>
                         ))}
                     </Box>
                 </Box>
