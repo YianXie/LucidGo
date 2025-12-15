@@ -181,10 +181,10 @@ function Demo() {
 
     async function getGameData(SGFContent, boardIndex) {
         try {
-            const gameDataRes = await api.post(getGameDataURL, {
+            const gameDataResponse = await api.post(getGameDataURL, {
                 sgf_file_data: SGFContent,
             });
-            const rawGameData = await gameDataRes.data;
+            const rawGameData = await gameDataResponse.data;
             const gameData = rawGameData.game_data;
             setGameData((prev) =>
                 prev.map((value, index) =>
@@ -244,10 +244,10 @@ function Demo() {
                 includeOwnership: true,
             };
             try {
-                const res = await api.post(getAnalysisURL, {
+                const analysisResponse = await api.post(getAnalysisURL, {
                     analysis_request: request,
                 });
-                const data = res.data;
+                const data = analysisResponse.data;
                 data.response.moveInfos.sort((a, b) => {
                     if (a.winrate > b.winrate) {
                         return -1;

@@ -64,22 +64,22 @@ function GameBoard({
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const ctx = canvas.getContext("2d", { willReadFrequently: true });
-        const dpr = window.devicePixelRatio || 1;
-        canvas.width = canvasSize * dpr;
-        canvas.height = canvasSize * dpr;
-        ctx.scale(dpr, dpr);
+        const canvasContext = canvas.getContext("2d", { willReadFrequently: true });
+        const devicePixelRatio = window.devicePixelRatio || 1;
+        canvas.width = canvasSize * devicePixelRatio;
+        canvas.height = canvasSize * devicePixelRatio;
+        canvasContext.scale(devicePixelRatio, devicePixelRatio);
 
         // The background image
-        const boardBg = new Image();
-        boardBg.src = board_bg;
+        const boardBackgroundImage = new Image();
+        boardBackgroundImage.src = board_bg;
 
-        boardBg.onload = () => {
-            ctx.drawImage(boardBg, 0, 0, canvasSize, canvasSize);
-            drawBoard(ctx);
-            drawCoords(ctx);
+        boardBackgroundImage.onload = () => {
+            canvasContext.drawImage(boardBackgroundImage, 0, 0, canvasSize, canvasSize);
+            drawBoard(canvasContext);
+            drawCoords(canvasContext);
             setEmptyBoard(
-                ctx.getImageData(0, 0, canvasSize * dpr, canvasSize * dpr)
+                canvasContext.getImageData(0, 0, canvasSize * devicePixelRatio, canvasSize * devicePixelRatio)
             );
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -93,8 +93,8 @@ function GameBoard({
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const ctx = canvas.getContext("2d");
-        emptyBoard ? ctx.putImageData(emptyBoard, 0, 0) : ""; // idk why but if I don't check if emptyBoard exists first, sometimes error occurs
+        const canvasContext = canvas.getContext("2d");
+        emptyBoard ? canvasContext.putImageData(emptyBoard, 0, 0) : ""; // idk why but if I don't check if emptyBoard exists first, sometimes error occurs
         game.clear();
 
         for (let i = 0; i <= currentMove; i++) {
@@ -107,7 +107,7 @@ function GameBoard({
 
             placeStone(move);
         }
-        drawStones(ctx);
+        drawStones(canvasContext);
 
         // Draw the recommended move if it exists
         if (analysisData && analysisData[currentMove]) {
@@ -127,7 +127,7 @@ function GameBoard({
                     const rawWinRate =
                         currentMove % 2 === 0 ? move.winrate : 1 - move.winrate;
                     const winRate = (rawWinRate * 100).toFixed(1);
-                    drawStone(ctx, row, col, color, false, winRate, "white");
+                    drawStone(canvasContext, row, col, color, false, winRate, "white");
                 }
             }
 
@@ -147,7 +147,7 @@ function GameBoard({
                             ? `rgba(0, 0, 0, ${alpha})`
                             : `rgba(255, 255, 255, ${alpha})`;
                     drawStone(
-                        ctx,
+                        canvasContext,
                         row,
                         col,
                         color,
@@ -169,44 +169,44 @@ function GameBoard({
 
     /**
      * Draw the game board with lines
-     * @param {CanvasRenderingContext2D} ctx - The canvas context
+     * @param {CanvasRenderingContext2D} canvasContext - The canvas context
      */
-    const drawBoard = (ctx) => {
+    const drawBoard = (canvasContext) => {
         for (let i = 0; i < size; i++) {
             if (i === 0 || i === size - 1) {
-                ctx.lineWidth = 1.25;
+                canvasContext.lineWidth = 1.25;
             } else {
-                ctx.lineWidth = 0.75;
+                canvasContext.lineWidth = 0.75;
             }
 
             // Vertical lines
-            ctx.beginPath();
-            ctx.moveTo(padding + margin * i, padding);
-            ctx.lineTo(padding + margin * i, canvasSize - padding);
+            canvasContext.beginPath();
+            canvasContext.moveTo(padding + margin * i, padding);
+            canvasContext.lineTo(padding + margin * i, canvasSize - padding);
 
             // Horizontal lines
-            ctx.moveTo(padding, padding + margin * i);
-            ctx.lineTo(canvasSize - padding, padding + margin * i);
+            canvasContext.moveTo(padding, padding + margin * i);
+            canvasContext.lineTo(canvasSize - padding, padding + margin * i);
 
-            ctx.stroke();
-            ctx.closePath();
+            canvasContext.stroke();
+            canvasContext.closePath();
 
             if (size === 19) {
                 if ([4 - 1, 10 - 1, 16 - 1].includes(i)) {
                     // Draw the 3*3 dots
                     for (let x = 0; x < 3; x++) {
-                        ctx.beginPath();
-                        ctx.arc(
+                        canvasContext.beginPath();
+                        canvasContext.arc(
                             padding + margin * i,
                             padding + margin * (4 - 1) + margin * 6 * x,
                             stoneRadius / 4,
                             0,
                             2 * Math.PI
                         );
-                        ctx.stroke();
-                        ctx.fill();
+                        canvasContext.stroke();
+                        canvasContext.fill();
                     }
-                    ctx.closePath();
+                    canvasContext.closePath();
                 }
             }
         }
@@ -214,30 +214,30 @@ function GameBoard({
 
     /**
      * Draw the game board's coords at both side (letter + number, GTP format)
-     * @param {CanvasRenderingContext2D} ctx - The canvas context
+     * @param {CanvasRenderingContext2D} canvasContext - The canvas context
      */
-    const drawCoords = (ctx) => {
-        ctx.font = "15px Arial";
-        ctx.textBaseline = "middle";
-        ctx.textAlign = "center";
-        ctx.fillStyle = "black";
+    const drawCoords = (canvasContext) => {
+        canvasContext.font = "15px Arial";
+        canvasContext.textBaseline = "middle";
+        canvasContext.textAlign = "center";
+        canvasContext.fillStyle = "black";
 
         for (let i = 0; i < size; i++) {
             // Draw the letters (exclude 'i')
-            ctx.fillText(
+            canvasContext.fillText(
                 GTPLetters[i],
                 padding + margin * i,
                 canvasSize - padding / 2
             );
-            ctx.fillText(GTPLetters[i], padding + margin * i, padding / 2);
+            canvasContext.fillText(GTPLetters[i], padding + margin * i, padding / 2);
 
             // Draw the numbers
-            ctx.fillText(
+            canvasContext.fillText(
                 i + 1,
                 canvasSize - padding / 2,
                 canvasSize - padding - margin * i
             );
-            ctx.fillText(i + 1, padding / 2, canvasSize - padding - margin * i);
+            canvasContext.fillText(i + 1, padding / 2, canvasSize - padding - margin * i);
         }
     };
 
@@ -256,9 +256,9 @@ function GameBoard({
 
     /**
      * Draw all the stones out until moveIndex
-     * @param {CanvasRenderingContext2D} ctx - The canvas context
+     * @param {CanvasRenderingContext2D} canvasContext - The canvas context
      */
-    const drawStones = (ctx) => {
+    const drawStones = (canvasContext) => {
         // Get the most recent move to highlight
         const lastMove =
             currentMove > 0 && currentMove < gameData.moves.length
@@ -287,7 +287,7 @@ function GameBoard({
                     lastMoveCoords[1] === col;
 
                 drawStone(
-                    ctx,
+                    canvasContext,
                     row,
                     col,
                     color === 1 ? "black" : "white",
@@ -301,7 +301,7 @@ function GameBoard({
 
     /**
      * Draw a stone based on the given information
-     * @param {CanvasRenderingContext2D} ctx - The canvas context
+     * @param {CanvasRenderingContext2D} canvasContext - The canvas context
      * @param {number} row - the row of the move
      * @param {number} col - the column of the move
      * @param {string} color the color of the move
@@ -309,41 +309,41 @@ function GameBoard({
      * @param {string} text the text to draw on the stone
      * @param {string} textColor the color of the text
      */
-    const drawStone = (ctx, row, col, color, highlight, text, textColor) => {
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.arc(
+    const drawStone = (canvasContext, row, col, color, highlight, text, textColor) => {
+        canvasContext.fillStyle = color;
+        canvasContext.beginPath();
+        canvasContext.arc(
             padding + margin * col,
             canvasSize - padding - margin * row,
             stoneRadius - 2,
             0,
             2 * Math.PI
         );
-        ctx.stroke();
-        ctx.fill();
-        ctx.closePath();
+        canvasContext.stroke();
+        canvasContext.fill();
+        canvasContext.closePath();
 
         if (highlight) {
             // Draw a red dot in the center of the stone
-            ctx.beginPath();
-            ctx.arc(
+            canvasContext.beginPath();
+            canvasContext.arc(
                 padding + margin * col,
                 canvasSize - padding - margin * row,
                 stoneRadius / 4,
                 0,
                 2 * Math.PI
             );
-            ctx.fillStyle = "red";
-            ctx.fill();
-            ctx.closePath();
+            canvasContext.fillStyle = "red";
+            canvasContext.fill();
+            canvasContext.closePath();
         }
 
         if (text) {
-            ctx.font = "12px Arial";
-            ctx.textBaseline = "middle";
-            ctx.textAlign = "center";
-            ctx.fillStyle = textColor;
-            ctx.fillText(
+            canvasContext.font = "12px Arial";
+            canvasContext.textBaseline = "middle";
+            canvasContext.textAlign = "center";
+            canvasContext.fillStyle = textColor;
+            canvasContext.fillText(
                 text,
                 padding + margin * col,
                 canvasSize - padding - margin * row
