@@ -18,8 +18,3 @@ export const getAnalysisURL = "/api/analyze/";
  * The link to the GitHub repo
  */
 export const GitHubRepositoryLink = "https://github.com/YianXie/LucidGo";
-
-/**
- * Main content's padding top to avoid the header
- */
-export const paddingTop = 100;
