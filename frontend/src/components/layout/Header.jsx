@@ -158,6 +158,9 @@ function Header() {
                                                 location.pathname === item.path
                                                     ? "underline"
                                                     : "none",
+                                            "&:hover": {
+                                                textDecoration: "underline",
+                                            },
                                         }}
                                     >
                                         {item.label}
