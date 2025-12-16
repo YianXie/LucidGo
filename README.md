@@ -82,7 +82,6 @@ LucidGo/
 │   │   ├── components/          # UI components
 │   │   │   ├── board/           # Go board components (GameBoard, Controls, WinRate)
 │   │   │   ├── global/          # Layout components (Header, Container, Layout)
-│   │   │   └── videos/          # Video-related components
 │   │   ├── hooks/               # Custom React hooks
 │   │   ├── pages/               # Route-level screens (Home, Demo, Docs)
 │   │   ├── api.js               # API client configuration

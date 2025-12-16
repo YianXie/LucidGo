@@ -49,7 +49,7 @@ function Header() {
 
     const navItems = [
         { label: "Docs", path: "/docs" },
-        { label: "Video Blog", path: "/video-blog" },
+        { label: "Blogs", path: "/blogs" },
         { label: "Demo", path: "/demo" },
         ...(isAuthenticated
             ? [{ label: "Logout", path: "/logout" }]

@@ -23,31 +23,3 @@ export const GitHubRepositoryLink = "https://github.com/YianXie/LucidGo";
  * Main content's padding top to avoid the header
  */
 export const paddingTop = 100;
-
-/**
- * The links to the videos in the video blog page
- */
-export const videoData = {
-    introduction:
-        "https://www.youtube-nocookie.com/embed/4U45FKlvA5s?si=VpVyqVCL4kOB-Mn7",
-    placeholder1:
-        "https://www.youtube-nocookie.com/embed/NpEaa2P7qZI?si=kGS1pD4WugClEe-r",
-    placeholder2:
-        "https://www.youtube-nocookie.com/embed/NpEaa2P7qZI?si=kGS1pD4WugClEe-r",
-    placeholder3:
-        "https://www.youtube-nocookie.com/embed/NpEaa2P7qZI?si=kGS1pD4WugClEe-r",
-    placeholder4:
-        "https://www.youtube-nocookie.com/embed/NpEaa2P7qZI?si=kGS1pD4WugClEe-r",
-    placeholder5:
-        "https://www.youtube-nocookie.com/embed/NpEaa2P7qZI?si=kGS1pD4WugClEe-r",
-    placeholder6:
-        "https://www.youtube-nocookie.com/embed/NpEaa2P7qZI?si=kGS1pD4WugClEe-r",
-    placeholder7:
-        "https://www.youtube-nocookie.com/embed/NpEaa2P7qZI?si=kGS1pD4WugClEe-r",
-    placeholder8:
-        "https://www.youtube-nocookie.com/embed/NpEaa2P7qZI?si=kGS1pD4WugClEe-r",
-    placeholder9:
-        "https://www.youtube-nocookie.com/embed/NpEaa2P7qZI?si=kGS1pD4WugClEe-r",
-    placeholder10:
-        "https://www.youtube-nocookie.com/embed/NpEaa2P7qZI?si=kGS1pD4WugClEe-r",
-};
