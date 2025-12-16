@@ -64,7 +64,9 @@ function GameBoard({
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const canvasContext = canvas.getContext("2d", { willReadFrequently: true });
+        const canvasContext = canvas.getContext("2d", {
+            willReadFrequently: true,
+        });
         const devicePixelRatio = window.devicePixelRatio || 1;
         canvas.width = canvasSize * devicePixelRatio;
         canvas.height = canvasSize * devicePixelRatio;
@@ -75,11 +77,22 @@ function GameBoard({
         boardBackgroundImage.src = board_bg;
 
         boardBackgroundImage.onload = () => {
-            canvasContext.drawImage(boardBackgroundImage, 0, 0, canvasSize, canvasSize);
+            canvasContext.drawImage(
+                boardBackgroundImage,
+                0,
+                0,
+                canvasSize,
+                canvasSize
+            );
             drawBoard(canvasContext);
             drawCoords(canvasContext);
             setEmptyBoard(
-                canvasContext.getImageData(0, 0, canvasSize * devicePixelRatio, canvasSize * devicePixelRatio)
+                canvasContext.getImageData(
+                    0,
+                    0,
+                    canvasSize * devicePixelRatio,
+                    canvasSize * devicePixelRatio
+                )
             );
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -127,7 +140,15 @@ function GameBoard({
                     const rawWinRate =
                         currentMove % 2 === 0 ? move.winrate : 1 - move.winrate;
                     const winRate = (rawWinRate * 100).toFixed(1);
-                    drawStone(canvasContext, row, col, color, false, winRate, "white");
+                    drawStone(
+                        canvasContext,
+                        row,
+                        col,
+                        color,
+                        false,
+                        winRate,
+                        "white"
+                    );
                 }
             }
 
@@ -229,7 +250,11 @@ function GameBoard({
                 padding + margin * i,
                 canvasSize - padding / 2
             );
-            canvasContext.fillText(GTPLetters[i], padding + margin * i, padding / 2);
+            canvasContext.fillText(
+                GTPLetters[i],
+                padding + margin * i,
+                padding / 2
+            );
 
             // Draw the numbers
             canvasContext.fillText(
@@ -237,7 +262,11 @@ function GameBoard({
                 canvasSize - padding / 2,
                 canvasSize - padding - margin * i
             );
-            canvasContext.fillText(i + 1, padding / 2, canvasSize - padding - margin * i);
+            canvasContext.fillText(
+                i + 1,
+                padding / 2,
+                canvasSize - padding - margin * i
+            );
         }
     };
 
@@ -309,7 +338,15 @@ function GameBoard({
      * @param {string} text the text to draw on the stone
      * @param {string} textColor the color of the text
      */
-    const drawStone = (canvasContext, row, col, color, highlight, text, textColor) => {
+    const drawStone = (
+        canvasContext,
+        row,
+        col,
+        color,
+        highlight,
+        text,
+        textColor
+    ) => {
         canvasContext.fillStyle = color;
         canvasContext.beginPath();
         canvasContext.arc(

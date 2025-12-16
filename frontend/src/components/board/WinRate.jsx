@@ -74,7 +74,10 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                 const chartWidth = chartArea.right - chartArea.left;
                 const xScale = chart.scales.x;
 
-                const { x: mouseX, y: mouseY } = getRelativePosition(event, chartArea);
+                const { x: mouseX, y: mouseY } = getRelativePosition(
+                    event,
+                    chartArea
+                );
                 const xValue = xScale.getValueForPixel(mouseX); // x-axis is 0-based, so we need to add 1
 
                 if (
@@ -96,7 +99,10 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                     return;
                 }
 
-                const { x: mouseX } = getRelativePosition(event, chart.chartArea);
+                const { x: mouseX } = getRelativePosition(
+                    event,
+                    chart.chartArea
+                );
                 const xScale = chart.scales.x;
                 const xValue = Math.min(
                     xScale.getValueForPixel(mouseX) + 1,
