@@ -54,6 +54,10 @@
     text-decoration: none;
     transition: color 0.2s;
     font-weight: 500;
+
+    &:hover {
+        text-decoration: underline;
+    }
 }
 
 .prose a:hover {

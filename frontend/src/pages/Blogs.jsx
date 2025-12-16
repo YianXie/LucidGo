@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { useLocation, useParams } from "react-router-dom";
 
 import BlogPageIsHere from "../../../articles/blog-page-is-here.md";
+import MiniKataGoInProgress from "../../../articles/mini-katago-in-progress.md";
 import Sidebar from "../components/global/Sidebar";
 import SidebarLink from "../components/global/SidebarLink";
 import { drawerWidth } from "../constants";
@@ -21,6 +22,11 @@ function Blogs() {
             id: "blog-page-is-here",
             title: "Blog Page is Here!",
             content: BlogPageIsHere,
+        },
+        {
+            id: "mini-katago-in-progress",
+            title: "Mini KataGo is Work in Progress!",
+            content: MiniKataGoInProgress,
         },
     ];
 
