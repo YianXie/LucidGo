@@ -4,9 +4,9 @@
 
 Before installing LucidGo, ensure you have the following installed on your system:
 
-- **Node.js** (v16 or higher) - [Download here](https://nodejs.org/)
-- **Python** (v3.8 or higher) - [Download here](https://www.python.org/downloads/)
-- **npm** or **yarn** - Comes with Node.js
+-   **Node.js** (v16 or higher) - [Download here](https://nodejs.org/)
+-   **Python** (v3.8 or higher) - [Download here](https://www.python.org/downloads/)
+-   **npm** or **yarn** - Comes with Node.js
 
 ### Verify Installation
 
@@ -91,18 +91,18 @@ Detailed KataGo installation instructions coming soon.
 
 **Python not found:**
 
-- Ensure Python is installed and added to your PATH
-- Try using `python3` instead of `python`
+-   Ensure Python is installed and added to your PATH
+-   Try using `python3` instead of `python`
 
 **npm install fails:**
 
-- Clear npm cache: `npm cache clean --force`
-- Delete `node_modules` and `package-lock.json`, then reinstall
+-   Clear npm cache: `npm cache clean --force`
+-   Delete `node_modules` and `package-lock.json`, then reinstall
 
 **Port already in use:**
 
-- Change the port in your configuration files
-- Kill the process using the port
+-   Change the port in your configuration files
+-   Kill the process using the port
 
 ## Next Steps
 

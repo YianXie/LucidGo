@@ -39,31 +39,31 @@ The frontend will be available at `http://localhost:5173`
 
 The demo interface provides several key features:
 
-- **Game Board**: Interactive Go board showing the current position
-- **Move Navigation**: Step through moves using the range selector
-- **Win Rate Chart**: Visual representation of winning probability throughout the game
-- **AI Recommendations**: See suggested moves from KataGo
-- **Policy Network**: View the AI's move probabilities
-- **Ownership Map**: See territory predictions
+-   **Game Board**: Interactive Go board showing the current position
+-   **Move Navigation**: Step through moves using the range selector
+-   **Win Rate Chart**: Visual representation of winning probability throughout the game
+-   **AI Recommendations**: See suggested moves from KataGo
+-   **Policy Network**: View the AI's move probabilities
+-   **Ownership Map**: See territory predictions
 
 ### Controls
 
 **Move Navigation:**
 
-- Use the slider to jump to any move in the game
-- Click on the board to see variations
+-   Use the slider to jump to any move in the game
+-   Click on the board to see variations
 
 **Analysis Options:**
 
-- Toggle **Recommended Moves** to show AI suggestions
-- Enable **Policy** to see move probabilities
-- Enable **Ownership** to view territory estimates
+-   Toggle **Recommended Moves** to show AI suggestions
+-   Enable **Policy** to see move probabilities
+-   Enable **Ownership** to view territory estimates
 
 **Max Visits:**
 
-- Adjust the analysis depth (higher = more accurate, slower)
-- Default: 500 visits
-- Range: 100 - 2000 visits
+-   Adjust the analysis depth (higher = more accurate, slower)
+-   Default: 500 visits
+-   Range: 100 - 2000 visits
 
 ## Customizing Analysis
 
@@ -71,26 +71,26 @@ The demo interface provides several key features:
 
 You can control the analysis depth by changing the max visits parameter:
 
-- **Quick Analysis**: 100-300 visits
-- **Standard**: 500-800 visits
-- **Deep Analysis**: 1000-2000 visits
+-   **Quick Analysis**: 100-300 visits
+-   **Standard**: 500-800 visits
+-   **Deep Analysis**: 1000-2000 visits
 
 ### Viewing Different Aspects
 
 **Win Rate Analysis:**
 
-- Shows the probability of winning throughout the game
-- Helps identify critical moments and mistakes
+-   Shows the probability of winning throughout the game
+-   Helps identify critical moments and mistakes
 
 **Policy Network:**
 
-- Displays where the AI thinks good moves are
-- Useful for learning opening patterns
+-   Displays where the AI thinks good moves are
+-   Useful for learning opening patterns
 
 **Ownership Map:**
 
-- Predicts final territory
-- Helps understand position evaluation
+-   Predicts final territory
+-   Helps understand position evaluation
 
 ## Tips for Effective Analysis
 
@@ -105,21 +105,21 @@ You can control the analysis depth by changing the max visits parameter:
 
 **Game Review:**
 
-- Upload your completed game
-- Look for sharp win rate changes
-- Analyze critical positions
+-   Upload your completed game
+-   Look for sharp win rate changes
+-   Analyze critical positions
 
 **Opening Study:**
 
-- Focus on the first 20-40 moves
-- Compare with AI recommendations
-- Learn new patterns
+-   Focus on the first 20-40 moves
+-   Compare with AI recommendations
+-   Learn new patterns
 
 **Endgame Practice:**
 
-- Navigate to the endgame
-- Check territory predictions
-- Verify your counting
+-   Navigate to the endgame
+-   Check territory predictions
+-   Verify your counting
 
 ## Sample Games
 
@@ -147,8 +147,8 @@ If you encounter issues:
 
 LucidGo provides an API for programmatic access:
 
-- `POST /api/get-game-data/` - Upload and parse SGF files
-- `POST /api/analyze/` - Request AI analysis for positions
+-   `POST /api/get-game-data/` - Upload and parse SGF files
+-   `POST /api/analyze/` - Request AI analysis for positions
 
 ### Custom Configuration
 
@@ -156,9 +156,9 @@ You can customize various aspects of the analysis through the backend configurat
 
 ## Next Steps
 
-- Experiment with different analysis depths
-- Try analyzing your own games
-- Explore the win rate patterns
-- Learn from AI suggestions
+-   Experiment with different analysis depths
+-   Try analyzing your own games
+-   Explore the win rate patterns
+-   Learn from AI suggestions
 
 Happy analyzing! 🎮

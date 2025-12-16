@@ -8,11 +8,11 @@ LucidGo is a powerful web-based tool that helps you analyze your Go (Weiqi) game
 
 Go is often considered abstract and difficult to understand. While AI engines like AlphaGo and KataGo have revolutionized the game, most players use these tools without understanding how they work. LucidGo bridges this gap by:
 
-- **Visual Analysis**: See AI thinking in real-time through intuitive visualizations
-- **Win Rate Tracking**: Understand the flow of the game with move-by-move win probability
-- **Policy Network Display**: View where the AI thinks good moves are located
-- **Territory Prediction**: See ownership maps showing predicted final territory
-- **Customizable Depth**: Adjust analysis strength to balance speed and accuracy
+-   **Visual Analysis**: See AI thinking in real-time through intuitive visualizations
+-   **Win Rate Tracking**: Understand the flow of the game with move-by-move win probability
+-   **Policy Network Display**: View where the AI thinks good moves are located
+-   **Territory Prediction**: See ownership maps showing predicted final territory
+-   **Customizable Depth**: Adjust analysis strength to balance speed and accuracy
 
 ## Key Features
 
@@ -42,10 +42,10 @@ Adjust the depth of analysis (max visits) to balance between speed and accuracy.
 
 ## Who is LucidGo For?
 
-- **Players** wanting to review and improve their games
-- **Teachers** looking for tools to explain concepts visually
-- **Students** learning from AI-recommended moves
-- **Enthusiasts** interested in AI decision-making processes
+-   **Players** wanting to review and improve their games
+-   **Teachers** looking for tools to explain concepts visually
+-   **Students** learning from AI-recommended moves
+-   **Enthusiasts** interested in AI decision-making processes
 
 ## Getting Started
 
@@ -59,10 +59,10 @@ Ready to begin? Follow these steps:
 
 LucidGo is built with modern web technologies:
 
-- **Frontend**: React, Vite, TailwindCSS, Three.js
-- **Backend**: Python, Flask
-- **AI Engine**: KataGo
-- **Board Rendering**: Custom Go board component
+-   **Frontend**: React, Vite, TailwindCSS, Three.js
+-   **Backend**: Python, Flask
+-   **AI Engine**: KataGo
+-   **Board Rendering**: Custom Go board component
 
 ## Open Source
 
@@ -72,10 +72,10 @@ LucidGo is open source and available on [GitHub](https://github.com/YianXie/Luci
 
 If you find LucidGo useful:
 
-- ⭐ Star the repository on GitHub
-- 🐛 Report bugs or suggest features
-- 🤝 Contribute to the codebase
-- 📢 Share with fellow Go players!
+-   ⭐ Star the repository on GitHub
+-   🐛 Report bugs or suggest features
+-   🤝 Contribute to the codebase
+-   📢 Share with fellow Go players!
 
 ---
 

@@ -1,21 +1,15 @@
-import MenuIcon from "@mui/icons-material/Menu";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
-import Drawer from "@mui/material/Drawer";
-import IconButton from "@mui/material/IconButton";
-import { useTheme } from "@mui/material/styles";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import GetStarted from "../../docs/get-started.mdx";
-import HowToUse from "../../docs/how-to-use.mdx";
-import Installation from "../../docs/installation.mdx";
-import Sidebar from "../components/docs/Sidebar";
-import SidebarLink from "../components/docs/SidebarLink";
+import GetStarted from "../../../docs/get-started.md";
+import HowToUse from "../../../docs/how-to-use.md";
+import Installation from "../../../docs/installation.md";
+import Sidebar from "../components/global/Sidebar";
+import SidebarLink from "../components/global/SidebarLink";
+import { drawerWidth } from "../constants";
 import usePageTitle from "../hooks/usePageTitle";
-
-const drawerWidth = 256;
 
 function Docs() {
     usePageTitle("Docs");
@@ -24,9 +18,6 @@ function Docs() {
     const navigate = useNavigate();
     const contentRef = useRef(null);
     const [activeSection, setActiveSection] = useState("get-started");
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-    const [mobileOpen, setMobileOpen] = useState(false);
 
     useEffect(() => {
         const hash = location.hash.slice(1);
@@ -44,10 +35,6 @@ function Docs() {
         }
     }, [location.hash, navigate]);
 
-    const handleDrawerToggle = () => {
-        setMobileOpen(!mobileOpen);
-    };
-
     const renderContent = () => {
         switch (activeSection) {
             case "installation":
@@ -55,7 +42,6 @@ function Docs() {
             case "how-to-use":
                 return <HowToUse />;
             case "get-started":
-            default:
                 return <GetStarted />;
         }
     };
@@ -84,52 +70,16 @@ function Docs() {
     );
 
     return (
-        <Container>
-            <Box sx={{ display: "flex", height: "calc(100vh - 100px)" }}>
-                {isMobile ? (
-                    <>
-                        <IconButton
-                            color="inherit"
-                            aria-label="open drawer"
-                            edge="start"
-                            onClick={handleDrawerToggle}
-                            sx={{
-                                position: "fixed",
-                                top: 80,
-                                left: 16,
-                                zIndex: 1300,
-                            }}
-                        >
-                            <MenuIcon />
-                        </IconButton>
-                        <Drawer
-                            variant="temporary"
-                            open={mobileOpen}
-                            onClose={handleDrawerToggle}
-                            ModalProps={{
-                                keepMounted: true,
-                            }}
-                            sx={{
-                                display: { xs: "block", md: "none" },
-                                "& .MuiDrawer-paper": {
-                                    boxSizing: "border-box",
-                                    width: drawerWidth,
-                                },
-                            }}
-                        >
-                            {sidebarContent}
-                        </Drawer>
-                    </>
-                ) : (
-                    <Box
-                        sx={{
-                            width: drawerWidth,
-                            flexShrink: 0,
-                        }}
-                    >
-                        {sidebarContent}
-                    </Box>
-                )}
+        <Container maxWidth="xl">
+            <Box sx={{ display: "flex" }}>
+                <Box
+                    sx={{
+                        width: drawerWidth,
+                        flexShrink: 0,
+                    }}
+                >
+                    {sidebarContent}
+                </Box>
                 <Box
                     ref={contentRef}
                     component="main"

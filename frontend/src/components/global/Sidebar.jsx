@@ -2,6 +2,8 @@ import List from "@mui/material/List";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 
+import { drawerWidth } from "../../constants";
+
 function Sidebar({ className, children }) {
     return (
         <Paper
@@ -10,7 +12,7 @@ function Sidebar({ className, children }) {
                 position: "sticky",
                 top: 0,
                 height: "100vh",
-                width: 256,
+                width: drawerWidth,
                 flexShrink: 0,
                 borderRight: 1,
                 borderColor: "divider",

@@ -18,3 +18,8 @@ export const getAnalysisURL = "/api/analyze/";
  * The link to the GitHub repo
  */
 export const GitHubRepositoryLink = "https://github.com/YianXie/LucidGo";
+
+/**
+ * The width of the drawer
+ */
+export const drawerWidth = 250;
