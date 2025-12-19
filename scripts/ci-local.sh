@@ -62,7 +62,7 @@ fi
 
 # Run pip audit (security checks)
 echo "Running pip audit..."
-if pip-audit --desc; then
+if pip-audit -v; then
     print_status "pip audit passed"
 else
     print_warning "pip audit found issues"

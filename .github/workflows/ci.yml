@@ -130,7 +130,7 @@ jobs:
 
             - name: Run pip audit (security checks)
               working-directory: ./backend
-              run: pip-audit --desc
+              run: pip-audit
 
             - name: Run bandit (security linting)
               working-directory: ./backend
