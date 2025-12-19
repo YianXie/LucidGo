@@ -145,20 +145,15 @@ function Header() {
                                 }}
                             >
                                 {navItems.map((item) => (
-                                    <Link
-                                        color="inherit"
-                                        sx={{
-                                            textTransform: "none",
-                                            textDecoration: "none",
-                                            "&:hover": {
-                                                textDecoration: "underline",
-                                            },
-                                        }}
+                                    <NavLink
+                                        key={item.path}
+                                        to={item.path}
+                                        className={
+                                            "no-underline transition-all hover:opacity-80 hover:underline"
+                                        }
                                     >
-                                        <NavLink key={item.path} to={item.path}>
-                                            {item.label}
-                                        </NavLink>
-                                    </Link>
+                                        {item.label}
+                                    </NavLink>
                                 ))}
                                 <Tooltip title="GitHub Repository" arrow>
                                     <IconButton
