@@ -12,6 +12,8 @@ permissions:
 
 jobs:
     deploy:
+        if: |
+            !contains(github.event.head_commit.message, '[skip deploy]')
         runs-on: ubuntu-latest
         steps:
             - name: Configure AWS creds (OICD)
