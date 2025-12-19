@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
+import Link from "@mui/material/Link";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
@@ -17,7 +18,7 @@ import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import useScrollTrigger from "@mui/material/useScrollTrigger";
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import { GitHubRepositoryLink } from "../../constants";
 import { useAuth } from "../../contexts/AuthContext";
@@ -140,31 +141,24 @@ function Header() {
                                 sx={{
                                     display: "flex",
                                     alignItems: "center",
-                                    gap: 2,
+                                    gap: 4,
                                 }}
                             >
                                 {navItems.map((item) => (
-                                    <Button
-                                        key={item.path}
-                                        onClick={() => navigate(item.path)}
-                                        color={
-                                            location.pathname === item.path
-                                                ? "primary"
-                                                : "inherit"
-                                        }
+                                    <Link
+                                        color="inherit"
                                         sx={{
                                             textTransform: "none",
-                                            textDecoration:
-                                                location.pathname === item.path
-                                                    ? "underline"
-                                                    : "none",
+                                            textDecoration: "none",
                                             "&:hover": {
                                                 textDecoration: "underline",
                                             },
                                         }}
                                     >
-                                        {item.label}
-                                    </Button>
+                                        <NavLink key={item.path} to={item.path}>
+                                            {item.label}
+                                        </NavLink>
+                                    </Link>
                                 ))}
                                 <Tooltip title="GitHub Repository" arrow>
                                     <IconButton

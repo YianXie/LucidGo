@@ -4,7 +4,7 @@ import Typography from "@mui/material/Typography";
 
 import { drawerWidth } from "../../constants";
 
-function Sidebar({ className, children }) {
+function Sidebar({ className, children, title = "Documentation" }) {
     return (
         <Paper
             elevation={0}
@@ -22,7 +22,7 @@ function Sidebar({ className, children }) {
             className={className}
         >
             <Typography variant="h6" sx={{ mb: 2, fontWeight: 700 }}>
-                Documentation
+                {title}
             </Typography>
             <List component="nav" sx={{ p: 0 }}>
                 {children}

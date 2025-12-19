@@ -13,7 +13,6 @@
     margin-bottom: 1.5rem;
     border-bottom: 2px solid;
     border-color: currentColor;
-    opacity: 0.3;
     padding-bottom: 0.5rem;
     line-height: 1.2;
 }
@@ -135,4 +134,9 @@
 
 .prose em {
     font-style: italic;
+}
+
+header a.active {
+    color: #2196f3;
+    text-decoration: underline;
 }
