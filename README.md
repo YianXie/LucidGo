@@ -2,6 +2,8 @@
 
 LucidGo is a visual Go (Weiqi) analysis tool that allows you to see AI-powered move analysis in real-time. Built with [KataGo](https://github.com/lightvector/KataGo) as the Go engine, LucidGo provides an intuitive interface for studying and understanding Go games through AI-assisted analysis.
 
+_The new [Mini-KataGo](https://github.com/YianXie/Mini-KataGo) project is in work in progress!_
+
 ## Table of Contents
 
 -   [Overview](#overview)
