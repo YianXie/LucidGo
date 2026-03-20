@@ -4,10 +4,10 @@ This document describes the GitHub Actions workflows configured for the LucidGo 
 
 ## Table of Contents
 
--   [CI Workflow](#ci-workflow)
--   [Deployment Workflow](#deployment-workflow)
--   [Required Secrets](#required-secrets)
--   [Troubleshooting](#troubleshooting)
+- [CI Workflow](#ci-workflow)
+- [Deployment Workflow](#deployment-workflow)
+- [Required Secrets](#required-secrets)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -19,8 +19,8 @@ The CI workflow runs automatically on every push and pull request to the `main` 
 
 ### Triggers
 
--   **Push events** to `main` branch
--   **Pull request events** targeting `main` branch
+- **Push events** to `main` branch
+- **Pull request events** targeting `main` branch
 
 ### Jobs
 
@@ -32,9 +32,9 @@ The CI workflow consists of four parallel jobs that run independently:
 
 **Environment:**
 
--   **Runner:** `ubuntu-latest`
--   **Python Version:** 3.13
--   **Database Service:** PostgreSQL 15 (containerized)
+- **Runner:** `ubuntu-latest`
+- **Python Version:** 3.13
+- **Database Service:** PostgreSQL 15 (containerized)
 
 **Steps:**
 
@@ -45,18 +45,18 @@ The CI workflow consists of four parallel jobs that run independently:
 
 **Database Configuration:**
 
--   PostgreSQL container runs with health checks
--   Database: `test_db`
--   Password: `postgres`
--   Port: `5432`
+- PostgreSQL container runs with health checks
+- Database: `test_db`
+- Password: `postgres`
+- Port: `5432`
 
 **Environment Variables:**
 
--   `SECRET_KEY`: Test secret key for CI
--   `ENVIRONMENT`: Set to `development`
--   `ALLOWED_HOSTS`: `localhost,127.0.0.1`
--   `API_ENDPOINT`: Retrieved from GitHub secrets
--   `API_TIMEOUT`: 30 seconds
+- `SECRET_KEY`: Test secret key for CI
+- `ENVIRONMENT`: Set to `development`
+- `ALLOWED_HOSTS`: `localhost,127.0.0.1`
+- `API_ENDPOINT`: Retrieved from GitHub secrets
+- `API_TIMEOUT`: 30 seconds
 
 **Test Execution:**
 
@@ -71,9 +71,9 @@ python manage.py test
 
 **Environment:**
 
--   **Runner:** `ubuntu-latest`
--   **Node.js Version:** >=22.12
--   **Cache:** npm dependencies cached for faster builds
+- **Runner:** `ubuntu-latest`
+- **Node.js Version:** >=22.12
+- **Cache:** npm dependencies cached for faster builds
 
 **Steps:**
 
@@ -86,7 +86,7 @@ python manage.py test
 
 **Files Checked:**
 
--   `src/**/*.{js,jsx,css,md}` (Prettier)
+- `src/**/*.{js,jsx,css,md}` (Prettier)
 
 #### 3. Backend Linting (`backend-linting`)
 
@@ -94,8 +94,8 @@ python manage.py test
 
 **Environment:**
 
--   **Runner:** `ubuntu-latest`
--   **Python Version:** 3.13
+- **Runner:** `ubuntu-latest`
+- **Python Version:** 3.13
 
 **Steps:**
 
@@ -107,8 +107,8 @@ python manage.py test
 
 **Tools Used:**
 
--   **Ruff:** Fast Python linter and formatter
--   **isort:** Python import sorting tool
+- **Ruff:** Fast Python linter and formatter
+- **isort:** Python import sorting tool
 
 #### 4. Security Checks (`security-checks`)
 
@@ -116,9 +116,9 @@ python manage.py test
 
 **Environment:**
 
--   **Runner:** `ubuntu-latest`
--   **Python Version:** 3.13
--   **Node.js Version:** >=22.12
+- **Runner:** `ubuntu-latest`
+- **Python Version:** 3.13
+- **Node.js Version:** >=22.12
 
 **Backend Security Steps:**
 
@@ -136,9 +136,9 @@ python manage.py test
 
 **Security Tools:**
 
--   **Safety CLI:** Python dependency vulnerability scanner (requires `SAFETY_API_KEY` secret)
--   **Bandit:** Python security linter (excludes `.env`, `__pycache__`, `.venv`)
--   **npm audit:** Node.js dependency vulnerability scanner
+- **Safety CLI:** Python dependency vulnerability scanner (requires `SAFETY_API_KEY` secret)
+- **Bandit:** Python security linter (excludes `.env`, `__pycache__`, `.venv`)
+- **npm audit:** Node.js dependency vulnerability scanner
 
 ---
 
@@ -148,16 +148,12 @@ python manage.py test
 
 The deployment workflow automatically deploys the backend application to AWS EC2 when code is pushed to the `main` branch.
 
-### Triggers
-
--   **Push events** to `main` branch only
-
 ### Permissions
 
 The workflow requires specific permissions for AWS authentication:
 
--   `id-token: write` - Required for OIDC authentication with AWS
--   `contents: read` - Required to checkout repository code
+- `id-token: write` - Required for OIDC authentication with AWS
+- `contents: read` - Required to checkout repository code
 
 ### Deployment Process
 
@@ -165,37 +161,32 @@ The workflow requires specific permissions for AWS authentication:
 
 **Environment:**
 
--   **Runner:** `ubuntu-latest`
+- **Runner:** `ubuntu-latest`
 
 **Steps:**
 
 1. **Configure AWS Credentials (OIDC)**
-
     - Uses OpenID Connect (OIDC) for secure, keyless authentication
     - Assumes IAM role specified in `AWS_ARN` secret
     - Configures AWS region from `AWS_REGION` secret
     - **Action:** `aws-actions/configure-aws-credentials@main`
 
 2. **Get Runner IP**
-
     - Retrieves the GitHub Actions runner's public IP address
     - Used for dynamic security group rule management
     - **Method:** `curl https://checkip.amazonaws.com`
 
 3. **Allow SSH from Runner**
-
     - Dynamically adds a temporary security group rule
     - Allows SSH (port 22) access from the GitHub Actions runner IP
     - **Security Group:** Specified in `AWS_SECURITY_GROUP_ID` secret
     - **Purpose:** Enables secure deployment without permanent SSH access
 
 4. **Checkout Code**
-
     - Retrieves the repository code
     - **Action:** `actions/checkout@v3`
 
 5. **Rsync Deployment**
-
     - Synchronizes backend code to EC2 instance
     - **Action:** `burnett01/rsync-deployments@7.1.0`
     - **Source:** `backend/` directory
@@ -220,7 +211,7 @@ The workflow requires specific permissions for AWS authentication:
 
 ### Deployment Flow Diagram
 
-```
+```text
 Push to main
     ↓
 Configure AWS OIDC
@@ -300,53 +291,53 @@ To use OIDC authentication, you need to configure an IAM role with a trust relat
 
 #### Backend Tests Failing
 
--   **Database connection errors:** Verify PostgreSQL service is healthy (check health check configuration)
--   **Test failures:** Review test output for specific test failures
--   **Migration errors:** Ensure `makemigrations` runs successfully before `migrate`
+- **Database connection errors:** Verify PostgreSQL service is healthy (check health check configuration)
+- **Test failures:** Review test output for specific test failures
+- **Migration errors:** Ensure `makemigrations` runs successfully before `migrate`
 
 #### Frontend Checks Failing
 
--   **ESLint errors:** Fix linting issues in JavaScript/JSX files
--   **Prettier errors:** Run `npx prettier --write` to auto-fix formatting
--   **Build failures:** Check for compilation errors in the frontend code
+- **ESLint errors:** Fix linting issues in JavaScript/JSX files
+- **Prettier errors:** Run `npx prettier --write` to auto-fix formatting
+- **Build failures:** Check for compilation errors in the frontend code
 
 #### Linting Failures
 
--   **Ruff errors:** Run `ruff format .` to auto-fix formatting issues
--   **isort errors:** Run `isort .` to auto-fix import sorting
+- **Ruff errors:** Run `ruff format .` to auto-fix formatting issues
+- **isort errors:** Run `isort .` to auto-fix import sorting
 
 #### Security Check Failures
 
--   **Safety CLI:** Update vulnerable packages to secure versions
--   **Bandit:** Review and fix security issues in Python code
--   **npm audit:** Run `npm audit fix` to resolve vulnerabilities (review changes before committing)
+- **Safety CLI:** Update vulnerable packages to secure versions
+- **Bandit:** Review and fix security issues in Python code
+- **npm audit:** Run `npm audit fix` to resolve vulnerabilities (review changes before committing)
 
 ### Deployment Workflow Issues
 
 #### AWS Authentication Failures
 
--   **OIDC errors:** Verify IAM role trust relationship is correctly configured
--   **Region errors:** Ensure `AWS_REGION` secret matches your AWS resources location
--   **Permission errors:** Check IAM role has necessary permissions for EC2 and security group operations
+- **OIDC errors:** Verify IAM role trust relationship is correctly configured
+- **Region errors:** Ensure `AWS_REGION` secret matches your AWS resources location
+- **Permission errors:** Check IAM role has necessary permissions for EC2 and security group operations
 
 #### Security Group Issues
 
--   **SSH access denied:** Verify security group rule is being added correctly
--   **IP not whitelisted:** Check runner IP is correctly retrieved and added
--   **Rule not revoked:** Verify cleanup step runs (should always execute)
+- **SSH access denied:** Verify security group rule is being added correctly
+- **IP not whitelisted:** Check runner IP is correctly retrieved and added
+- **Rule not revoked:** Verify cleanup step runs (should always execute)
 
 #### Rsync Deployment Failures
 
--   **Connection errors:** Verify EC2 instance is running and accessible
--   **SSH key errors:** Ensure `EC2_KEY` secret contains the correct private key
--   **Permission errors:** Check SSH user has write permissions to destination directory
--   **Path errors:** Verify `EC2_HOST`, `EC2_USER`, and remote path are correct
+- **Connection errors:** Verify EC2 instance is running and accessible
+- **SSH key errors:** Ensure `EC2_KEY` secret contains the correct private key
+- **Permission errors:** Check SSH user has write permissions to destination directory
+- **Path errors:** Verify `EC2_HOST`, `EC2_USER`, and remote path are correct
 
 #### Post-Deployment Issues
 
--   **Application not running:** SSH into EC2 and check application status
--   **Missing dependencies:** Ensure all required packages are installed on EC2
--   **Environment variables:** Verify `.env` file is properly configured on EC2 (not deployed via rsync)
+- **Application not running:** SSH into EC2 and check application status
+- **Missing dependencies:** Ensure all required packages are installed on EC2
+- **Environment variables:** Verify `.env` file is properly configured on EC2 (not deployed via rsync)
 
 ### Common Solutions
 
@@ -372,8 +363,8 @@ To use OIDC authentication, you need to configure an IAM role with a trust relat
 
 ## Additional Resources
 
--   [GitHub Actions Documentation](https://docs.github.com/en/actions)
--   [AWS OIDC for GitHub Actions](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services)
--   [Django Testing](https://docs.djangoproject.com/en/stable/topics/testing/)
--   [Ruff Documentation](https://docs.astral.sh/ruff/)
--   [Safety CLI](https://pyup.io/safety/)
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+- [AWS OIDC for GitHub Actions](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services)
+- [Django Testing](https://docs.djangoproject.com/en/stable/topics/testing/)
+- [Ruff Documentation](https://docs.astral.sh/ruff/)
+- [Safety CLI](https://pyup.io/safety/)

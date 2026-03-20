@@ -4,27 +4,6 @@ LucidGo is a visual Go (Weiqi) analysis tool that allows you to see AI-powered m
 
 _The new [LucidTree](https://github.com/YianXie/LucidTree) project is in work in progress!_
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-    - [Prerequisites](#prerequisites)
-    - [Backend Setup](#backend-setup)
-    - [Frontend Setup](#frontend-setup)
-    - [Run Both Apps](#run-both-apps)
-- [Environment Variables](#environment-variables)
-- [Developer Tooling](#developer-tooling)
-    - [Makefile Commands](#makefile-commands)
-- [AWS Setup](#aws-setup)
-    - [EC2 Instance Setup](#ec2-instance-setup)
-    - [Install KataGo on your EC2 instance](#install-katago-on-your-ec2-instance)
-- [API Surface](#api-surface)
-- [Current Features](#current-features)
-- [Support](#support)
-- [License](#license)
-
 ## Overview
 
 Go (Weiqi) is often referred to as abstract and difficult to understand. However, with the advancement of AI technology, such as KataGo, it has become much easier to study and play.
@@ -41,7 +20,7 @@ Most people enjoy the assistance from AI but have no idea how it works and what 
 
 ## Tech Stack
 
-**Backend**
+### Backend
 
 - Python 3.11, Django 5.2+, Django REST Framework 3.16+
 - PostgreSQL (production) and SQLite (local development)
@@ -49,7 +28,7 @@ Most people enjoy the assistance from AI but have no idea how it works and what 
 - SGF parsing with `sgfmill` library
 - JWT authentication with `djangorestframework-simplejwt`
 
-**Frontend**
+### Frontend
 
 - React 19 with Vite 7 for fast development experience
 - React Router 7 for navigation
@@ -58,7 +37,7 @@ Most people enjoy the assistance from AI but have no idea how it works and what 
 - Chart.js for win rate visualization
 - Three.js and GSAP for advanced animations
 
-**Tooling & DevOps**
+### Tooling & DevOps
 
 - Ruff (formatter and linter), isort, Bandit, Safety for Python quality and security
 - ESLint, Prettier, and Tailwind plugins for the frontend
@@ -67,7 +46,7 @@ Most people enjoy the assistance from AI but have no idea how it works and what 
 
 ## Project Structure
 
-```
+```yaml
 LucidGo/
 ├── backend/                     # Django project
 │   ├── api/                     # API endpoints for analysis and game data
@@ -205,30 +184,6 @@ VITE_API_URL=""        # the URL where your backend (Django REST Framework) runs
 - `make test` – execute Django test suite
 - `make ci-local` – replicate CI pipeline locally (`scripts/ci-local.sh`)
 - `make clean` – prune caches and build artifacts
-
-## AWS Setup
-
-### EC2 Instance Setup
-
-Since LucidGo uses KataGo as its Go engine, you can use an AWS server to run LucidGo's analysis more efficiently. To set it up, first create an EC2 Instance on AWS, and choose a Linux-based system (such as Ubuntu) with Nvidia Driver pre-installed.
-
-**DO NOT GO FOR NEURAL NETWORK INSTANCES**
-
-_Recommended instance: Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 24.04)_
-
-Choose a reasonably good setup (e.g., g4dn.xlarge), and then start your server.
-
-> If you encounter any quota issues, you may need to request a quota increase
-
-Then, copy your instance's **public IPv4 address** (e.g., 12.345.678.999), and paste it in the `.env` file in your `backend` directory as the `API_ENDPOINT` value.
-
-Do note that the auto-assigned IPv4 address is not fixed. To get a stable address, consider adding an **elastic IP address**.
-
-### Install KataGo on your EC2 instance
-
-<!-- Do not edit here -->
-
-WIP
 
 ## API Surface
 
