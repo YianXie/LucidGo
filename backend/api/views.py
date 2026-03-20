@@ -1,11 +1,10 @@
 import httpx
+from django.conf import settings
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from sgfmill import sgf
-
-from django.conf import settings
 
 # Reusable HTTP client to avoid connection overhead
 _http_client = None

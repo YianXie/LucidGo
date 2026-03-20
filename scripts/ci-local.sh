@@ -31,11 +31,11 @@ echo "=================="
 # Install backend dev dependencies
 echo "Installing backend dependencies..."
 cd backend
-pip install -r requirements.txt
+uv sync --dev
 
 # Run Django tests
 echo "Running Django tests..."
-if python manage.py test; then
+if uv run python manage.py test; then
     print_status "Django tests passed"
 else
     print_error "Django tests failed"
@@ -44,7 +44,7 @@ fi
 
 # Run Ruff formatting check
 echo "Checking code formatting with Ruff..."
-if ruff format --check .; then
+if uv run ruff check .; then
     print_status "Ruff formatting check passed"
 else
     print_error "Ruff formatting check failed. Run 'ruff format .' to fix."
@@ -53,7 +53,7 @@ fi
 
 # Run isort import sorting check
 echo "Checking import sorting with isort..."
-if isort --check-only --diff .; then
+if uv run isort --check-only --diff .; then
     print_status "isort import sorting check passed"
 else
     print_error "isort import sorting check failed. Run 'isort .' to fix."
@@ -62,14 +62,14 @@ fi
 
 # Run pip audit (security checks)
 echo "Running pip audit..."
-if pip-audit -v; then
+if uv run pip-audit -v; then
     print_status "pip audit passed"
 else
     print_warning "pip audit found issues"
 fi
 
 echo "Running bandit security check..."
-if bandit -r . -x ./env,./__pycache__; then
+if uv run bandit -r . -x ./env,./__pycache__; then
     print_status "Bandit security check passed"
 else
     print_warning "Bandit security check found issues"
