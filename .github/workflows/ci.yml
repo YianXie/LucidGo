@@ -31,15 +31,15 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
 
-            - name: Install python
-              uses: actions/setup-python@v4
+            - name: Install uv
+              uses: astral-sh/setup-uv@v6
               with:
-                  python-version: "3.13"
+                  version: "latest"
+                  version-file: "pyproject.toml"
 
             - name: Install dependencies
               working-directory: ./backend
-              run: |
-                  pip install -r requirements.txt
+              run: uv sync --dev
 
             - name: Run Django tests
               working-directory: ./backend
@@ -50,8 +50,8 @@ jobs:
                   API_ENDPOINT: ${{ secrets.API_ENDPOINT }}
                   API_TIMEOUT: 30
               run: |
-                  python manage.py makemigrations && python manage.py migrate
-                  python manage.py test
+                  uv run python manage.py makemigrations && uv run python manage.py migrate
+                  uv run python manage.py test
 
     frontend-checks:
         name: Frontend Linting & Formatting
@@ -92,15 +92,16 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
 
-            - name: Install python
-              uses: actions/setup-python@v4
+            - name: Install uv
+              uses: astral-sh/setup-uv@v6
               with:
-                  python-version: "3.13"
+                  version: "latest"
+                  version-file: "pyproject.toml"
 
             - name: Install dependencies
               working-directory: ./backend
               run: |
-                  pip install -r requirements.txt
+                  uv sync --dev
 
             - name: Run Ruff (code formatting check)
               working-directory: ./backend
@@ -118,23 +119,24 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
 
-            - name: Install python
-              uses: actions/setup-python@v4
+            - name: Install uv
+              uses: astral-sh/setup-uv@v6
               with:
-                  python-version: "3.13"
+                  version: "latest"
+                  version-file: "pyproject.toml"
 
             - name: Install dependencies
               working-directory: ./backend
               run: |
-                  pip install -r requirements.txt
+                  uv sync --dev
 
             - name: Run pip audit (security checks)
               working-directory: ./backend
-              run: pip-audit
+              run: uv run pip-audit
 
             - name: Run bandit (security linting)
               working-directory: ./backend
-              run: bandit -r . -x ./.env -x ./__pycache__ -x ./.venv
+              run: uv run bandit -c pyproject.toml -r .
 
             - name: Set up Node.js
               uses: actions/setup-node@v4

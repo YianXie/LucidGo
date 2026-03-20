@@ -6,24 +6,24 @@ _The new [Mini-KataGo](https://github.com/YianXie/Mini-KataGo) project is in wor
 
 ## Table of Contents
 
--   [Overview](#overview)
--   [Tech Stack](#tech-stack)
--   [Project Structure](#project-structure)
--   [Getting Started](#getting-started)
-    -   [Prerequisites](#prerequisites)
-    -   [Backend Setup](#backend-setup)
-    -   [Frontend Setup](#frontend-setup)
-    -   [Run Both Apps](#run-both-apps)
--   [Environment Variables](#environment-variables)
--   [Developer Tooling](#developer-tooling)
-    -   [Makefile Commands](#makefile-commands)
--   [AWS Setup](#aws-setup)
-    -   [EC2 Instance Setup](#ec2-instance-setup)
-    -   [Install KataGo on your EC2 instance](#install-katago-on-your-ec2-instance)
--   [API Surface](#api-surface)
--   [Current Features](#current-features)
--   [Support](#support)
--   [License](#license)
+- [Overview](#overview)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Backend Setup](#backend-setup)
+    - [Frontend Setup](#frontend-setup)
+    - [Run Both Apps](#run-both-apps)
+- [Environment Variables](#environment-variables)
+- [Developer Tooling](#developer-tooling)
+    - [Makefile Commands](#makefile-commands)
+- [AWS Setup](#aws-setup)
+    - [EC2 Instance Setup](#ec2-instance-setup)
+    - [Install KataGo on your EC2 instance](#install-katago-on-your-ec2-instance)
+- [API Surface](#api-surface)
+- [Current Features](#current-features)
+- [Support](#support)
+- [License](#license)
 
 ## Overview
 
@@ -33,37 +33,37 @@ Most people enjoy the assistance from AI but have no idea how it works and what 
 
 **Key Features:**
 
--   **Visual analysis**: Interactive Go board with real-time move analysis and win rate visualization
--   **SGF file support**: Upload and analyze games from SGF (Smart Game Format) files
--   **AI-powered insights**: Leverage KataGo for deep move analysis and position evaluation
--   **Customizable interface**: Modern, responsive UI built with React and Material-UI
--   **Cloud-ready**: Optional AWS EC2 integration for GPU-accelerated analysis
+- **Visual analysis**: Interactive Go board with real-time move analysis and win rate visualization
+- **SGF file support**: Upload and analyze games from SGF (Smart Game Format) files
+- **AI-powered insights**: Leverage KataGo for deep move analysis and position evaluation
+- **Customizable interface**: Modern, responsive UI built with React and Material-UI
+- **Cloud-ready**: Optional AWS EC2 integration for GPU-accelerated analysis
 
 ## Tech Stack
 
 **Backend**
 
--   Python 3.11, Django 5.2+, Django REST Framework 3.16+
--   PostgreSQL (production) and SQLite (local development)
--   HTTP client via `httpx` for KataGo API communication
--   SGF parsing with `sgfmill` library
--   JWT authentication with `djangorestframework-simplejwt`
+- Python 3.11, Django 5.2+, Django REST Framework 3.16+
+- PostgreSQL (production) and SQLite (local development)
+- HTTP client via `httpx` for KataGo API communication
+- SGF parsing with `sgfmill` library
+- JWT authentication with `djangorestframework-simplejwt`
 
 **Frontend**
 
--   React 19 with Vite 7 for fast development experience
--   React Router 7 for navigation
--   Material-UI 7 and Tailwind CSS 4 for styling
--   `@sabaki/go-board` for Go board rendering
--   Chart.js for win rate visualization
--   Three.js and GSAP for advanced animations
+- React 19 with Vite 7 for fast development experience
+- React Router 7 for navigation
+- Material-UI 7 and Tailwind CSS 4 for styling
+- `@sabaki/go-board` for Go board rendering
+- Chart.js for win rate visualization
+- Three.js and GSAP for advanced animations
 
 **Tooling & DevOps**
 
--   Ruff (formatter and linter), isort, Bandit, Safety for Python quality and security
--   ESLint, Prettier, and Tailwind plugins for the frontend
--   Makefile helpers and `scripts/ci-local.sh` to mirror CI locally
--   GitHub Actions for CI/CD
+- Ruff (formatter and linter), isort, Bandit, Safety for Python quality and security
+- ESLint, Prettier, and Tailwind plugins for the frontend
+- Makefile helpers and `scripts/ci-local.sh` to mirror CI locally
+- GitHub Actions for CI/CD
 
 ## Project Structure
 
@@ -103,9 +103,9 @@ LucidGo/
 
 ### Prerequisites
 
--   Python 3.11
--   Node.js 18+ (Node 20 recommended) and npm
--   (Optional) AWS EC2 instance with GPU support for KataGo analysis
+- Python 3.11
+- Node.js 18+ (Node 20 recommended) and npm
+- (Optional) AWS EC2 instance with GPU support for KataGo analysis
 
 To verify your installation:
 
@@ -130,13 +130,13 @@ source env/bin/activate  # Windows: env\Scripts\activate
 
 # Install backend dependencies
 cd backend
-pip install -r requirements.txt
+uv sync --dev
 
 # Run database migrations
-python manage.py migrate
+uv run python manage.py migrate
 
 # Start the development server
-python manage.py runserver
+uv run python manage.py runserver
 ```
 
 The API listens on `http://localhost:8000`.
@@ -198,13 +198,13 @@ VITE_API_URL=""        # the URL where your backend (Django REST Framework) runs
 
 ### Makefile Commands
 
--   `make install` – install backend and frontend dependencies
--   `make lint` – run Ruff and frontend ESLint checks
--   `make format` – apply Ruff format, isort, and Prettier
--   `make security` – run Safety and Bandit plus `npm audit`
--   `make test` – execute Django test suite
--   `make ci-local` – replicate CI pipeline locally (`scripts/ci-local.sh`)
--   `make clean` – prune caches and build artifacts
+- `make install` – install backend and frontend dependencies
+- `make lint` – run Ruff and frontend ESLint checks
+- `make format` – apply Ruff format, isort, and Prettier
+- `make security` – run Safety and Bandit plus `npm audit`
+- `make test` – execute Django test suite
+- `make ci-local` – replicate CI pipeline locally (`scripts/ci-local.sh`)
+- `make clean` – prune caches and build artifacts
 
 ## AWS Setup
 
@@ -234,24 +234,24 @@ WIP
 
 ### Analysis
 
--   `POST /api/analyze/` – submit a move analysis request to KataGo (public)
-    -   Request body: `{ "analysis_request": {...} }`
-    -   Returns: KataGo analysis response with win rates and move evaluations
+- `POST /api/analyze/` – submit a move analysis request to KataGo (public)
+    - Request body: `{ "analysis_request": {...} }`
+    - Returns: KataGo analysis response with win rates and move evaluations
 
 ### Game Data
 
--   `POST /api/get-game-data/` – parse SGF file data and extract game information (public)
-    -   Request body: `{ "sgf_file_data": "..." }`
-    -   Returns: Parsed game data including moves, board size, komi, players, and winner
+- `POST /api/get-game-data/` – parse SGF file data and extract game information (public)
+    - Request body: `{ "sgf_file_data": "..." }`
+    - Returns: Parsed game data including moves, board size, komi, players, and winner
 
 ## Current Features
 
--   Interactive Go board with move-by-move navigation
--   Real-time AI analysis visualization with win rate charts
--   SGF file upload and parsing
--   Move-by-move game replay with analysis
--   Responsive design with light/dark theme support
--   GPU-accelerated analysis via AWS EC2 integration
+- Interactive Go board with move-by-move navigation
+- Real-time AI analysis visualization with win rate charts
+- SGF file upload and parsing
+- Move-by-move game replay with analysis
+- Responsive design with light/dark theme support
+- GPU-accelerated analysis via AWS EC2 integration
 
 ## Support
 

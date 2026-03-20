@@ -62,14 +62,14 @@ fi
 
 # Run pip audit (security checks)
 echo "Running pip audit..."
-if uv run pip-audit -v; then
+if uv run pip-audit; then
     print_status "pip audit passed"
 else
     print_warning "pip audit found issues"
 fi
 
 echo "Running bandit security check..."
-if uv run bandit -r . -x ./env,./__pycache__; then
+if uv run bandit -c pyproject.toml -r .; then
     print_status "Bandit security check passed"
 else
     print_warning "Bandit security check found issues"
