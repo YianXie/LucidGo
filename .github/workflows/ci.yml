@@ -105,11 +105,11 @@ jobs:
 
             - name: Run Ruff (code formatting check)
               working-directory: ./backend
-              run: ruff format --check .
+              run: uv run ruff check .
 
             - name: Run isort (import sorting check)
               working-directory: ./backend
-              run: isort --check-only --diff .
+              run: uv run isort --check-only --diff .
 
     security-checks:
         name: Security Checks
