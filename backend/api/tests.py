@@ -2,8 +2,8 @@ from unittest.mock import MagicMock, patch
 
 import httpx
 from django.contrib.auth.models import User
-from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework import status  # type: ignore
+from rest_framework.test import APITestCase  # type: ignore
 from rest_framework_simplejwt.tokens import AccessToken
 
 

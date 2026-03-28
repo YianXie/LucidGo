@@ -1,7 +1,7 @@
 import httpx
 from django.conf import settings
 from rest_framework import status  # type: ignore
-from rest_framework.permissions import IsAuthenticated  # type: ignore
+from rest_framework.permissions import AllowAny, IsAuthenticated  # type: ignore
 from rest_framework.request import Request  # type: ignore
 from rest_framework.response import Response  # type: ignore
 from rest_framework.views import APIView  # type: ignore
@@ -17,6 +17,16 @@ def get_http_client() -> httpx.Client:
     if _http_client is None or _http_client.is_closed:
         _http_client = httpx.Client(timeout=settings.API_TIMEOUT)
     return _http_client
+
+
+class HealthView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request: Request) -> Response:
+        return Response(
+            {"message": "OK"},
+            status=status.HTTP_200_OK,
+        )
 
 
 class AnalyzeView(APIView):
