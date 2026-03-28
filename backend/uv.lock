@@ -293,15 +293,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-environ"
-version = "0.12.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d6/04/65d2521842c42f4716225f20d8443a50804920606aec018188bbee30a6b0/django_environ-0.12.0.tar.gz", hash = "sha256:227dc891453dd5bde769c3449cf4a74b6f2ee8f7ab2361c93a07068f4179041a", size = 56804, upload-time = "2025-01-13T17:03:37.74Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/83/b3/0a3bec4ecbfee960f39b1842c2f91e4754251e0a6ed443db9fe3f666ba8f/django_environ-0.12.0-py2.py3-none-any.whl", hash = "sha256:92fb346a158abda07ffe6eb23135ce92843af06ecf8753f43adf9d2366dcc0ca", size = 19957, upload-time = "2025-01-13T17:03:32.918Z" },
-]
-
-[[package]]
 name = "django-stubs"
 version = "5.2.7"
 source = { registry = "https://pypi.org/simple" }
@@ -499,7 +490,6 @@ dependencies = [
     { name = "dj-database-url" },
     { name = "django" },
     { name = "django-cors-headers" },
-    { name = "django-environ" },
     { name = "django-stubs" },
     { name = "django-stubs-ext" },
     { name = "djangorestframework" },
@@ -538,6 +528,7 @@ dependencies = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-django" },
+    { name = "python-dotenv" },
     { name = "pyyaml" },
     { name = "requests" },
     { name = "rfc3986" },
@@ -580,7 +571,6 @@ requires-dist = [
     { name = "dj-database-url", specifier = "==3.0.1" },
     { name = "django", specifier = "==5.2.12" },
     { name = "django-cors-headers", specifier = "==4.7.0" },
-    { name = "django-environ", specifier = "==0.12.0" },
     { name = "django-stubs", specifier = "==5.2.7" },
     { name = "django-stubs-ext", specifier = "==5.2.7" },
     { name = "djangorestframework", specifier = "==3.16.0" },
@@ -619,6 +609,7 @@ requires-dist = [
     { name = "pytest", specifier = "==8.3.4" },
     { name = "pytest-cov", specifier = "==6.0.0" },
     { name = "pytest-django", specifier = "==4.9.0" },
+    { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "pyyaml", specifier = "==6.0.3" },
     { name = "requests", specifier = "==2.32.5" },
     { name = "rfc3986", specifier = "==1.5.0" },
@@ -1000,6 +991,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/02/c0/43c8b2528c24d7f1a48a47e3f7381f5ab2ae8c64634b0c3f4bd843063955/pytest_django-4.9.0.tar.gz", hash = "sha256:8bf7bc358c9ae6f6fc51b6cebb190fe20212196e6807121f11bd6a3b03428314", size = 84067, upload-time = "2024-09-02T15:49:18.407Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/47/fe/54f387ee1b41c9ad59e48fb8368a361fad0600fe404315e31a12bacaea7d/pytest_django-4.9.0-py3-none-any.whl", hash = "sha256:1d83692cb39188682dbb419ff0393867e9904094a549a7d38a3154d5731b2b99", size = 23723, upload-time = "2024-09-02T15:49:17.127Z" },
+]
+
+[[package]]
+name = "python-dotenv"
+version = "1.2.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/82/ed/0301aeeac3e5353ef3d94b6ec08bbcabd04a72018415dcb29e588514bba8/python_dotenv-1.2.2.tar.gz", hash = "sha256:2c371a91fbd7ba082c2c1dc1f8bf89ca22564a087c2c287cd9b662adde799cf3", size = 50135, upload-time = "2026-03-01T16:00:26.196Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0b/d7/1959b9648791274998a9c3526f6d0ec8fd2233e4d4acce81bbae76b44b2a/python_dotenv-1.2.2-py3-none-any.whl", hash = "sha256:1d8214789a24de455a8b8bd8ae6fe3c6b69a5e3d64aa8a8e5d68e694bbcb285a", size = 22101, upload-time = "2026-03-01T16:00:25.09Z" },
 ]
 
 [[package]]

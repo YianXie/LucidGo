@@ -1,28 +1,35 @@
+import os
 from datetime import timedelta
 from pathlib import Path
 
-import environ
+from dotenv import load_dotenv
 
-env = environ.Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-environ.Env.read_env(BASE_DIR / ".env")
 
-SECRET_KEY = env("SECRET_KEY")
+load_dotenv()
 
-ENVIRONMENT = env("ENVIRONMENT", default="production")
+
+ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
+
+
+if ENVIRONMENT == "development":
+    SECRET_KEY = os.environ.get(
+        "SECRET_KEY", "django-insecure-dev-fallback-key-do-not-use-in-production"
+    )
+else:
+    SECRET_KEY = os.environ.get("SECRET_KEY")  # type: ignore
+    if not SECRET_KEY:
+        raise RuntimeError(
+            "SECRET_KEY environment variable must be set in non-development environments."
+        )
+
 if ENVIRONMENT == "development":
     DEBUG = True
 else:
     DEBUG = False
 
-if ENVIRONMENT == "development":
-    ALLOWED_HOSTS = [
-        "localhost",
-        "127.0.0.1",
-    ]
-else:
-    ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "api.lucidgo.org"]
 
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
@@ -97,22 +104,12 @@ TEMPLATES = [
 WSGI_APPLICATION = "backend.wsgi.application"
 
 
-if ENVIRONMENT == "development":
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
-else:
-    import dj_database_url
-
-    DATABASES = {
-        "default": dj_database_url.parse(  # type: ignore
-            env("DB_URL"),
-            conn_max_age=600,
-        )
-    }
+}
 
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -153,43 +150,13 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = [
-    "https://www.lucidgo.org",
-]
 
-CORS_ALLOW_METHODS = [
-    "DELETE",
-    "GET",
-    "OPTIONS",
-    "PATCH",
-    "POST",
-    "PUT",
-]
-
-CORS_ALLOW_HEADERS = [
-    "accept",
-    "accept-encoding",
-    "authorization",
-    "content-type",
-    "dnt",
-    "origin",
-    "user-agent",
-    "x-csrftoken",
-    "x-requested-with",
-]
-
-CORS_EXPOSE_HEADERS = [
-    "content-type",
-    "content-disposition",
-]
 
 if ENVIRONMENT == "production":
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-
-CORS_PREFLIGHT_MAX_AGE = 86400
 
 FILE_UPLOAD_HANDLERS = [
     "django.core.files.uploadhandler.MemoryFileUploadHandler",
@@ -199,5 +166,5 @@ FILE_UPLOAD_HANDLERS = [
 DATA_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 10
 FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 10
 
-API_ENDPOINT = env("API_ENDPOINT")
-API_TIMEOUT = env.int("API_TIMEOUT", default=30)  # in seconds
+API_ENDPOINT = os.getenv("API_ENDPOINT")
+API_TIMEOUT = int(os.getenv("API_TIMEOUT", "30"))  # in seconds
