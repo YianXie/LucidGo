@@ -4,8 +4,8 @@ import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
-import Typography from "@mui/material/Typography";
 import React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -26,6 +26,7 @@ function Demo() {
 
     // Board state management - using arrays indexed by board ID
     const [totalBoards, setTotalBoards] = useState(1);
+    const [boardNames, setBoardNames] = useState([null]);
     const [files, setFiles] = useState([null]);
     const [gameData, setGameData] = useState([null]);
     const [analysisData, setAnalysisData] = useState([null]);
@@ -120,6 +121,25 @@ function Demo() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [gameData, maxVisitsVersion, totalBoards]);
 
+    useEffect(() => {
+        for (let i = 0; i < totalBoards; i++) {
+            if (!files[i] && !useSamples[i]) continue;
+            if (gameData[i] && gameData[i].moves.length > 0) continue;
+            if (useSamples[i]) {
+                getGameData(SGFSample, i);
+            } else {
+                if (files[i]) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const fileContent = e.target.result;
+                        getGameData(fileContent, i);
+                    };
+                    reader.readAsText(files[i]);
+                }
+            }
+        }
+    }, [files, gameData, totalBoards, useSamples]);
+
     async function getGameData(SGFContent, boardIndex) {
         try {
             const gameDataResponse = await api.post(getGameDataURL, {
@@ -140,25 +160,6 @@ function Demo() {
             console.error("Error while fetching game data:", error);
         }
     }
-
-    useEffect(() => {
-        for (let i = 0; i < totalBoards; i++) {
-            if (!files[i] && !useSamples[i]) continue;
-            if (gameData[i] && gameData[i].moves.length > 0) continue;
-            if (useSamples[i]) {
-                getGameData(SGFSample, i);
-            } else {
-                if (files[i]) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const fileContent = e.target.result;
-                        getGameData(fileContent, i);
-                    };
-                    reader.readAsText(files[i]);
-                }
-            }
-        }
-    }, [files, gameData, totalBoards, useSamples]);
 
     const analyzeAllMoves = async (boardIndex) => {
         const pastMoves = [];
@@ -233,6 +234,17 @@ function Demo() {
     };
 
     /**
+     * Change the name of a board.
+     * @param {number} boardIndex - The index of the board to change the name of.
+     * @param {string} name - The new name of the board.
+     */
+    const handleBoardNameChange = (boardIndex, name) => {
+        setBoardNames((prev) =>
+            prev.map((value, index) => (index === boardIndex ? name : value))
+        );
+    };
+
+    /**
      * Set the corresponding board to use a sample.
      * @param {number} boardIndex - The index of the board to set to use a sample.
      */
@@ -277,6 +289,9 @@ function Demo() {
     const completeDeleteBoard = (boardIndex) => {
         setDeletingBoardIndex(null);
         setTotalBoards((n) => n - 1);
+        setBoardNames((prev) =>
+            prev.filter((_, index) => index !== boardIndex)
+        );
         setGameData((prev) => prev.filter((_, index) => index !== boardIndex));
         setAnalysisData((prev) =>
             prev.filter((_, index) => index !== boardIndex)
@@ -316,6 +331,7 @@ function Demo() {
         const newIndex = totalBoards;
 
         setTotalBoards((n) => n + 1);
+        setBoardNames((prev) => [...prev, null]);
         setUseSamples((prev) => [...prev, null]);
         setUseAI((prev) => [...prev, false]);
         setGameData((prev) => [...prev, null]);
@@ -438,9 +454,28 @@ function Demo() {
                                     justifyContent="space-between"
                                     alignItems="center"
                                 >
-                                    <Typography variant="h6">
-                                        Board {i + 1}
-                                    </Typography>
+                                    <TextField
+                                        variant="standard"
+                                        value={
+                                            boardNames[i] || `Board ${i + 1}`
+                                        }
+                                        onChange={(event) =>
+                                            handleBoardNameChange(
+                                                i,
+                                                event.target.value
+                                            )
+                                        }
+                                        sx={{
+                                            "& .MuiInput-underline:before": {
+                                                borderBottom: "none", // Hides the line initially
+                                            },
+                                            "& .MuiInput-underline:hover:not(.Mui-disabled):before":
+                                                {
+                                                    borderBottom:
+                                                        "1px solid rgba(0, 0, 0, 0.87)", // Shows on hover
+                                                },
+                                        }}
+                                    ></TextField>
                                     <Tooltip title="Delete board" arrow>
                                         <IconButton
                                             onClick={() =>
