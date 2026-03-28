@@ -1,6 +1,6 @@
 # Makefile for LucidGo project
 
-.PHONY: help install test lint format security ci-local clean
+.PHONY: help install test lint format security ci-local run-backend run-frontend clean
 
 # Default target
 help:
@@ -11,6 +11,8 @@ help:
 	@echo "  format       - Format code"
 	@echo "  security     - Run security checks"
 	@echo "  ci-local     - Run all CI checks locally"
+	@echo "  run-backend  - Run the backend server"
+	@echo "  run-frontend - Run the frontend server"
 	@echo "  clean        - Clean up generated files"
 
 # Install dependencies
@@ -49,6 +51,16 @@ security:
 # Run all CI checks locally
 ci-local:
 	@./scripts/ci-local.sh
+
+# Run the backend server
+run-backend:
+	@echo "Running backend server..."
+	cd backend && uv run python manage.py runserver
+
+# Run the frontend server
+run-frontend:
+	@echo "Running frontend server..."
+	cd frontend && npm run dev
 
 # Clean up generated files
 clean:

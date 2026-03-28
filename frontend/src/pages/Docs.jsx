@@ -2,7 +2,7 @@ import getStarted from "../../../docs/get-started.md";
 import githubAction from "../../../docs/github-action.md";
 import howToUse from "../../../docs/how-to-use.md";
 import installation from "../../../docs/installation.md";
-import ContentPage from "../components/global/ContentPage";
+import ContentPage from "../components/common/ContentPage";
 
 function Docs() {
     const docs = [

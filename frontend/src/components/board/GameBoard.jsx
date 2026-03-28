@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import board_bg from "../../assets/images/board/board-bg.png";
 import { GTPLetters } from "../../constants";
 import { toRowColFormat } from "../../utils";
-import Upload from "../global/Upload";
+import Upload from "../common/Upload";
 import Controls from "./Controls";
 
 /**
@@ -24,22 +24,20 @@ function GameBoard({
     id,
     gameData,
     analysisData,
+    isLoading,
+    loadedValue,
+    useAI,
+    handleViewSample,
+    handlePlayWithAI,
     currentMove,
     setCurrentMove,
     maxVisits,
     setMaxVisits,
-    setUseSamples,
     useSamples,
-    setFiles,
-    handleViewSample,
-    isLoading,
-    loadedValue,
+    setUseSamples,
     showRecommendedMoves,
-    showPolicy,
-    showOwnership,
     setShowRecommendedMoves,
-    setShowPolicy,
-    setShowOwnership,
+    setFiles,
 }) {
     // Canvas variables
     const size = gameData?.size || 19;
@@ -151,42 +149,9 @@ function GameBoard({
                     );
                 }
             }
-
-            if (showOwnership) {
-                const ownership = analysisData[currentMove].response.ownership;
-                for (let i = 0; i < ownership.length; i++) {
-                    const row = Math.floor(i / gameData.size);
-                    const col = i % gameData.size;
-                    if (game.get([row, col]) !== 0) continue;
-
-                    const alpha = Math.min(
-                        0.75,
-                        Math.max(0.25, Math.abs(ownership[i]))
-                    );
-                    const color =
-                        ownership[i] < 0
-                            ? `rgba(0, 0, 0, ${alpha})`
-                            : `rgba(255, 255, 255, ${alpha})`;
-                    drawStone(
-                        canvasContext,
-                        row,
-                        col,
-                        color,
-                        false,
-                        null,
-                        color.indexOf("255") === -1 ? "white" : "black"
-                    );
-                }
-            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        currentMove,
-        analysisData,
-        showRecommendedMoves,
-        showPolicy,
-        showOwnership,
-    ]);
+    }, [currentMove, analysisData, showRecommendedMoves]);
 
     /**
      * Draw the game board with lines
@@ -389,7 +354,11 @@ function GameBoard({
     };
 
     return (
-        <div className="relative">
+        <Box
+            sx={{
+                position: "relative",
+            }}
+        >
             {isLoading && loadedValue > 0 && (
                 <Box
                     sx={{
@@ -431,7 +400,7 @@ function GameBoard({
                     </Box>
                 </Box>
             )}
-            {useSamples[id] === null && (
+            {useSamples === null && useAI === false && (
                 <Box
                     sx={{
                         position: "absolute",
@@ -445,15 +414,6 @@ function GameBoard({
                         gap: 2,
                         backdropFilter: "blur(4px) brightness(0.5)",
                         zIndex: (theme) => theme.zIndex.appBar - 1,
-                        animation: "fadeIn 0.3s ease",
-                        "@keyframes fadeIn": {
-                            from: {
-                                opacity: 0,
-                            },
-                            to: {
-                                opacity: 1,
-                            },
-                        },
                     }}
                 >
                     <Upload
@@ -492,6 +452,26 @@ function GameBoard({
                         View a sample
                         <OpenInNewIcon fontSize="small" />
                     </Link>
+                    <Link
+                        component="button"
+                        onClick={() => {
+                            handlePlayWithAI(id);
+                        }}
+                        sx={{
+                            color: "primary.light",
+                            textDecoration: "underline",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.5,
+                            cursor: "pointer",
+                            mt: 2,
+                            "&:hover": {
+                                color: "primary.dark",
+                            },
+                        }}
+                    >
+                        Play with AI
+                    </Link>
                 </Box>
             )}
             <canvas
@@ -503,18 +483,14 @@ function GameBoard({
             <Controls
                 id={id}
                 currentMove={currentMove}
+                maxMove={gameData?.moves.length}
                 setCurrentMove={setCurrentMove}
                 maxVisits={maxVisits}
                 setMaxVisits={setMaxVisits}
-                maxMove={gameData?.moves.length}
-                setShowRecommendedMoves={setShowRecommendedMoves}
-                setShowPolicy={setShowPolicy}
-                setShowOwnership={setShowOwnership}
                 showRecommendedMoves={showRecommendedMoves}
-                showPolicy={showPolicy}
-                showOwnership={showOwnership}
+                setShowRecommendedMoves={setShowRecommendedMoves}
             />
-        </div>
+        </Box>
     );
 }
 

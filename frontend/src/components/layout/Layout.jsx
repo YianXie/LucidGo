@@ -3,7 +3,8 @@ import { useTheme } from "@mui/material/styles";
 import { Outlet } from "react-router-dom";
 import { Bounce, ToastContainer } from "react-toastify";
 
-import Header from "../layout/Header";
+import Footer from "./Footer";
+import Header from "./Header";
 
 function Layout() {
     const theme = useTheme();
@@ -15,6 +16,7 @@ function Layout() {
             <Box component="main">
                 <Outlet />
             </Box>
+            <Footer />
 
             {/* For React Toastify */}
             <ToastContainer

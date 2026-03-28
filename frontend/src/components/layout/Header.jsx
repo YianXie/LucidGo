@@ -73,16 +73,6 @@ function Header() {
                         </ListItemButton>
                     </ListItem>
                 ))}
-                <ListItem disablePadding>
-                    <ListItemButton
-                        onClick={() =>
-                            window.open(GitHubRepositoryLink, "_blank")
-                        }
-                        sx={{ textAlign: "center" }}
-                    >
-                        <ListItemText primary="GitHub" />
-                    </ListItemButton>
-                </ListItem>
             </List>
         </Box>
     );
@@ -91,6 +81,7 @@ function Header() {
         <>
             <HideOnScroll>
                 <AppBar
+                    component="header"
                     sx={{
                         position: "sticky",
                         top: 0,
@@ -152,20 +143,6 @@ function Header() {
                                         {item.label}
                                     </NavLink>
                                 ))}
-                                <Tooltip title="GitHub Repository" arrow>
-                                    <IconButton
-                                        onClick={() =>
-                                            window.open(
-                                                GitHubRepositoryLink,
-                                                "_blank"
-                                            )
-                                        }
-                                        color="inherit"
-                                        aria-label="GitHub Repository"
-                                    >
-                                        <GitHubIcon />
-                                    </IconButton>
-                                </Tooltip>
                             </Box>
                         )}
                     </Toolbar>
@@ -174,6 +151,7 @@ function Header() {
             <Drawer
                 variant="temporary"
                 open={mobileOpen}
+                anchor="right"
                 onClose={handleDrawerToggle}
                 ModalProps={{
                     keepMounted: true, // Better open performance on mobile.

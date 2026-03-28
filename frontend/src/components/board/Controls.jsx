@@ -24,8 +24,11 @@ import Settings from "./Settings";
 /**
  * A control panel for the game board
  * @param {number} id - the id of the board
- * @param {number} move - the current move, should be a state
+ * @param {number} currentMove - the current move, should be a state
+ * @param {number} maxMove - the maximum possible move
  * @param {callback} setCurrentMove - the function that set the move state
+ * @param {number} maxVisits - the maximum visits for the analysis
+ * @param {callback} setMaxVisits - the function that set the max visits
  * @param {number} maxMove - the maximum possible move
  * @param {object} tools - an object that contains all the callbacks for different function buttons
  * @returns
@@ -39,10 +42,6 @@ function Controls({
     maxMove,
     setShowRecommendedMoves,
     showRecommendedMoves,
-    setShowPolicy,
-    showPolicy,
-    setShowOwnership,
-    showOwnership,
 }) {
     const fastForwardAmount = 5;
     const [anchorEl, setAnchorEl] = useState(null);
@@ -77,34 +76,6 @@ function Controls({
             value: showRecommendedMoves,
             setValue: (newValue) => {
                 setShowRecommendedMoves((prev) =>
-                    prev.map((value, index) => {
-                        if (index === id) {
-                            return newValue;
-                        }
-                        return value;
-                    })
-                );
-            },
-        },
-        {
-            label: "Show policy",
-            value: showPolicy,
-            setValue: (newValue) => {
-                setShowPolicy((prev) =>
-                    prev.map((value, index) => {
-                        if (index === id) {
-                            return newValue;
-                        }
-                        return value;
-                    })
-                );
-            },
-        },
-        {
-            label: "Show ownership",
-            value: showOwnership,
-            setValue: (newValue) => {
-                setShowOwnership((prev) =>
                     prev.map((value, index) => {
                         if (index === id) {
                             return newValue;

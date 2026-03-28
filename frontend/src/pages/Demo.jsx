@@ -1,14 +1,13 @@
+import DeleteIcon from "@mui/icons-material/Delete";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
-import Dialog from "@mui/material/Dialog";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
+import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -18,58 +17,6 @@ import { SGFSample } from "../constants";
 import { useAuth } from "../contexts/AuthContext";
 import usePageTitle from "../hooks/usePageTitle";
 import { toGTPFormat } from "../utils";
-
-/**
- * Get GMT+8 time information using cached formatter
- * @returns {object} - Object with hours, minutes, and dayOfWeek
- */
-const getGMT8Time = (() => {
-    const formatter = new Intl.DateTimeFormat("en-US", {
-        timeZone: "Asia/Shanghai",
-        hour: "numeric",
-        minute: "numeric",
-        weekday: "long",
-        hour12: false,
-    });
-
-    return (now) => {
-        const parts = formatter.formatToParts(now);
-        return {
-            hours: parseInt(parts.find((p) => p.type === "hour").value),
-            minutes: parseInt(parts.find((p) => p.type === "minute").value),
-            dayOfWeek: parts.find((p) => p.type === "weekday").value,
-        };
-    };
-})();
-
-/**
- * Check if the server is currently available based on GMT+8 timezone
- * Server starts at 15:00 GMT+8 on weekdays, 08:00 GMT+8 on weekends
- * Server stops at 22:00 GMT+8 every day
- * @returns {boolean} - True if server is available, false otherwise
- */
-function isServerAvailable() {
-    const now = new Date();
-    const { hours, minutes, dayOfWeek } = getGMT8Time(now);
-
-    const currentTimeInMinutes = hours * 60 + minutes;
-    const stopTimeInMinutes = 22 * 60; // 22:00
-
-    // Check if past stop time
-    if (currentTimeInMinutes >= stopTimeInMinutes) {
-        return false;
-    }
-
-    // Check if before start time
-    const isWeekend = dayOfWeek === "Saturday" || dayOfWeek === "Sunday";
-    const startTimeInMinutes = isWeekend ? 8 * 60 : 15 * 60; // 08:00 on weekends, 15:00 on weekdays
-
-    if (currentTimeInMinutes < startTimeInMinutes) {
-        return false;
-    }
-
-    return true;
-}
 
 function Demo() {
     usePageTitle("Demo");
@@ -86,19 +33,20 @@ function Demo() {
     const [currentMove, setCurrentMove] = useState([null]);
     const [loading, setLoading] = useState([false]);
     const [useSamples, setUseSamples] = useState([null]);
+    const [useAI, setUseAI] = useState([false]);
 
     // Display settings
     const [showRecommendedMoves, setShowRecommendedMoves] = useState([true]);
-    const [showPolicy, setShowPolicy] = useState([false]);
-    const [showOwnership, setShowOwnership] = useState([false]);
+
+    /** Index of board playing delete exit animation; null when idle */
+    const [deletingBoardIndex, setDeletingBoardIndex] = useState(null);
+    const [creatingBoardIndex, setCreatingBoardIndex] = useState(null);
+    const animationTimerRef = useRef(null);
 
     // Analysis settings
     const [maxVisits, setMaxVisits] = useState([500]);
     const [maxVisitsVersion, setMaxVisitsVersion] = useState([0]); // Track changes to force re-analysis
     const [loadedValue, setLoadedValue] = useState([0]);
-
-    // Server state
-    const [serverAvailable, setServerAvailable] = useState(isServerAvailable());
 
     const getGameDataURL = "/api/get-game-data/";
     const getAnalysisURL = "/api/analyze/";
@@ -113,19 +61,12 @@ function Demo() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isAuthenticated]);
 
-    // Check server availability periodically
     useEffect(() => {
-        const checkAvailability = () => {
-            setServerAvailable(isServerAvailable());
+        return () => {
+            if (animationTimerRef.current) {
+                clearTimeout(animationTimerRef.current);
+            }
         };
-
-        // Check immediately
-        checkAvailability();
-
-        // Check every minute
-        const interval = setInterval(checkAvailability, 60000);
-
-        return () => clearInterval(interval);
     }, []);
 
     // Effect to trigger analysis when gameData changes or maxVisits changes for a specific board
@@ -291,10 +232,108 @@ function Demo() {
         );
     };
 
+    /**
+     * Set the corresponding board to use a sample.
+     * @param {number} boardIndex - The index of the board to set to use a sample.
+     */
     const handleViewSample = (boardIndex) => {
         setUseSamples((prev) =>
             prev.map((value, index) => (index === boardIndex ? true : value))
         );
+    };
+
+    /**
+     * Set the corresponding board to play with AI.
+     * @param {number} boardIndex - The index of the board to set to play with AI.
+     */
+    const handlePlayWithAI = (boardIndex) => {
+        setUseAI((prev) =>
+            prev.map((value, index) => (index === boardIndex ? true : value))
+        );
+    };
+
+    const ANIMATION_MS = 250;
+
+    /**
+     * Start delete: play exit animation, then {@link completeDeleteBoard} runs.
+     * @param {number} boardIndex - The index of the board to delete.
+     */
+    const requestDeleteBoard = (boardIndex) => {
+        if (deletingBoardIndex !== null || creatingBoardIndex !== null) return;
+        if (animationTimerRef.current) {
+            clearTimeout(animationTimerRef.current);
+        }
+        setDeletingBoardIndex(boardIndex);
+        animationTimerRef.current = window.setTimeout(() => {
+            animationTimerRef.current = null;
+            completeDeleteBoard(boardIndex);
+        }, ANIMATION_MS);
+    };
+
+    /**
+     * Remove a board from state after its exit animation finishes.
+     * @param {number} boardIndex - The index of the board to delete.
+     */
+    const completeDeleteBoard = (boardIndex) => {
+        setDeletingBoardIndex(null);
+        setTotalBoards((n) => n - 1);
+        setGameData((prev) => prev.filter((_, index) => index !== boardIndex));
+        setAnalysisData((prev) =>
+            prev.filter((_, index) => index !== boardIndex)
+        );
+        setCurrentMove((prev) =>
+            prev.filter((_, index) => index !== boardIndex)
+        );
+        setLoading((prev) => prev.filter((_, index) => index !== boardIndex));
+        setShowRecommendedMoves((prev) =>
+            prev.filter((_, index) => index !== boardIndex)
+        );
+        setLoadedValue((prev) =>
+            prev.filter((_, index) => index !== boardIndex)
+        );
+        setMaxVisits((prev) => prev.filter((_, index) => index !== boardIndex));
+        setMaxVisitsVersion((prev) =>
+            prev.filter((_, index) => index !== boardIndex)
+        );
+        setWinRate((prev) => prev.filter((_, index) => index !== boardIndex));
+        setFiles((prev) => prev.filter((_, index) => index !== boardIndex));
+        setUseSamples((prev) =>
+            prev.filter((_, index) => index !== boardIndex)
+        );
+        setUseAI((prev) => prev.filter((_, index) => index !== boardIndex));
+    };
+
+    /**
+     * Add a board and run the enter animation on the new row. The new index is
+     * always the previous length (e.g. 1 board → new board is index 1), so we must
+     * append state first, then mark that index as animating — not the reverse.
+     */
+    const requestCreateBoard = () => {
+        if (deletingBoardIndex !== null || creatingBoardIndex !== null) return;
+        if (animationTimerRef.current) {
+            clearTimeout(animationTimerRef.current);
+        }
+        const newIndex = totalBoards;
+
+        setTotalBoards((n) => n + 1);
+        setUseSamples((prev) => [...prev, null]);
+        setUseAI((prev) => [...prev, false]);
+        setGameData((prev) => [...prev, null]);
+        setAnalysisData((prev) => [...prev, null]);
+        setCurrentMove((prev) => [...prev, null]);
+        setLoading((prev) => [...prev, false]);
+        setShowRecommendedMoves((prev) => [...prev, true]);
+        setLoadedValue((prev) => [...prev, 0]);
+        setMaxVisits((prev) => [...prev, 500]);
+        setMaxVisitsVersion((prev) => [...prev, 0]);
+        setWinRate((prev) => [...prev, null]);
+        setFiles((prev) => [...prev, null]);
+
+        setCreatingBoardIndex(newIndex);
+        animationTimerRef.current = window.setTimeout(() => {
+            animationTimerRef.current = null;
+            setCreatingBoardIndex(null);
+        }, ANIMATION_MS);
     };
 
     // Wrapper function to handle maxVisits changes and trigger re-analysis
@@ -333,155 +372,140 @@ function Demo() {
         }
     };
 
-    const handleNewBoard = () => {
-        setUseSamples((prev) => [...prev, null]);
-        setGameData((prev) => [...prev, null]);
-        setAnalysisData((prev) => [...prev, null]);
-        setCurrentMove((prev) => [...prev, null]);
-        setLoading((prev) => [...prev, false]);
-        setShowRecommendedMoves((prev) => [...prev, true]);
-        setShowPolicy((prev) => [...prev, false]);
-        setShowOwnership((prev) => [...prev, false]);
-        setLoadedValue((prev) => [...prev, 0]);
-        setMaxVisits((prev) => [...prev, 500]);
-        setMaxVisitsVersion((prev) => [...prev, 0]);
-        setWinRate((prev) => [...prev, null]);
-        setFiles((prev) => [...prev, null]);
-        setTotalBoards(totalBoards + 1);
-    };
-
-    // Get next available time message
-    const getNextAvailableTime = () => {
-        const now = new Date();
-        const { hours, minutes, dayOfWeek } = getGMT8Time(now);
-
-        const isWeekend = dayOfWeek === "Saturday" || dayOfWeek === "Sunday";
-        const currentTimeInMinutes = hours * 60 + minutes;
-        const stopTimeInMinutes = 22 * 60;
-
-        if (currentTimeInMinutes >= stopTimeInMinutes) {
-            // Server will be available tomorrow
-            const tomorrow = new Date(now);
-            tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-            const tomorrowInfo = getGMT8Time(tomorrow);
-            const tomorrowIsWeekend =
-                tomorrowInfo.dayOfWeek === "Saturday" ||
-                tomorrowInfo.dayOfWeek === "Sunday";
-            const startTime = tomorrowIsWeekend ? "08:00" : "15:00";
-            return `The server will be available tomorrow at ${startTime} GMT+8`;
-        } else {
-            // Server will be available today
-            const startTime = isWeekend ? "08:00" : "15:00";
-            return `The server will be available today at ${startTime} GMT+8`;
-        }
-    };
-
     return (
-        <>
-            <Dialog
-                open={!serverAvailable}
-                maxWidth="sm"
-                fullWidth
+        <Container>
+            <Box
                 sx={{
-                    zIndex: (theme) => theme.zIndex.appBar - 1,
-                }}
-                slotProps={{
-                    sx: {
-                        borderRadius: 2,
-                    },
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 4,
+                    py: 4,
+                    minHeight: "calc(100vh - 100px)",
                 }}
             >
-                <DialogTitle>Demo Unavailable</DialogTitle>
-                <DialogContent>
-                    <DialogContentText sx={{ mb: 2 }}>
-                        The demo server is currently unavailable at this time.
-                    </DialogContentText>
-                    <DialogContentText sx={{ mb: 3 }}>
-                        {getNextAvailableTime()}
-                    </DialogContentText>
-                    <Box sx={{ mt: 3 }}>
-                        <Typography variant="body2" color="text.secondary">
-                            Server Hours:
-                        </Typography>
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ mt: 1 }}
-                        >
-                            Weekdays: 15:00 - 22:00 GMT+8
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Weekends: 08:00 - 22:00 GMT+8
-                        </Typography>
-                    </Box>
-                </DialogContent>
-            </Dialog>
-
-            <Container>
                 <Box
                     sx={{
                         display: "flex",
                         flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
                         gap: 4,
-                        py: 4,
-                        minHeight: "calc(100vh - 100px)",
+                        "@keyframes boardDeleteExit": {
+                            from: {
+                                transform: "scale(1)",
+                                opacity: 1,
+                                filter: "brightness(1)",
+                            },
+                            to: {
+                                transform: "scale(0.22)",
+                                opacity: 0,
+                                filter: "brightness(0.2)",
+                            },
+                        },
+                        "@keyframes boardCreate": {
+                            from: {
+                                transform: "scale(0.22)",
+                                opacity: 0,
+                                filter: "brightness(0.2)",
+                            },
+                            to: {
+                                transform: "scale(1)",
+                                opacity: 1,
+                                filter: "brightness(1)",
+                            },
+                        },
                     }}
                 >
-                    <Box
-                        sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 4,
-                        }}
-                    >
-                        {Array.from({ length: totalBoards }, (_, i) => (
-                            <Stack key={i}>
-                                <Typography variant="h6">
-                                    Board {i + 1}
-                                </Typography>
+                    {Array.from({ length: totalBoards }, (_, i) => (
+                        <Box
+                            key={i}
+                            sx={{
+                                transformOrigin: "center center",
+                                willChange: "transform",
+                                ...(deletingBoardIndex === i && {
+                                    animation: `boardDeleteExit ${ANIMATION_MS}ms ease-in forwards`,
+                                    pointerEvents: "none",
+                                }),
+                                ...(creatingBoardIndex === i && {
+                                    animation: `boardCreate ${ANIMATION_MS}ms ease-out forwards`,
+                                    pointerEvents: "none",
+                                }),
+                            }}
+                        >
+                            <Stack gap={1}>
+                                <Stack
+                                    direction="row"
+                                    justifyContent="space-between"
+                                    alignItems="center"
+                                >
+                                    <Typography variant="h6">
+                                        Board {i + 1}
+                                    </Typography>
+                                    <Tooltip title="Delete board" arrow>
+                                        <IconButton
+                                            onClick={() =>
+                                                requestDeleteBoard(i)
+                                            }
+                                            sx={{
+                                                color: "error.main",
+                                                "&:hover": {
+                                                    backgroundColor:
+                                                        "#ff000010",
+                                                },
+                                            }}
+                                            disabled={
+                                                totalBoards === 1 ||
+                                                deletingBoardIndex !== null ||
+                                                creatingBoardIndex !== null
+                                            }
+                                        >
+                                            <DeleteIcon color="inherit" />
+                                        </IconButton>
+                                    </Tooltip>
+                                </Stack>
                                 <GameBoard
                                     key={i}
                                     id={i}
                                     gameData={gameData[i]}
                                     analysisData={analysisData[i]}
+                                    isLoading={loading[i]}
+                                    loadedValue={loadedValue[i]}
+                                    useAI={useAI[i]}
+                                    handleViewSample={handleViewSample}
+                                    handlePlayWithAI={handlePlayWithAI}
                                     currentMove={currentMove[i]}
                                     setCurrentMove={setCurrentMove}
-                                    setFiles={setFiles}
-                                    handleViewSample={handleViewSample}
-                                    useSamples={useSamples}
+                                    useSamples={useSamples[i]}
                                     setUseSamples={setUseSamples}
                                     maxVisits={maxVisits[i]}
                                     setMaxVisits={handleMaxVisitsChange}
-                                    loadedValue={loadedValue[i]}
-                                    isLoading={loading[i]}
                                     showRecommendedMoves={
                                         showRecommendedMoves[i]
                                     }
-                                    showPolicy={showPolicy[i]}
-                                    showOwnership={showOwnership[i]}
                                     setShowRecommendedMoves={
                                         setShowRecommendedMoves
                                     }
-                                    setShowPolicy={setShowPolicy}
-                                    setShowOwnership={setShowOwnership}
+                                    setFiles={setFiles}
                                 />
                             </Stack>
-                        ))}
-                    </Box>
-                    <Button
-                        variant="outlined"
-                        sx={{
-                            borderColor: "divider",
-                        }}
-                        onClick={handleNewBoard}
-                    >
-                        Add Board
-                    </Button>
+                        </Box>
+                    ))}
                 </Box>
-            </Container>
-        </>
+                <Button
+                    variant="outlined"
+                    sx={{
+                        borderColor: "divider",
+                    }}
+                    onClick={requestCreateBoard}
+                    disabled={
+                        deletingBoardIndex !== null ||
+                        creatingBoardIndex !== null
+                    }
+                >
+                    Add Board
+                </Button>
+            </Box>
+        </Container>
     );
 }
 
