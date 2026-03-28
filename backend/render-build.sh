@@ -15,8 +15,8 @@ echo "Syncing dependencies and creating venv..."
 uv sync  # this will create .venv if needed and install everything
 
 echo "Collecting static files..."
-uv run python -m api.manage collectstatic --no-input
+uv run python manage.py collectstatic --no-input
 
 echo "Migrating database..."
-uv run python -m api.manage makemigrations --no-input || true
-uv run python -m api.manage migrate --no-input
+uv run python manage.py makemigrations --no-input || true
+uv run python manage.py migrate --no-input

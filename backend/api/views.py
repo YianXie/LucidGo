@@ -50,15 +50,14 @@ class GetGameDataView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request: Request) -> Response:
-        sgf_file_data = request.data.get("sgf_file_data")
-        if not sgf_file_data:
+        if not request.data:
             return Response(
-                {"error": "No SGF file data provided"},
+                {"error": "No data provided"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
-            game = sgf.Sgf_game.from_string(sgf_file_data)
+            game = sgf.Sgf_game.from_string(request.data)
         except ValueError as error:
             return Response(
                 {"message": f"Invalid sgf data: {error}"},
@@ -84,6 +83,6 @@ class GetGameDataView(APIView):
         }
 
         return Response(
-            {"message": "SGF file data parsed successfully!", "game_data": game_data},
+            game_data,
             status=status.HTTP_200_OK,
         )
