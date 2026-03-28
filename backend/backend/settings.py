@@ -4,14 +4,18 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# Load environment variables
 
 load_dotenv()
 
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
 
+
+# Project Settings
 
 if ENVIRONMENT == "development":
     SECRET_KEY = os.environ.get(
@@ -24,12 +28,16 @@ else:
             "SECRET_KEY environment variable must be set in non-development environments."
         )
 
+
 if ENVIRONMENT == "development":
     DEBUG = True
 else:
     DEBUG = False
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "api.lucidgo.org"]
+
+
+# REST Framework Settings
 
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
@@ -47,6 +55,8 @@ SIMPLE_JWT = {
 }
 
 
+# Installed Apps Settings
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -62,6 +72,8 @@ INSTALLED_APPS = [
 ]
 
 USE_X_FORWARDED_HOST = True
+
+# Middleware Settings
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -104,6 +116,8 @@ TEMPLATES = [
 WSGI_APPLICATION = "backend.wsgi.application"
 
 
+# Database Settings
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -111,6 +125,8 @@ DATABASES = {
     }
 }
 
+
+# Authentication Settings
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -128,6 +144,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# Internationalization
+
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "Asia/Singapore"
@@ -137,26 +155,44 @@ USE_I18N = True
 USE_TZ = True
 
 
-STATIC_URL = "/static/"
+# Static Files Settings
+
+STATIC_URL = "static/"
+
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+
+# CORS/CSRF Settings
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://www.lucidgo.org",
-    "https://lucidgo.org",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "https://api.lucidgo.org",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://*.lucidgo.org",
+]
+
+
+# Security Settings
 
 if ENVIRONMENT == "production":
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
+
+# File Upload Settings
 
 FILE_UPLOAD_HANDLERS = [
     "django.core.files.uploadhandler.MemoryFileUploadHandler",
@@ -166,5 +202,10 @@ FILE_UPLOAD_HANDLERS = [
 DATA_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 10
 FILE_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 10
 
+# API Settings
+
 API_ENDPOINT = os.getenv("API_ENDPOINT")
+if API_ENDPOINT is None:
+    raise RuntimeError("API_ENDPOINT environment variable must be set")
+
 API_TIMEOUT = int(os.getenv("API_TIMEOUT", "30"))  # in seconds
