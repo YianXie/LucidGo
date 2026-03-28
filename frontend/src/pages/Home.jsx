@@ -12,7 +12,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import demoPicture from "../assets/images/home/demo.png";
-import { GitHubRepositoryLink } from "../constants";
 import usePageTitle from "../hooks/usePageTitle";
 
 function Home() {
@@ -68,7 +67,10 @@ function Home() {
                             variant="outlined"
                             size="large"
                             onClick={() =>
-                                window.open(GitHubRepositoryLink, "_blank")
+                                window.open(
+                                    "https://github.com/YianXie/LucidGo",
+                                    "_blank"
+                                )
                             }
                             sx={{
                                 px: 4,

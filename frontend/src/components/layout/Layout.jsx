@@ -13,7 +13,7 @@ function Layout() {
     return (
         <>
             <Header />
-            <Box component="main">
+            <Box component="main" sx={{ minHeight: "100vh" }}>
                 <Outlet />
             </Box>
             <Footer />

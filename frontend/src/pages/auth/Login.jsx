@@ -67,7 +67,7 @@ function Login() {
                     }}
                 >
                     <Typography component="h1" variant="h5">
-                        Admin Sign in
+                        Admin Sign In
                     </Typography>
                     <Box
                         component="form"
