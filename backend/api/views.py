@@ -1,8 +1,8 @@
 import httpx
 from django.conf import settings
 from rest_framework import status  # type: ignore
-from rest_framework.permissions import (AllowAny,  # type: ignore
-                                        IsAuthenticated)
+from rest_framework.permissions import AllowAny  # type: ignore
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request  # type: ignore
 from rest_framework.response import Response  # type: ignore
 from rest_framework.views import APIView  # type: ignore
@@ -18,6 +18,14 @@ def get_http_client() -> httpx.Client:
     if _http_client is None or _http_client.is_closed:
         _http_client = httpx.Client(timeout=settings.API_TIMEOUT)
     return _http_client
+
+
+def close_http_client() -> None:
+    """Close the HTTP client if it exists (e.g. on process shutdown)."""
+    global _http_client
+    if _http_client is not None and not _http_client.is_closed:
+        _http_client.close()
+        _http_client = None
 
 
 class HealthView(APIView):
