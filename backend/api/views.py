@@ -1,7 +1,8 @@
 import httpx
 from django.conf import settings
 from rest_framework import status  # type: ignore
-from rest_framework.permissions import AllowAny, IsAuthenticated  # type: ignore
+from rest_framework.permissions import (AllowAny,  # type: ignore
+                                        IsAuthenticated)
 from rest_framework.request import Request  # type: ignore
 from rest_framework.response import Response  # type: ignore
 from rest_framework.views import APIView  # type: ignore
@@ -59,15 +60,16 @@ class AnalyzeView(APIView):
 class GetGameDataView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request: Request) -> Response:
-        if not request.data:
+    def get(self, request: Request) -> Response:
+        if not request.query_params.get("sgf_file_data"):
             return Response(
                 {"error": "No data provided"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        data = request.query_params.get("sgf_file_data")
         try:
-            game = sgf.Sgf_game.from_string(request.data)
+            game = sgf.Sgf_game.from_string(data)
         except ValueError as error:
             return Response(
                 {"message": f"Invalid sgf data: {error}"},

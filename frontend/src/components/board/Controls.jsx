@@ -4,10 +4,8 @@ import FastForwardIcon from "@mui/icons-material/FastForward";
 import FastRewindIcon from "@mui/icons-material/FastRewind";
 import MenuListIcon from "@mui/icons-material/Menu";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import SettingsIcon from "@mui/icons-material/Settings";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
 import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
-import Button from "@mui/material/Button";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
@@ -19,7 +17,6 @@ import Typography from "@mui/material/Typography";
 import { useState } from "react";
 
 import ControlMoveButton from "./ControlMoveButton";
-import Settings from "./Settings";
 
 /**
  * A control panel for the game board
@@ -27,8 +24,6 @@ import Settings from "./Settings";
  * @param {number} currentMove - the current move, should be a state
  * @param {number} maxMove - the maximum possible move
  * @param {callback} setCurrentMove - the function that set the move state
- * @param {number} maxVisits - the maximum visits for the analysis
- * @param {callback} setMaxVisits - the function that set the max visits
  * @param {number} maxMove - the maximum possible move
  * @param {object} tools - an object that contains all the callbacks for different function buttons
  * @returns
@@ -37,15 +32,12 @@ function Controls({
     id,
     currentMove,
     setCurrentMove,
-    maxVisits,
-    setMaxVisits,
     maxMove,
     setShowRecommendedMoves,
     showRecommendedMoves,
 }) {
     const fastForwardAmount = 5;
     const [anchorEl, setAnchorEl] = useState(null);
-    const [openSettings, setOpenSettings] = useState(false);
     const open = Boolean(anchorEl);
 
     const handleMenuClick = (event) => {
@@ -99,20 +91,8 @@ function Controls({
         handleMenuClose();
     };
 
-    const handleSettingsClick = () => {
-        handleMenuClose();
-        setOpenSettings(true);
-    };
-
     return (
         <>
-            <Settings
-                id={id}
-                open={openSettings}
-                setOpen={setOpenSettings}
-                maxVisits={maxVisits}
-                setMaxVisits={setMaxVisits}
-            />
             <Paper
                 sx={{
                     display: "flex",
@@ -241,22 +221,6 @@ function Controls({
                                 }}
                             />
                         ))}
-                        <Button
-                            variant="text"
-                            color="inherit"
-                            onClick={handleSettingsClick}
-                            startIcon={<SettingsIcon />}
-                            sx={{
-                                width: "100%",
-                                justifyContent: "flex-start",
-                                textTransform: "none",
-                                pl: 4,
-                                fontWeight: 500,
-                                fontSize: "0.875rem",
-                            }}
-                        >
-                            Settings
-                        </Button>
                     </RadioGroup>
                 </Menu>
             </Paper>

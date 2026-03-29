@@ -38,17 +38,12 @@ function Demo() {
 
     // Display settings
     const [showRecommendedMoves, setShowRecommendedMoves] = useState([true]);
-
-    /** Index of board playing delete exit animation; null when idle */
     const [deletingBoardIndex, setDeletingBoardIndex] = useState(null);
     const [creatingBoardIndex, setCreatingBoardIndex] = useState(null);
     const animationTimerRef = useRef(null);
 
     // Analysis settings
-    const [maxVisits, setMaxVisits] = useState([500]);
-    const [maxVisitsVersion, setMaxVisitsVersion] = useState([0]); // Track changes to force re-analysis
     const [loadedValue, setLoadedValue] = useState([0]);
-
     const getGameDataURL = "/api/get-game-data/";
     const getAnalysisURL = "/api/analyze/";
 
@@ -70,7 +65,7 @@ function Demo() {
         };
     }, []);
 
-    // Effect to trigger analysis when gameData changes or maxVisits changes for a specific board
+    // Effect to trigger analysis when gameData changes for a specific board
     useEffect(() => {
         for (let i = 0; i < totalBoards; i++) {
             // Skip if no game data
@@ -90,16 +85,8 @@ function Demo() {
                 );
             }
 
-            // Check if analysis is needed for this board
-            // Analysis is needed if:
-            // 1. No analysis data exists, OR
-            // 2. maxVisits changed (tracked by maxVisitsVersion > 0)
-            const hasAnalysisData =
-                analysisData[i] && analysisData[i].length > 0;
-            const maxVisitsChanged = maxVisitsVersion[i] > 0;
-            const needsAnalysis = !hasAnalysisData || maxVisitsChanged;
-
-            if (needsAnalysis) {
+            // Analysis is needed if no analysis data exists
+            if (analysisData[i] === null) {
                 async function analyze() {
                     setLoading((prev) =>
                         prev.map((value, index) => (index === i ? true : value))
@@ -110,16 +97,12 @@ function Demo() {
                             index === i ? false : value
                         )
                     );
-                    // Reset the version tracker after analysis completes
-                    setMaxVisitsVersion((prev) =>
-                        prev.map((value, index) => (index === i ? 0 : value))
-                    );
                 }
                 analyze();
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [gameData, maxVisitsVersion, totalBoards]);
+    }, [gameData, totalBoards]);
 
     useEffect(() => {
         for (let i = 0; i < totalBoards; i++) {
@@ -141,12 +124,16 @@ function Demo() {
     }, [files, gameData, totalBoards, useSamples]);
 
     async function getGameData(SGFContent, boardIndex) {
+        setLoading((prev) =>
+            prev.map((value, index) => (index === boardIndex ? true : value))
+        );
         try {
-            const gameDataResponse = await api.post(getGameDataURL, {
-                sgf_file_data: SGFContent,
+            const gameDataResponse = await api.get(getGameDataURL, {
+                params: {
+                    sgf_file_data: SGFContent,
+                },
             });
-            const rawGameData = await gameDataResponse.data;
-            const gameData = rawGameData.game_data;
+            const gameData = await gameDataResponse.data;
             setGameData((prev) =>
                 prev.map((value, index) =>
                     index === boardIndex ? gameData : value
@@ -158,11 +145,17 @@ function Demo() {
         } catch (error) {
             toast.error("Invalid .sgf file");
             console.error("Error while fetching game data:", error);
+        } finally {
+            setLoading((prev) =>
+                prev.map((value, index) =>
+                    index === boardIndex ? false : value
+                )
+            );
         }
     }
 
     const analyzeAllMoves = async (boardIndex) => {
-        const pastMoves = [];
+        const moves = [];
         const analyzeResults = [];
         for (let i = 0; i < gameData[boardIndex].moves.length; i++) {
             const move = gameData[boardIndex].moves[i];
@@ -171,48 +164,44 @@ function Demo() {
             }
 
             const [color, [row, col]] = move;
-            pastMoves.push([color, toGTPFormat(row, col)]);
+            moves.push([color, toGTPFormat(row, col)]);
 
             const request = {
-                id: `analysis_request_${boardIndex}_${i}`,
-                moves: pastMoves,
+                board_size: gameData[boardIndex].size,
                 rules: "japanese",
-                komi: 6.5,
-                boardXSize: gameData[boardIndex].size,
-                boardYSize: gameData[boardIndex].size,
-                analyzeTurns: [i],
-                maxVisits: maxVisits[boardIndex],
-                includePolicy: true,
-                includeOwnership: true,
+                komi: gameData[boardIndex].komi || 6.5,
+                to_play: color.toUpperCase(),
+                moves: moves,
+                algo: "nn",
             };
             try {
-                const analysisResponse = await api.post(getAnalysisURL, {
-                    analysis_request: request,
-                });
+                const analysisResponse = await api.post(
+                    getAnalysisURL,
+                    request
+                );
                 const data = analysisResponse.data;
-                data.response.moveInfos.sort((a, b) => {
-                    if (a.winrate > b.winrate) {
-                        return -1;
-                    }
-                    if (a.winrate < b.winrate) {
-                        return 1;
-                    }
-                    return 0;
-                });
-
-                const winRate = parseFloat(
-                    (data.response.rootInfo.winrate * 100).toFixed(1)
-                );
-                setWinRate((prev) =>
-                    prev.map((winrate, index) => {
-                        if (index === boardIndex) {
-                            return winrate.map((value, index) =>
-                                index === i ? winRate : value
-                            );
-                        }
-                        return winrate;
-                    })
-                );
+                // data.response.moveInfos.sort((a, b) => {
+                //     if (a.winrate > b.winrate) {
+                //         return -1;
+                //     }
+                //     if (a.winrate < b.winrate) {
+                //         return 1;
+                //     }
+                //     return 0;
+                // });
+                // const winRate = parseFloat(
+                //     (data.response.rootInfo.winrate * 100).toFixed(1)
+                // );
+                // setWinRate((prev) =>
+                //     prev.map((winrate, index) => {
+                //         if (index === boardIndex) {
+                //             return winrate.map((value, index) =>
+                //                 index === i ? winRate : value
+                //             );
+                //         }
+                //         return winrate;
+                //     })
+                // );
                 analyzeResults.push(data);
             } catch (error) {
                 console.error("Error:", error);
@@ -306,10 +295,6 @@ function Demo() {
         setLoadedValue((prev) =>
             prev.filter((_, index) => index !== boardIndex)
         );
-        setMaxVisits((prev) => prev.filter((_, index) => index !== boardIndex));
-        setMaxVisitsVersion((prev) =>
-            prev.filter((_, index) => index !== boardIndex)
-        );
         setWinRate((prev) => prev.filter((_, index) => index !== boardIndex));
         setFiles((prev) => prev.filter((_, index) => index !== boardIndex));
         setUseSamples((prev) =>
@@ -340,8 +325,6 @@ function Demo() {
         setLoading((prev) => [...prev, false]);
         setShowRecommendedMoves((prev) => [...prev, true]);
         setLoadedValue((prev) => [...prev, 0]);
-        setMaxVisits((prev) => [...prev, 500]);
-        setMaxVisitsVersion((prev) => [...prev, 0]);
         setWinRate((prev) => [...prev, null]);
         setFiles((prev) => [...prev, null]);
 
@@ -350,42 +333,6 @@ function Demo() {
             animationTimerRef.current = null;
             setCreatingBoardIndex(null);
         }, ANIMATION_MS);
-    };
-
-    // Wrapper function to handle maxVisits changes and trigger re-analysis
-    const handleMaxVisitsChange = (updater) => {
-        if (typeof updater === "function") {
-            setMaxVisits((prev) => {
-                const newMaxVisits = updater(prev);
-                // Find which board(s) had their maxVisits changed and update accordingly
-                const changedBoards = [];
-                prev.forEach((oldValue, index) => {
-                    if (oldValue !== newMaxVisits[index]) {
-                        changedBoards.push(index);
-                    }
-                });
-
-                // Clear analysis data for changed boards
-                if (changedBoards.length > 0) {
-                    setAnalysisData((prevAnalysis) =>
-                        prevAnalysis.map((analysis, i) =>
-                            changedBoards.includes(i) ? null : analysis
-                        )
-                    );
-                    // Increment version for changed boards
-                    setMaxVisitsVersion((prevVersion) =>
-                        prevVersion.map((version, i) =>
-                            changedBoards.includes(i) ? version + 1 : version
-                        )
-                    );
-                }
-
-                return newMaxVisits;
-            });
-        } else {
-            // Handle direct array assignment (shouldn't happen in normal flow)
-            setMaxVisits(updater);
-        }
     };
 
     return (
@@ -512,8 +459,6 @@ function Demo() {
                                     setCurrentMove={setCurrentMove}
                                     useSamples={useSamples[i]}
                                     setUseSamples={setUseSamples}
-                                    maxVisits={maxVisits[i]}
-                                    setMaxVisits={handleMaxVisitsChange}
                                     showRecommendedMoves={
                                         showRecommendedMoves[i]
                                     }

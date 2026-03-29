@@ -10,7 +10,7 @@ export function toGTPFormat(row, col) {
         throw new RangeError("row or col not in valid range (1-19)");
     }
 
-    const letter = GTPLetters[col]; // indexOf returns a 0-based value
+    const letter = GTPLetters[col].toUpperCase(); // indexOf returns a 0-based value
 
     // The GTP-formatted coords and the row-col formatted coords have opposite row and column
     return `${letter}${row + 1}`;
