@@ -12,14 +12,6 @@ import { toRowColFormat } from "../../utils";
 import Upload from "../common/Upload";
 import Controls from "./Controls";
 
-/**
- * Draws a Weiqi board with Pixi.js
- * @param {number} id - the id of the board
- * @param {object} data - The data object containing the game data
- * @param {number} moveIndex - The move you want to get to
- * @param {number} winRate - The win rate of the board
- * @returns The board component
- */
 function GameBoard({
     id,
     gameData,
@@ -27,34 +19,35 @@ function GameBoard({
     isLoading,
     loadedValue,
     useAI,
-    handleViewSample,
+    handleViewSample, // eslint-disable-line no-unused-vars
     handlePlayWithAI,
     currentMove,
     setCurrentMove,
     maxVisits,
     setMaxVisits,
     useSamples,
-    setUseSamples,
+    setUseSamples, // eslint-disable-line no-unused-vars
     showRecommendedMoves,
     setShowRecommendedMoves,
-    setFiles,
+    setFiles, // eslint-disable-line no-unused-vars
 }) {
     // Canvas variables
-    const size = gameData?.size || 19;
+    const boardSize = gameData?.size || 19;
     const canvasSize = 800;
     const padding = 50;
-    const margin = (canvasSize - padding * 2) / (size - 1);
+    const margin = (canvasSize - padding * 2) / (boardSize - 1);
     const stoneRadius = margin / 2;
-    let game = Board.fromDimensions(size);
+    let game = Board.fromDimensions(boardSize);
+    let playerColor = "B";
 
     // React variables
     const canvasRef = useRef(null);
-    const [emptyBoard, setEmptyBoard] = useState(null);
+    const [boardImageData, setBoardImageData] = useState(null);
 
     useEffect(() => {
-        if (size > 19 || size < 2) {
+        if (boardSize > 19 || boardSize < 2) {
             throw new RangeError(
-                `<size> must be between 2 - 19, received ${size}`
+                `<size> must be between 2 - 19, received ${boardSize}`
             );
         }
 
@@ -84,7 +77,7 @@ function GameBoard({
             );
             drawBoard(canvasContext);
             drawCoords(canvasContext);
-            setEmptyBoard(
+            setBoardImageData(
                 canvasContext.getImageData(
                     0,
                     0,
@@ -94,7 +87,23 @@ function GameBoard({
             );
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [size]);
+    }, [boardSize]);
+
+    useEffect(() => {
+        if (!useAI) return;
+
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        canvas.addEventListener("mousemove", handleHover);
+        canvas.addEventListener("click", handleClick);
+
+        return () => {
+            canvas.removeEventListener("mousemove", handleHover);
+            canvas.removeEventListener("click", handleClick);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [useAI]);
 
     useEffect(() => {
         if (!currentMove) {
@@ -105,7 +114,7 @@ function GameBoard({
         if (!canvas) return;
 
         const canvasContext = canvas.getContext("2d");
-        emptyBoard ? canvasContext.putImageData(emptyBoard, 0, 0) : ""; // idk why but if I don't check if emptyBoard exists first, sometimes error occurs
+        boardImageData ? canvasContext.putImageData(boardImageData, 0, 0) : "";
         game.clear();
 
         for (let i = 0; i <= currentMove; i++) {
@@ -143,6 +152,7 @@ function GameBoard({
                         row,
                         col,
                         color,
+                        true,
                         false,
                         winRate,
                         "white"
@@ -154,12 +164,71 @@ function GameBoard({
     }, [currentMove, analysisData, showRecommendedMoves]);
 
     /**
+     * Convert client coordinates to canvas coordinates
+     * @param {number} x - The x coordinate of the client
+     * @param {number} y - The y coordinate of the client
+     * @returns {number[]} - The canvas coordinates [x, y]
+     */
+    const clientToCanvasCoords = (x, y) => {
+        if (!canvasRef.current) return [null, null];
+
+        const bounds = canvasRef.current.getBoundingClientRect();
+        const canvasX = x - bounds.left;
+        const canvasY = y - bounds.top;
+
+        return [canvasX, canvasY];
+    };
+
+    /**
+     * Convert board coordinates to canvas coordinates
+     * @param {number} row - The row of the board
+     * @param {number} col - The column of the board
+     * @returns {number[]} - The canvas coordinates [x, y], [null, null] if row or col is out of the board
+     */
+    const boardToCanvasCoords = (row, col) => {
+        // row or col is out of the board
+        if (row < 0 || row > boardSize - 1 || col < 0 || col > boardSize - 1) {
+            throw new RangeError(
+                `<row> or <col> must be between 0 and ${boardSize - 1}, received ${row} or ${col}`
+            );
+        }
+
+        return [
+            margin * col + padding,
+            (boardSize - row - 1) * margin + padding,
+        ];
+    };
+
+    /**
+     * Convert canvas coordinates to board coordinates
+     * @param {number} x - The x coordinate of the canvas
+     * @param {number} y - The y coordinate of the canvas
+     * @returns {number[]} - The board coordinates [row, col], [null, null] if x or y is out of the canvas
+     */
+    const canvasToBoardCoords = (x, y) => {
+        // x or y is out of the canvas
+        if (
+            x < padding ||
+            x > canvasSize - padding ||
+            y < padding ||
+            y > canvasSize - padding
+        ) {
+            return [null, null];
+        }
+
+        return [
+            Math.round(boardSize - 1 - (y - padding) / margin),
+            Math.round((x - padding) / margin),
+        ];
+    };
+
+    /**
      * Draw the game board with lines
      * @param {CanvasRenderingContext2D} canvasContext - The canvas context
      */
     const drawBoard = (canvasContext) => {
-        for (let i = 0; i < size; i++) {
-            if (i === 0 || i === size - 1) {
+        for (let i = 0; i < boardSize; i++) {
+            if (i === 0 || i === boardSize - 1) {
                 canvasContext.lineWidth = 1.25;
             } else {
                 canvasContext.lineWidth = 0.75;
@@ -177,7 +246,7 @@ function GameBoard({
             canvasContext.stroke();
             canvasContext.closePath();
 
-            if (size === 19) {
+            if (boardSize === 19) {
                 if ([4 - 1, 10 - 1, 16 - 1].includes(i)) {
                     // Draw the 3*3 dots
                     for (let x = 0; x < 3; x++) {
@@ -208,7 +277,7 @@ function GameBoard({
         canvasContext.textAlign = "center";
         canvasContext.fillStyle = "black";
 
-        for (let i = 0; i < size; i++) {
+        for (let i = 0; i < boardSize; i++) {
             // Draw the letters (exclude 'i')
             canvasContext.fillText(
                 GTPLetters[i],
@@ -241,10 +310,11 @@ function GameBoard({
      */
     const placeStone = (move) => {
         const [color, [row, col]] = move;
-        const sign = color === "b" ? 1 : -1;
+        const sign = color.toUpperCase() === "B" ? 1 : -1;
         const check = game.analyzeMove(sign, [row, col]);
         if (!check.suicide && !check.ko && !check.overwrite) {
-            game = game.makeMove(color === "b" ? 1 : -1, [row, col]);
+            game = game.makeMove(sign, [row, col]);
+            playerColor = playerColor === "B" ? "W" : "B";
         }
     };
 
@@ -285,9 +355,8 @@ function GameBoard({
                     row,
                     col,
                     color === 1 ? "black" : "white",
-                    isHighlighted,
-                    null,
-                    color === 1 ? "white" : "black"
+                    true,
+                    isHighlighted
                 );
             }
         }
@@ -299,6 +368,7 @@ function GameBoard({
      * @param {number} row - the row of the move
      * @param {number} col - the column of the move
      * @param {string} color the color of the move
+     * @param {boolean} stroke whether to stroke the stone or not
      * @param {boolean} highlight whether to highlight the move or not
      * @param {string} text the text to draw on the stone
      * @param {string} textColor the color of the text
@@ -308,20 +378,16 @@ function GameBoard({
         row,
         col,
         color,
-        highlight,
-        text,
-        textColor
+        stroke = true,
+        highlight = false,
+        text = null,
+        textColor = "white"
     ) => {
         canvasContext.fillStyle = color;
         canvasContext.beginPath();
-        canvasContext.arc(
-            padding + margin * col,
-            canvasSize - padding - margin * row,
-            stoneRadius - 2,
-            0,
-            2 * Math.PI
-        );
-        canvasContext.stroke();
+        const [canvasX, canvasY] = boardToCanvasCoords(row, col);
+        canvasContext.arc(canvasX, canvasY, stoneRadius - 2, 0, 2 * Math.PI);
+        if (stroke) canvasContext.stroke();
         canvasContext.fill();
         canvasContext.closePath();
 
@@ -329,8 +395,8 @@ function GameBoard({
             // Draw a red dot in the center of the stone
             canvasContext.beginPath();
             canvasContext.arc(
-                padding + margin * col,
-                canvasSize - padding - margin * row,
+                canvasX,
+                canvasY,
                 stoneRadius / 4,
                 0,
                 2 * Math.PI
@@ -345,11 +411,46 @@ function GameBoard({
             canvasContext.textBaseline = "middle";
             canvasContext.textAlign = "center";
             canvasContext.fillStyle = textColor;
-            canvasContext.fillText(
-                text,
-                padding + margin * col,
-                canvasSize - padding - margin * row
-            );
+            canvasContext.fillText(text, canvasX, canvasY);
+        }
+    };
+
+    const handleHover = (event) => {
+        const { clientX, clientY } = event;
+        const [canvasX, canvasY] = clientToCanvasCoords(clientX, clientY);
+        const [row, col] = canvasToBoardCoords(canvasX, canvasY);
+
+        const canvasContext = canvasRef.current.getContext("2d");
+        boardImageData ? canvasContext.putImageData(boardImageData, 0, 0) : "";
+        drawStones(canvasContext);
+        if (row !== null && col !== null) {
+            const check = game.analyzeMove(playerColor === "B" ? 1 : -1, [
+                row,
+                col,
+            ]);
+            if (!check.suicide && !check.ko && !check.overwrite) {
+                canvasRef.current.style.cursor = "pointer";
+                const color =
+                    playerColor === "B"
+                        ? "rgba(0, 0, 0, 0.5)"
+                        : "rgba(255, 255, 255, 0.5)";
+                drawStone(canvasContext, row, col, color, false);
+            } else {
+                canvasRef.current.style.cursor = "not-allowed";
+            }
+        } else {
+            canvasRef.current.style.cursor = "default";
+        }
+    };
+
+    const handleClick = (event) => {
+        const { clientX, clientY } = event;
+        const [canvasX, canvasY] = clientToCanvasCoords(clientX, clientY);
+        const [row, col] = canvasToBoardCoords(canvasX, canvasY);
+
+        // const canvasContext = canvasRef.current.getContext("2d");
+        if (row !== null && col !== null) {
+            placeStone([playerColor, [row, col]]);
         }
     };
 
@@ -417,24 +518,28 @@ function GameBoard({
                     }}
                 >
                     <Upload
-                        setFile={(file) => {
-                            setFiles((prev) =>
-                                prev.map((value, index) =>
-                                    index === id ? file : value
-                                )
+                        setFile={() => {
+                            alert(
+                                "WIP: Uploading a new game is not supported yet"
                             );
-                            setUseSamples((prev) =>
-                                prev.map((value, index) =>
-                                    index === id ? false : value
-                                )
-                            );
+                            // setFiles((prev) =>
+                            //     prev.map((value, index) =>
+                            //         index === id ? file : value
+                            //     )
+                            // );
+                            // setUseSamples((prev) =>
+                            //     prev.map((value, index) =>
+                            //         index === id ? false : value
+                            //     )
+                            // );
                         }}
                         accept={".sgf"}
                     />
                     <Link
                         component="button"
                         onClick={() => {
-                            handleViewSample(id);
+                            alert("WIP: Viewing a sample is not supported yet");
+                            // handleViewSample(id);
                         }}
                         sx={{
                             color: "primary.light",
