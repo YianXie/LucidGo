@@ -333,8 +333,14 @@ function GameBoard({
         drawStones(canvasContext);
 
         const cm = currentMove ?? 0;
-        if (analysisData && analysisData[cm] && showRecommendedMoves) {
-            const data = analysisData[cm];
+        const analysisIndex = cm > 0 ? cm - 1 : null;
+        if (
+            analysisIndex !== null &&
+            analysisData &&
+            analysisData[analysisIndex] &&
+            showRecommendedMoves
+        ) {
+            const data = analysisData[analysisIndex];
             const [row, col] = toRowColFormat(data.best_move);
             const color = `rgba(255, 0, 0, 0.5)`;
             drawStone(canvasContext, row, col, color, true);
