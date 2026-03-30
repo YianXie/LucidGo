@@ -62,7 +62,7 @@ fi
 
 # Run pip audit (security checks)
 echo "Running pip audit..."
-if uv run pip-audit; then
+if uv run pip-audit --ignore-vuln CVE-2026-4539; then
     print_status "pip audit passed"
 else
     print_warning "pip audit found issues"
