@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 
 import api from "../api";
 import GameBoard from "../components/board/GameBoard";
-import { SGFSample } from "../constants";
+import { SGFSample, getAnalysisURL, getGameDataURL } from "../constants";
 import { useAuth } from "../contexts/AuthContext";
 import usePageTitle from "../hooks/usePageTitle";
 import { toGTPFormat } from "../utils";
@@ -31,7 +31,7 @@ function Demo() {
     const [gameData, setGameData] = useState([null]);
     const [analysisData, setAnalysisData] = useState([null]);
     const [winRate, setWinRate] = useState([null]);
-    const [currentMove, setCurrentMove] = useState([null]);
+    const [currentAnalyzedMoves, setCurrentMove] = useState([null]);
     const [loading, setLoading] = useState([false]);
     const [useSamples, setUseSamples] = useState([null]);
     const [useAI, setUseAI] = useState([false]);
@@ -44,8 +44,6 @@ function Demo() {
 
     // Analysis settings
     const [loadedValue, setLoadedValue] = useState([0]);
-    const getGameDataURL = "/api/get-game-data/";
-    const getAnalysisURL = "/api/analyze/";
 
     useEffect(() => {
         if (isAuthenticated === null) return;
@@ -140,7 +138,7 @@ function Demo() {
                 )
             );
             setCurrentMove((prev) =>
-                prev.map((value, index) => (index === boardIndex ? 1 : value))
+                prev.map((value, index) => (index === boardIndex ? 0 : value))
             );
         } catch (error) {
             toast.error("Invalid .sgf file");
@@ -180,28 +178,6 @@ function Demo() {
                     request
                 );
                 const data = analysisResponse.data;
-                // data.response.moveInfos.sort((a, b) => {
-                //     if (a.winrate > b.winrate) {
-                //         return -1;
-                //     }
-                //     if (a.winrate < b.winrate) {
-                //         return 1;
-                //     }
-                //     return 0;
-                // });
-                // const winRate = parseFloat(
-                //     (data.response.rootInfo.winrate * 100).toFixed(1)
-                // );
-                // setWinRate((prev) =>
-                //     prev.map((winrate, index) => {
-                //         if (index === boardIndex) {
-                //             return winrate.map((value, index) =>
-                //                 index === i ? winRate : value
-                //             );
-                //         }
-                //         return winrate;
-                //     })
-                // );
                 analyzeResults.push(data);
             } catch (error) {
                 console.error("Error:", error);
@@ -248,6 +224,25 @@ function Demo() {
      * @param {number} boardIndex - The index of the board to set to play with AI.
      */
     const handlePlayWithAI = (boardIndex) => {
+        setGameData((prev) =>
+            prev.map((value, index) =>
+                index === boardIndex
+                    ? {
+                          komi: 6.5,
+                          moves: [],
+                          size: 19,
+                          players: {
+                              black: "Black",
+                              white: "White",
+                          },
+                          winner: "Unknown",
+                      }
+                    : value
+            )
+        );
+        setCurrentMove((prev) =>
+            prev.map((value, index) => (index === boardIndex ? 0 : value))
+        );
         setUseAI((prev) =>
             prev.map((value, index) => (index === boardIndex ? true : value))
         );
@@ -404,7 +399,9 @@ function Demo() {
                                     <TextField
                                         variant="standard"
                                         value={
-                                            boardNames[i] || `Board ${i + 1}`
+                                            boardNames[i] === null
+                                                ? `Board ${i + 1}`
+                                                : boardNames[i]
                                         }
                                         onChange={(event) =>
                                             handleBoardNameChange(
@@ -447,15 +444,16 @@ function Demo() {
                                 </Stack>
                                 <GameBoard
                                     key={i}
-                                    id={i}
-                                    gameData={gameData[i]}
+                                    boardIdx={i}
                                     analysisData={analysisData[i]}
                                     isLoading={loading[i]}
                                     loadedValue={loadedValue[i]}
                                     useAI={useAI[i]}
                                     handleViewSample={handleViewSample}
                                     handlePlayWithAI={handlePlayWithAI}
-                                    currentMove={currentMove[i]}
+                                    gameData={gameData[i]}
+                                    setGameData={setGameData}
+                                    currentMove={currentAnalyzedMoves[i]}
                                     setCurrentMove={setCurrentMove}
                                     useSamples={useSamples[i]}
                                     setUseSamples={setUseSamples}

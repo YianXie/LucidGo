@@ -20,19 +20,19 @@ import ControlMoveButton from "./ControlMoveButton";
 
 /**
  * A control panel for the game board
- * @param {number} id - the id of the board
+ * @param {number} boardIdx - the index of the board
  * @param {number} currentMove - the current move, should be a state
  * @param {number} maxMove - the maximum possible move
  * @param {callback} setCurrentMove - the function that set the move state
  * @param {number} maxMove - the maximum possible move
- * @param {object} tools - an object that contains all the callbacks for different function buttons
  * @returns
  */
 function Controls({
-    id,
+    boardIdx,
+    maxMove,
+    disabled,
     currentMove,
     setCurrentMove,
-    maxMove,
     setShowRecommendedMoves,
     showRecommendedMoves,
 }) {
@@ -51,16 +51,18 @@ function Controls({
     const handleMove = (amount) => {
         setCurrentMove((prev) =>
             prev.map((value, index) => {
-                if (index === id) {
-                    if (value + amount > maxMove - 1 || value + amount < 1) {
-                        return amount < 1 ? 1 : maxMove - 1;
-                    }
-                    return value + amount;
+                if (index !== boardIdx) return value;
+                const v = value ?? 0;
+                const next = v + amount;
+                if (next > maxMove || next < 0) {
+                    return amount < 0 ? 0 : maxMove;
                 }
-                return value;
+                return next;
             })
         );
     };
+
+    const moveIndex = currentMove ?? 0;
 
     const options = [
         {
@@ -69,7 +71,7 @@ function Controls({
             setValue: (newValue) => {
                 setShowRecommendedMoves((prev) =>
                     prev.map((value, index) => {
-                        if (index === id) {
+                        if (index === boardIdx) {
                             return newValue;
                         }
                         return value;
@@ -92,139 +94,139 @@ function Controls({
     };
 
     return (
-        <>
-            <Paper
+        <Paper
+            sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 1,
+                p: 1,
+                borderRadius: "0 0 12px 12px",
+                flexWrap: "wrap",
+                opacity: disabled ? 0.5 : 1,
+                pointerEvents: disabled ? "none" : "auto",
+            }}
+        >
+            <IconButton
+                onClick={() => {
+                    location.reload();
+                }}
+                aria-label="Refresh your board"
+                size="small"
+            >
+                <RefreshIcon />
+            </IconButton>
+
+            <Stack direction="row" spacing={0.5} sx={{ ml: "auto" }}>
+                <ControlMoveButton
+                    amount={-maxMove}
+                    icon={<SkipPreviousIcon />}
+                    label="Move to the beginning"
+                    handleMove={handleMove}
+                    disabled={moveIndex <= 0}
+                />
+                <ControlMoveButton
+                    amount={-fastForwardAmount}
+                    icon={<FastRewindIcon />}
+                    label={`Rewind ${fastForwardAmount} moves`}
+                    handleMove={handleMove}
+                    disabled={moveIndex <= 0}
+                />
+                <ControlMoveButton
+                    amount={-1}
+                    icon={<ArrowBackIosIcon />}
+                    label="Move backward 1 move"
+                    handleMove={handleMove}
+                    disabled={moveIndex <= 0}
+                />
+            </Stack>
+
+            <Typography
+                variant="body2"
                 sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 1,
-                    p: 1,
-                    borderRadius: "0 0 12px 12px",
-                    flexWrap: "wrap",
+                    minWidth: 40,
+                    textAlign: "center",
+                    fontWeight: 500,
                 }}
             >
-                <IconButton
-                    onClick={() => {
-                        location.reload();
+                {moveIndex}
+            </Typography>
+
+            <Stack direction="row" spacing={0.5} sx={{ mr: "auto" }}>
+                <ControlMoveButton
+                    amount={1}
+                    icon={<ArrowForwardIosIcon fontSize="small" />}
+                    label="Move forward 1 move"
+                    handleMove={handleMove}
+                    disabled={moveIndex >= maxMove}
+                />
+                <ControlMoveButton
+                    amount={fastForwardAmount}
+                    icon={<FastForwardIcon />}
+                    label={`Fast forward ${fastForwardAmount} moves`}
+                    handleMove={handleMove}
+                    disabled={moveIndex >= maxMove}
+                />
+                <ControlMoveButton
+                    amount={maxMove}
+                    icon={<SkipNextIcon />}
+                    label="Move to the end"
+                    handleMove={handleMove}
+                    disabled={moveIndex >= maxMove}
+                />
+            </Stack>
+
+            <IconButton
+                onClick={handleMenuClick}
+                aria-label="Show options"
+                size="small"
+            >
+                <MenuListIcon />
+            </IconButton>
+
+            <Menu
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleMenuClose}
+                anchorOrigin={{
+                    vertical: "top",
+                    horizontal: "right",
+                }}
+                transformOrigin={{
+                    vertical: "bottom",
+                    horizontal: "right",
+                }}
+            >
+                <RadioGroup
+                    value={options.findIndex((option) => option.value)}
+                    onChange={(event) => {
+                        handleOptionChange(event.target.value);
                     }}
-                    aria-label="Refresh your board"
-                    size="small"
-                >
-                    <RefreshIcon />
-                </IconButton>
-
-                <Stack direction="row" spacing={0.5} sx={{ ml: "auto" }}>
-                    <ControlMoveButton
-                        amount={-maxMove}
-                        icon={<SkipPreviousIcon />}
-                        label="Move to the beginning"
-                        handleMove={handleMove}
-                        disabled={currentMove <= 1}
-                    />
-                    <ControlMoveButton
-                        amount={-fastForwardAmount}
-                        icon={<FastRewindIcon />}
-                        label={`Rewind ${fastForwardAmount} moves`}
-                        handleMove={handleMove}
-                        disabled={currentMove <= 1}
-                    />
-                    <ControlMoveButton
-                        amount={-1}
-                        icon={<ArrowBackIosIcon />}
-                        label="Move backward 1 move"
-                        handleMove={handleMove}
-                        disabled={currentMove <= 1}
-                    />
-                </Stack>
-
-                <Typography
-                    variant="body2"
                     sx={{
-                        minWidth: 40,
-                        textAlign: "center",
-                        fontWeight: 500,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1,
                     }}
                 >
-                    {currentMove}
-                </Typography>
-
-                <Stack direction="row" spacing={0.5} sx={{ mr: "auto" }}>
-                    <ControlMoveButton
-                        amount={1}
-                        icon={<ArrowForwardIosIcon fontSize="small" />}
-                        label="Move forward 1 move"
-                        handleMove={handleMove}
-                        disabled={currentMove >= maxMove - 1}
-                    />
-                    <ControlMoveButton
-                        amount={fastForwardAmount}
-                        icon={<FastForwardIcon />}
-                        label={`Fast forward ${fastForwardAmount} moves`}
-                        handleMove={handleMove}
-                        disabled={currentMove >= maxMove - 1}
-                    />
-                    <ControlMoveButton
-                        amount={maxMove}
-                        icon={<SkipNextIcon />}
-                        label="Move to the end"
-                        handleMove={handleMove}
-                        disabled={currentMove >= maxMove - 1}
-                    />
-                </Stack>
-
-                <IconButton
-                    onClick={handleMenuClick}
-                    aria-label="Show options"
-                    size="small"
-                >
-                    <MenuListIcon />
-                </IconButton>
-
-                <Menu
-                    anchorEl={anchorEl}
-                    open={open}
-                    onClose={handleMenuClose}
-                    anchorOrigin={{
-                        vertical: "top",
-                        horizontal: "right",
-                    }}
-                    transformOrigin={{
-                        vertical: "bottom",
-                        horizontal: "right",
-                    }}
-                >
-                    <RadioGroup
-                        value={options.findIndex((option) => option.value)}
-                        onChange={(event) => {
-                            handleOptionChange(event.target.value);
-                        }}
-                        sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 1,
-                        }}
-                    >
-                        {options.map((option, index) => (
-                            <FormControlLabel
-                                key={index}
-                                value={index}
-                                control={<Radio />}
-                                label={option.label}
-                                sx={{
-                                    width: "100%",
-                                    px: 2,
-                                    margin: 0,
-                                    "&:hover": {
-                                        backgroundColor: "action.hover",
-                                    },
-                                }}
-                            />
-                        ))}
-                    </RadioGroup>
-                </Menu>
-            </Paper>
-        </>
+                    {options.map((option, index) => (
+                        <FormControlLabel
+                            key={index}
+                            value={index}
+                            control={<Radio />}
+                            label={option.label}
+                            sx={{
+                                width: "100%",
+                                px: 2,
+                                margin: 0,
+                                "&:hover": {
+                                    backgroundColor: "action.hover",
+                                },
+                            }}
+                        />
+                    ))}
+                </RadioGroup>
+            </Menu>
+        </Paper>
     );
 }
 

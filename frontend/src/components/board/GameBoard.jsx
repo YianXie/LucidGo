@@ -1,4 +1,3 @@
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import Link from "@mui/material/Link";
@@ -6,14 +5,15 @@ import Typography from "@mui/material/Typography";
 import Board from "@sabaki/go-board";
 import { useEffect, useRef, useState } from "react";
 
+import api from "../../api";
 import board_bg from "../../assets/images/board/board-bg.png";
-import { GTPLetters } from "../../constants";
-import { toRowColFormat } from "../../utils";
+import { GTPLetters, getAnalysisURL } from "../../constants";
+import { toGTPFormat, toRowColFormat } from "../../utils";
 import Upload from "../common/Upload";
 import Controls from "./Controls";
 
 function GameBoard({
-    id,
+    boardIdx,
     gameData,
     analysisData,
     isLoading,
@@ -38,19 +38,31 @@ function GameBoard({
 
     // Single Board instance for play/hover — must not be recreated when listeners re-bind.
     const gameRef = useRef(Board.fromDimensions(boardSize));
-    const playerColorRef = useRef("B");
+    const toPlayRef = useRef("B");
 
     // React variables
     const canvasRef = useRef(null);
     const [boardImageData, setBoardImageData] = useState(null);
-    const [playerColor, setPlayerColor] = useState("B");
-    const [cursor, setCursor] = useState("default");
+    const [toPlay, setToPlay] = useState("B");
+    const [moves, setMoves] = useState(gameData?.moves || []);
+    const movesRef = useRef(moves);
+    movesRef.current = moves;
 
-    playerColorRef.current = playerColor;
+    const hoverRef = useRef(null);
+    const clickRef = useRef(null);
+
+    toPlayRef.current = toPlay;
 
     useEffect(() => {
-        gameRef.current = Board.fromDimensions(boardSize);
-    }, [boardSize]);
+        if (!gameData) return;
+        setMoves(gameData.moves || []);
+    }, [gameData]);
+
+    /** Plies to replay: live moves in AI mode; always use server moves in analysis so we never lag one frame behind gameData. */
+    const replayMoves = useAI ? moves : (gameData?.moves ?? []);
+
+    const userColor = "B";
+    const AIColor = "W";
 
     useEffect(() => {
         if (boardSize > 19 || boardSize < 2) {
@@ -59,7 +71,7 @@ function GameBoard({
             );
         }
 
-        // Adjust the canvas' size based on the screen
+        gameRef.current = Board.fromDimensions(boardSize);
         const canvas = canvasRef.current;
         if (!canvas) return;
 
@@ -98,86 +110,43 @@ function GameBoard({
     }, [boardSize]);
 
     useEffect(() => {
-        if (!useAI) return;
-
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-
-        canvas.addEventListener("mousemove", handleHover);
-        canvas.addEventListener("click", handleClick);
-
-        return () => {
-            canvas.removeEventListener("mousemove", handleHover);
-            canvas.removeEventListener("click", handleClick);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [useAI]);
-
-    useEffect(() => {
-        if (currentMove === null || currentMove === undefined) {
-            return;
-        }
-
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-
-        const canvasContext = canvas.getContext("2d");
-        boardImageData ? canvasContext.putImageData(boardImageData, 0, 0) : "";
-
+        const cm = currentMove ?? 0;
         let g = Board.fromDimensions(boardSize);
-        if (gameData?.moves) {
-            for (let i = 0; i <= currentMove; i++) {
-                const move = gameData.moves[i];
+        const n = Math.min(cm, replayMoves.length);
+        for (let i = 0; i < n; i++) {
+            const move = replayMoves[i];
+            if (!move || move.includes(null)) continue;
 
-                // a null indicates an invalid move
-                if (move.includes(null)) {
-                    continue;
-                }
-
-                const [color, [row, col]] = move;
-                const sign = color.toUpperCase() === "B" ? 1 : -1;
-                const check = g.analyzeMove(sign, [row, col]);
-                if (!check.suicide && !check.ko && !check.overwrite) {
-                    g = g.makeMove(sign, [row, col]);
-                }
+            const [color, [row, col]] = move;
+            const sign = color.toUpperCase() === "B" ? 1 : -1;
+            const check = g.analyzeMove(sign, [row, col]);
+            if (!check.suicide && !check.ko && !check.overwrite) {
+                g = g.makeMove(sign, [row, col]);
             }
         }
         gameRef.current = g;
 
-        const last = gameData?.moves?.[currentMove];
-        if (last && !last.includes(null)) {
-            setPlayerColor(last[0].toUpperCase() === "B" ? "W" : "B");
+        if (cm === 0) {
+            setToPlay("B");
         } else {
-            setPlayerColor("B");
-        }
-
-        drawStones(canvasContext);
-
-        // Draw the recommended move if it exists
-        if (analysisData && analysisData[currentMove]) {
-            if (showRecommendedMoves) {
-                const data = analysisData[currentMove];
-                const [row, col] = toRowColFormat(data.best_move);
-                const color = `rgba(255, 0, 0, 0.5)`;
-
-                // The winrate is always for black, so we need to convert it to white's winrate
-                // const rawWinRate =
-                //     currentMove % 2 === 0 ? data.winrate : 1 - data.winrate;
-                // const winRate = (rawWinRate * 100).toFixed(1);
-                drawStone(
-                    canvasContext,
-                    row,
-                    col,
-                    color,
-                    true,
-                    false
-                    // winRate,
-                    // "white"
-                );
+            const last = replayMoves[cm - 1];
+            if (last && !last.includes(null)) {
+                setToPlay(last[0].toUpperCase() === "B" ? "W" : "B");
             }
         }
+
+        if (!canvasRef.current) return;
+        const canvasContext = canvasRef.current.getContext("2d");
+        redrawBoardAndStones(canvasContext);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentMove, analysisData, showRecommendedMoves]);
+    }, [
+        currentMove,
+        replayMoves,
+        boardSize,
+        boardImageData,
+        analysisData,
+        showRecommendedMoves,
+    ]);
 
     /**
      * Convert client coordinates to canvas coordinates
@@ -323,27 +292,52 @@ function GameBoard({
     /**
      * Apply a user move on the live board (gameRef).
      * @param {string[][]} move - The move data [color, [row, col]]
-     * @returns {boolean} whether the move was applied
      */
-    const tryPlayUserMove = (move) => {
+    const tryPlayMove = (move) => {
         const [color, [row, col]] = move;
         const sign = color.toUpperCase() === "B" ? 1 : -1;
         const g = gameRef.current;
         const check = g.analyzeMove(sign, [row, col]);
         if (!check.suicide && !check.ko && !check.overwrite) {
             gameRef.current = g.makeMove(sign, [row, col]);
-            setPlayerColor((c) => (c === "B" ? "W" : "B"));
-            return true;
+            setMoves((prev) => {
+                const next = [...prev, move];
+                movesRef.current = next;
+                return next;
+            });
+            setCurrentMove((prev) =>
+                prev.map((value, index) =>
+                    index === boardIdx ? (value ?? 0) + 1 : value
+                )
+            );
+
+            if (color === userColor) {
+                getAIMove()
+                    .then((aiMove) => {
+                        if (aiMove) {
+                            tryPlayMove(aiMove);
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error while getting AI move:", error);
+                    });
+            }
         }
-        return false;
     };
 
-    const redrawBoardAndStones = () => {
+    const redrawBoardAndStones = (canvasContext) => {
         const canvas = canvasRef.current;
         if (!canvas || !boardImageData) return;
-        const canvasContext = canvas.getContext("2d");
         canvasContext.putImageData(boardImageData, 0, 0);
         drawStones(canvasContext);
+
+        const cm = currentMove ?? 0;
+        if (analysisData && analysisData[cm] && showRecommendedMoves) {
+            const data = analysisData[cm];
+            const [row, col] = toRowColFormat(data.best_move);
+            const color = `rgba(255, 0, 0, 0.5)`;
+            drawStone(canvasContext, row, col, color, true);
+        }
     };
 
     /**
@@ -352,10 +346,8 @@ function GameBoard({
      */
     const drawStones = (canvasContext) => {
         // Get the most recent move to highlight
-        const lastMove =
-            currentMove > 0 && currentMove < gameData.moves.length
-                ? gameData.moves[currentMove]
-                : null;
+        const cm = currentMove ?? 0;
+        const lastMove = cm !== 0 ? replayMoves[cm - 1] : null;
         let lastMoveCoords = null;
 
         if (lastMove && !lastMove.includes(null)) {
@@ -445,58 +437,112 @@ function GameBoard({
     };
 
     const handleHover = (event) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        if (toPlayRef.current !== userColor) {
+            canvas.style.cursor = "default";
+            return;
+        }
+
         const { clientX, clientY } = event;
         const [canvasX, canvasY] = clientToCanvasCoords(clientX, clientY);
         const [row, col] = canvasToBoardCoords(canvasX, canvasY);
 
-        const canvasContext = canvasRef.current.getContext("2d");
-        boardImageData ? canvasContext.putImageData(boardImageData, 0, 0) : "";
-        drawStones(canvasContext);
+        const canvasContext = canvas.getContext("2d");
+        redrawBoardAndStones(canvasContext);
+        let nextCursor = "default";
         if (row !== null && col !== null) {
-            const pc = playerColorRef.current;
-            const check = gameRef.current.analyzeMove(pc === "B" ? 1 : -1, [
-                row,
-                col,
-            ]);
+            const check = gameRef.current.analyzeMove(
+                userColor === "B" ? 1 : -1,
+                [row, col]
+            );
             if (!check.suicide && !check.ko && !check.overwrite) {
-                setCursor("pointer");
+                nextCursor = "pointer";
                 const color =
-                    pc === "B"
+                    userColor === "B"
                         ? "rgba(0, 0, 0, 0.5)"
                         : "rgba(255, 255, 255, 0.5)";
                 drawStone(canvasContext, row, col, color, false);
             } else {
-                setCursor("not-allowed");
+                nextCursor = "not-allowed";
             }
-        } else {
-            setCursor("default");
+        }
+        if (canvas.style.cursor !== nextCursor) {
+            canvas.style.cursor = nextCursor;
         }
     };
 
     const handleClick = (event) => {
+        if (toPlayRef.current !== userColor) return;
         const { clientX, clientY } = event;
         const [canvasX, canvasY] = clientToCanvasCoords(clientX, clientY);
         const [row, col] = canvasToBoardCoords(canvasX, canvasY);
 
         if (row !== null && col !== null) {
-            const pc = playerColorRef.current;
-            const check = gameRef.current.analyzeMove(pc === "B" ? 1 : -1, [
-                row,
-                col,
-            ]);
+            const check = gameRef.current.analyzeMove(
+                userColor === "B" ? 1 : -1,
+                [row, col]
+            );
             if (!check.suicide && !check.ko && !check.overwrite) {
-                if (tryPlayUserMove([pc, [row, col]])) {
-                    redrawBoardAndStones();
-                }
+                tryPlayMove([userColor, [row, col]]);
             }
         }
     };
+
+    const getAIMove = async () => {
+        const gtpMoves = [];
+        const src = movesRef.current;
+        for (let i = 0; i < src.length; i++) {
+            const move = src[i];
+            if (move.includes(null)) {
+                continue;
+            }
+
+            const [color, [row, col]] = move;
+            gtpMoves.push([color, toGTPFormat(row, col)]);
+        }
+
+        const request = {
+            board_size: gameData.size,
+            rules: "japanese",
+            komi: gameData.komi || 6.5,
+            to_play: AIColor,
+            moves: gtpMoves,
+            algo: "nn",
+        };
+
+        try {
+            const response = await api.post(getAnalysisURL, request);
+            const data = await response.data;
+            const [row, col] = toRowColFormat(data.best_move);
+            return [AIColor, [row, col]];
+        } catch (error) {
+            console.error("Error while getting AI move:", error);
+            return null;
+        }
+    };
+
+    hoverRef.current = handleHover;
+    clickRef.current = handleClick;
+
+    useEffect(() => {
+        if (!useAI) return;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const onMove = (e) => hoverRef.current(e);
+        const onClick = (e) => clickRef.current(e);
+        canvas.addEventListener("mousemove", onMove);
+        canvas.addEventListener("click", onClick);
+        return () => {
+            canvas.removeEventListener("mousemove", onMove);
+            canvas.removeEventListener("click", onClick);
+        };
+    }, [useAI]);
 
     return (
         <Box
             sx={{
                 position: "relative",
-                cursor: cursor,
             }}
         >
             {isLoading && loadedValue > 0 && (
@@ -560,12 +606,12 @@ function GameBoard({
                         setFile={(file) => {
                             setFiles((prev) =>
                                 prev.map((value, index) =>
-                                    index === id ? file : value
+                                    index === boardIdx ? file : value
                                 )
                             );
                             setUseSamples((prev) =>
                                 prev.map((value, index) =>
-                                    index === id ? false : value
+                                    index === boardIdx ? false : value
                                 )
                             );
                         }}
@@ -574,7 +620,7 @@ function GameBoard({
                     <Link
                         component="button"
                         onClick={() => {
-                            handleViewSample(id);
+                            handleViewSample(boardIdx);
                         }}
                         sx={{
                             color: "primary.light",
@@ -590,12 +636,11 @@ function GameBoard({
                         }}
                     >
                         View a sample
-                        <OpenInNewIcon fontSize="small" />
                     </Link>
                     <Link
                         component="button"
                         onClick={() => {
-                            handlePlayWithAI(id);
+                            handlePlayWithAI(boardIdx);
                         }}
                         sx={{
                             color: "primary.light",
@@ -621,9 +666,10 @@ function GameBoard({
                 height={canvasSize}
             />
             <Controls
-                id={id}
+                boardIdx={boardIdx}
+                maxMove={moves.length}
+                disabled={useAI}
                 currentMove={currentMove}
-                maxMove={gameData?.moves.length}
                 setCurrentMove={setCurrentMove}
                 showRecommendedMoves={showRecommendedMoves}
                 setShowRecommendedMoves={setShowRecommendedMoves}

@@ -15,6 +15,11 @@ export const SGFSample =
 export const getAnalysisURL = "/api/analyze/";
 
 /**
+ * The URL to the get game data endpoint
+ */
+export const getGameDataURL = "/api/get-game-data/";
+
+/**
  * The width of the drawer
  */
 export const drawerWidth = 250;
