@@ -300,11 +300,9 @@ function GameBoard({
         const check = g.analyzeMove(sign, [row, col]);
         if (!check.suicide && !check.ko && !check.overwrite) {
             gameRef.current = g.makeMove(sign, [row, col]);
-            setMoves((prev) => {
-                const next = [...prev, move];
-                movesRef.current = next;
-                return next;
-            });
+            const nextMoves = [...movesRef.current, move];
+            movesRef.current = nextMoves;
+            setMoves(nextMoves);
             setCurrentMove((prev) =>
                 prev.map((value, index) =>
                     index === boardIdx ? (value ?? 0) + 1 : value
@@ -312,9 +310,10 @@ function GameBoard({
             );
 
             if (color === userColor) {
-                getAIMove()
+                getAIMove(nextMoves)
                     .then((aiMove) => {
                         if (aiMove) {
+                            // console.log("AI move:", aiMove);
                             tryPlayMove(aiMove);
                         }
                     })
@@ -322,6 +321,8 @@ function GameBoard({
                         console.error("Error while getting AI move:", error);
                     });
             }
+        } else {
+            console.error("Invalid move:", move);
         }
     };
 
@@ -489,18 +490,21 @@ function GameBoard({
         }
     };
 
-    const getAIMove = async () => {
+    /**
+     * Get the AI move from the server
+     * @param {string[][]} movesForRequest - Plies to send (must include the latest stone just played)
+     * @returns {Promise<string[][]>} - The AI move [color, [row, col]]
+     */
+    const getAIMove = async (movesForRequest) => {
         const gtpMoves = [];
-        const src = movesRef.current;
-        for (let i = 0; i < src.length; i++) {
-            const move = src[i];
-            if (move.includes(null)) {
-                continue;
-            }
-
+        const src = movesForRequest ?? movesRef.current;
+        for (const move of src) {
+            if (move.includes(null)) continue;
             const [color, [row, col]] = move;
             gtpMoves.push([color, toGTPFormat(row, col)]);
         }
+
+        // console.log("gtpMoves:", gtpMoves);
 
         const request = {
             board_size: gameData.size,
@@ -533,6 +537,7 @@ function GameBoard({
         const onClick = (e) => clickRef.current(e);
         canvas.addEventListener("mousemove", onMove);
         canvas.addEventListener("click", onClick);
+
         return () => {
             canvas.removeEventListener("mousemove", onMove);
             canvas.removeEventListener("click", onClick);
