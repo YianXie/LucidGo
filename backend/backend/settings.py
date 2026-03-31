@@ -34,7 +34,12 @@ if ENVIRONMENT == "development":
 else:
     DEBUG = False
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "api.lucidgo.org"]
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "api.lucidgo.org",
+    "lucidgo-backend.onrender.com",
+]
 
 
 # REST Framework Settings
@@ -173,6 +178,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     "https://api.lucidgo.org",
     "https://www.lucidgo.org",
+    "https://lucidgo-backend.onrender.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -181,6 +187,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://*.lucidgo.org",
+    "https://lucidgo-backend.onrender.com",
 ]
 
 
