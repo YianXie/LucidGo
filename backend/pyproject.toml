@@ -85,29 +85,3 @@ dependencies = [
 [tool.bandit]
 exclude_dirs = ["tests", "migrations", "__pycache__", ".venv"]
 skips = ["B101", "B601"]
-
-# [tool.coverage.run]
-# source = "."
-# omit = [
-#   "*/migrations/*",
-#   "*/venv/*",
-#   "*/env/*",
-#   "manage.py",
-#   "*/settings.py",
-#   "*/wsgi.py",
-#   "*/asgi.py",
-# ]
-
-# [tool.coverage.report]
-# exclude_lines = [
-#   "pragma: no cover",
-#   "def __repr__",
-#   "if self.debug:",
-#   "if settings.DEBUG",
-#   "raise AssertionError",
-#   "raise NotImplementedError",
-#   "if 0:",
-#   "if __name__ == .__main__.:",
-#   "class .*\\bProtocol\\):",
-#   "@(abc\\.)?abstractmethod",
-# ]
