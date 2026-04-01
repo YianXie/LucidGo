@@ -5,6 +5,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import { isAxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -24,7 +25,7 @@ function Login() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isAuthenticated]);
 
-    const handleSubmit = async (event) => {
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
         try {
@@ -36,8 +37,20 @@ function Login() {
             login(response.data);
             toast.success("Login successful");
             navigate("/");
-        } catch (error) {
-            toast.error(error.response.data.detail);
+        } catch (error: unknown) {
+            if (
+                isAxiosError(error) &&
+                error.response?.data &&
+                typeof error.response.data === "object" &&
+                error.response.data !== null &&
+                "detail" in error.response.data
+            ) {
+                toast.error(
+                    String((error.response.data as { detail: unknown }).detail)
+                );
+            } else {
+                toast.error("Login failed");
+            }
             console.error(error);
         } finally {
             setIsLoading(false);

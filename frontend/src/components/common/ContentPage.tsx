@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
+import type { FC } from "react";
 import { useRef } from "react";
 import { useLocation, useParams } from "react-router-dom";
 
@@ -9,6 +10,12 @@ import usePageTitle from "../../hooks/usePageTitle";
 import Sidebar from "./Sidebar";
 import SidebarLink from "./SidebarLink";
 
+export interface DocItem {
+    id: string;
+    title: string;
+    content: FC;
+}
+
 function ContentPage({
     items,
     basePath,
@@ -16,12 +23,19 @@ function ContentPage({
     welcomeTitle,
     welcomeMessage,
     sidebarTitle = "Documentation",
+}: {
+    items: DocItem[];
+    basePath: string;
+    pageTitle: string;
+    welcomeTitle: string;
+    welcomeMessage: string;
+    sidebarTitle?: string;
 }) {
     usePageTitle(pageTitle);
 
     const { id } = useParams();
     const location = useLocation();
-    const contentRef = useRef(null);
+    const contentRef = useRef<HTMLElement>(null);
 
     const sidebarContent = (
         <Sidebar title={sidebarTitle}>
@@ -39,6 +53,7 @@ function ContentPage({
 
     const renderContent = () => {
         const Content = items.find((item) => item.id === id)?.content;
+        if (!Content) return null;
         return (
             <Box
                 ref={contentRef}

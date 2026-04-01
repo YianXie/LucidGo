@@ -14,19 +14,11 @@ import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import ControlMoveButton from "./ControlMoveButton";
 
-/**
- * A control panel for the game board
- * @param {number} boardIdx - the index of the board
- * @param {number} currentMove - the current move, should be a state
- * @param {number} maxMove - the maximum possible move
- * @param {callback} setCurrentMove - the function that set the move state
- * @param {number} maxMove - the maximum possible move
- * @returns
- */
 function Controls({
     boardIdx,
     maxMove,
@@ -35,12 +27,20 @@ function Controls({
     setCurrentMove,
     setShowRecommendedMoves,
     showRecommendedMoves,
+}: {
+    boardIdx: number;
+    maxMove: number;
+    disabled: boolean;
+    currentMove: number | null;
+    setCurrentMove: Dispatch<SetStateAction<(number | null)[]>>;
+    setShowRecommendedMoves: Dispatch<SetStateAction<boolean[]>>;
+    showRecommendedMoves: boolean;
 }) {
     const fastForwardAmount = 5;
-    const [anchorEl, setAnchorEl] = useState(null);
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
 
-    const handleMenuClick = (event) => {
+    const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
     };
 
@@ -48,7 +48,7 @@ function Controls({
         setAnchorEl(null);
     };
 
-    const handleMove = (amount) => {
+    const handleMove = (amount: number) => {
         setCurrentMove((prev) =>
             prev.map((value, index) => {
                 if (index !== boardIdx) return value;
@@ -68,7 +68,7 @@ function Controls({
         {
             label: "Show recommended moves",
             value: showRecommendedMoves,
-            setValue: (newValue) => {
+            setValue: (newValue: boolean) => {
                 setShowRecommendedMoves((prev) =>
                     prev.map((value, index) => {
                         if (index === boardIdx) {
@@ -81,9 +81,8 @@ function Controls({
         },
     ];
 
-    const handleOptionChange = (index) => {
+    const handleOptionChange = (index: number) => {
         const option = options[index];
-        // If maxChecked is 1, uncheck others
         for (let i = 0; i < options.length; i++) {
             if (i !== index) {
                 options[i].setValue(false);
@@ -200,7 +199,7 @@ function Controls({
                 <RadioGroup
                     value={options.findIndex((option) => option.value)}
                     onChange={(event) => {
-                        handleOptionChange(event.target.value);
+                        handleOptionChange(Number(event.target.value));
                     }}
                     sx={{
                         display: "flex",

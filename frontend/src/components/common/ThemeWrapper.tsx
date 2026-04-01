@@ -1,27 +1,24 @@
 import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 
-function ThemeWrapper({ children }) {
+function ThemeWrapper({ children }: { children: ReactNode }) {
     const [prefersDarkMode, setPrefersDarkMode] = useState(
-        window.matchMedia &&
+        typeof window !== "undefined" &&
             window.matchMedia("(prefers-color-scheme: dark)").matches
     );
 
     useEffect(() => {
         const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-        const handleChange = (e) => setPrefersDarkMode(e.matches);
+        const handleChange = (e: MediaQueryListEvent) =>
+            setPrefersDarkMode(e.matches);
 
-        // Modern browsers
         if (mediaQuery.addEventListener) {
             mediaQuery.addEventListener("change", handleChange);
             return () => mediaQuery.removeEventListener("change", handleChange);
         }
-        // Fallback for older browsers
-        else if (mediaQuery.addListener) {
-            mediaQuery.addListener(handleChange);
-            return () => mediaQuery.removeListener(handleChange);
-        }
+        mediaQuery.addListener(handleChange);
+        return () => mediaQuery.removeListener(handleChange);
     }, []);
 
     const theme = useMemo(

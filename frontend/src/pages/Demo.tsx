@@ -6,7 +6,6 @@ import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
-import React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -16,6 +15,7 @@ import GameBoard from "../components/board/GameBoard";
 import { SGFSample, getAnalysisURL, getGameDataURL } from "../constants";
 import { useAuth } from "../contexts/AuthContext";
 import usePageTitle from "../hooks/usePageTitle";
+import { type AnalysisResult, type GameData, isValidMove } from "../types/game";
 import { toGTPFormat } from "../utils";
 
 function Demo() {
@@ -24,26 +24,35 @@ function Demo() {
     const { isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
-    // Board state management - using arrays indexed by board ID
     const [totalBoards, setTotalBoards] = useState(1);
-    const [boardNames, setBoardNames] = useState([null]);
-    const [files, setFiles] = useState([null]);
-    const [gameData, setGameData] = useState([null]);
-    const [analysisData, setAnalysisData] = useState([null]);
-    const [winRate, setWinRate] = useState([null]);
-    const [currentAnalyzedMoves, setCurrentMove] = useState([null]);
-    const [loading, setLoading] = useState([false]);
-    const [useSamples, setUseSamples] = useState([null]);
-    const [useAI, setUseAI] = useState([false]);
+    const [boardNames, setBoardNames] = useState<(string | null)[]>([null]);
+    const [files, setFiles] = useState<(File | null)[]>([null]);
+    const [gameData, setGameData] = useState<(GameData | null)[]>([null]);
+    const [analysisData, setAnalysisData] = useState<
+        (AnalysisResult[] | null)[]
+    >([null]);
+    const [winRate, setWinRate] = useState<(number[] | null)[]>([null]);
+    const [currentAnalyzedMoves, setCurrentMove] = useState<(number | null)[]>([
+        null,
+    ]);
+    const [loading, setLoading] = useState<boolean[]>([false]);
+    const [useSamples, setUseSamples] = useState<(boolean | null)[]>([null]);
+    const [useAI, setUseAI] = useState<boolean[]>([false]);
 
-    // Display settings
-    const [showRecommendedMoves, setShowRecommendedMoves] = useState([true]);
-    const [deletingBoardIndex, setDeletingBoardIndex] = useState(null);
-    const [creatingBoardIndex, setCreatingBoardIndex] = useState(null);
-    const animationTimerRef = useRef(null);
+    const [showRecommendedMoves, setShowRecommendedMoves] = useState<boolean[]>(
+        [true]
+    );
+    const [deletingBoardIndex, setDeletingBoardIndex] = useState<number | null>(
+        null
+    );
+    const [creatingBoardIndex, setCreatingBoardIndex] = useState<number | null>(
+        null
+    );
+    const animationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+        null
+    );
 
-    // Analysis settings
-    const [loadedValue, setLoadedValue] = useState([0]);
+    const [loadedValue, setLoadedValue] = useState<number[]>([0]);
 
     useEffect(() => {
         if (isAuthenticated === null) return;
@@ -63,19 +72,19 @@ function Demo() {
         };
     }, []);
 
-    // Effect to trigger analysis when gameData changes for a specific board
     useEffect(() => {
         for (let i = 0; i < totalBoards; i++) {
-            // Skip if no game data
             if (!gameData || !gameData[i] || gameData[i] === null) continue;
 
-            // Initialize win rate if needed
-            if (!winRate[i] || winRate[i].length !== gameData[i].moves.length) {
+            if (
+                !winRate[i] ||
+                winRate[i]!.length !== gameData[i]!.moves.length
+            ) {
                 setWinRate((prev) =>
                     prev.map((value, index) =>
                         index === i
                             ? Array.from(
-                                  { length: gameData[i].moves.length },
+                                  { length: gameData[i]!.moves.length },
                                   () => 50
                               )
                             : value
@@ -83,16 +92,18 @@ function Demo() {
                 );
             }
 
-            // Analysis is needed if no analysis data exists
             if (analysisData[i] === null) {
+                const boardIndex = i;
                 async function analyze() {
                     setLoading((prev) =>
-                        prev.map((value, index) => (index === i ? true : value))
+                        prev.map((value, index) =>
+                            index === boardIndex ? true : value
+                        )
                     );
-                    await analyzeAllMoves(i);
+                    await analyzeAllMoves(boardIndex);
                     setLoading((prev) =>
                         prev.map((value, index) =>
-                            index === i ? false : value
+                            index === boardIndex ? false : value
                         )
                     );
                 }
@@ -105,36 +116,37 @@ function Demo() {
     useEffect(() => {
         for (let i = 0; i < totalBoards; i++) {
             if (!files[i] && !useSamples[i]) continue;
-            if (gameData[i] && gameData[i].moves.length > 0) continue;
+            if (gameData[i] && gameData[i]!.moves.length > 0) continue;
             if (useSamples[i]) {
                 getGameData(SGFSample, i);
             } else {
                 if (files[i]) {
                     const reader = new FileReader();
                     reader.onload = function (e) {
-                        const fileContent = e.target.result;
+                        const fileContent = e.target?.result as string;
                         getGameData(fileContent, i);
                     };
-                    reader.readAsText(files[i]);
+                    reader.readAsText(files[i]!);
                 }
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [files, gameData, totalBoards, useSamples]);
 
-    async function getGameData(SGFContent, boardIndex) {
+    async function getGameData(SGFContent: string, boardIndex: number) {
         setLoading((prev) =>
             prev.map((value, index) => (index === boardIndex ? true : value))
         );
         try {
-            const gameDataResponse = await api.get(getGameDataURL, {
+            const gameDataResponse = await api.get<GameData>(getGameDataURL, {
                 params: {
                     sgf_file_data: SGFContent,
                 },
             });
-            const gameData = await gameDataResponse.data;
+            const data = gameDataResponse.data;
             setGameData((prev) =>
                 prev.map((value, index) =>
-                    index === boardIndex ? gameData : value
+                    index === boardIndex ? data : value
                 )
             );
             setCurrentMove((prev) =>
@@ -152,12 +164,15 @@ function Demo() {
         }
     }
 
-    const analyzeAllMoves = async (boardIndex) => {
-        const moves = [];
-        const analyzeResults = [];
-        for (let i = 0; i < gameData[boardIndex].moves.length; i++) {
-            const move = gameData[boardIndex].moves[i];
-            if (move.includes(null)) {
+    const analyzeAllMoves = async (boardIndex: number) => {
+        const moves: [string, string][] = [];
+        const analyzeResults: AnalysisResult[] = [];
+        const boardData = gameData[boardIndex];
+        if (!boardData) return;
+
+        for (let i = 0; i < boardData.moves.length; i++) {
+            const move = boardData.moves[i];
+            if (!isValidMove(move)) {
                 continue;
             }
 
@@ -165,27 +180,26 @@ function Demo() {
             moves.push([color, toGTPFormat(row, col)]);
 
             const request = {
-                board_size: gameData[boardIndex].size,
+                board_size: boardData.size,
                 rules: "japanese",
-                komi: gameData[boardIndex].komi || 6.5,
+                komi: boardData.komi ?? 6.5,
                 to_play: color.toUpperCase(),
                 moves: moves,
                 algo: "nn",
             };
             try {
-                const analysisResponse = await api.post(
+                const analysisResponse = await api.post<AnalysisResult>(
                     getAnalysisURL,
                     request
                 );
-                const data = analysisResponse.data;
-                analyzeResults.push(data);
+                analyzeResults.push(analysisResponse.data);
             } catch (error) {
                 console.error("Error:", error);
             } finally {
                 setLoadedValue((prev) =>
                     prev.map((value, index) =>
                         index === boardIndex
-                            ? (100 / gameData[boardIndex].moves.length) * i
+                            ? (100 / boardData.moves.length) * i
                             : value
                     )
                 );
@@ -198,32 +212,19 @@ function Demo() {
         );
     };
 
-    /**
-     * Change the name of a board.
-     * @param {number} boardIndex - The index of the board to change the name of.
-     * @param {string} name - The new name of the board.
-     */
-    const handleBoardNameChange = (boardIndex, name) => {
+    const handleBoardNameChange = (boardIndex: number, name: string) => {
         setBoardNames((prev) =>
             prev.map((value, index) => (index === boardIndex ? name : value))
         );
     };
 
-    /**
-     * Set the corresponding board to use a sample.
-     * @param {number} boardIndex - The index of the board to set to use a sample.
-     */
-    const handleViewSample = (boardIndex) => {
+    const handleViewSample = (boardIndex: number) => {
         setUseSamples((prev) =>
             prev.map((value, index) => (index === boardIndex ? true : value))
         );
     };
 
-    /**
-     * Set the corresponding board to play with AI.
-     * @param {number} boardIndex - The index of the board to set to play with AI.
-     */
-    const handlePlayWithAI = (boardIndex) => {
+    const handlePlayWithAI = (boardIndex: number) => {
         setGameData((prev) =>
             prev.map((value, index) =>
                 index === boardIndex
@@ -250,27 +251,19 @@ function Demo() {
 
     const ANIMATION_MS = 250;
 
-    /**
-     * Start delete: play exit animation, then {@link completeDeleteBoard} runs.
-     * @param {number} boardIndex - The index of the board to delete.
-     */
-    const requestDeleteBoard = (boardIndex) => {
+    const requestDeleteBoard = (boardIndex: number) => {
         if (deletingBoardIndex !== null || creatingBoardIndex !== null) return;
         if (animationTimerRef.current) {
             clearTimeout(animationTimerRef.current);
         }
         setDeletingBoardIndex(boardIndex);
-        animationTimerRef.current = window.setTimeout(() => {
+        animationTimerRef.current = setTimeout(() => {
             animationTimerRef.current = null;
             completeDeleteBoard(boardIndex);
         }, ANIMATION_MS);
     };
 
-    /**
-     * Remove a board from state after its exit animation finishes.
-     * @param {number} boardIndex - The index of the board to delete.
-     */
-    const completeDeleteBoard = (boardIndex) => {
+    const completeDeleteBoard = (boardIndex: number) => {
         setDeletingBoardIndex(null);
         setTotalBoards((n) => n - 1);
         setBoardNames((prev) =>
@@ -298,11 +291,6 @@ function Demo() {
         setUseAI((prev) => prev.filter((_, index) => index !== boardIndex));
     };
 
-    /**
-     * Add a board and run the enter animation on the new row. The new index is
-     * always the previous length (e.g. 1 board → new board is index 1), so we must
-     * append state first, then mark that index as animating — not the reverse.
-     */
     const requestCreateBoard = () => {
         if (deletingBoardIndex !== null || creatingBoardIndex !== null) return;
         if (animationTimerRef.current) {
@@ -324,7 +312,7 @@ function Demo() {
         setFiles((prev) => [...prev, null]);
 
         setCreatingBoardIndex(newIndex);
-        animationTimerRef.current = window.setTimeout(() => {
+        animationTimerRef.current = setTimeout(() => {
             animationTimerRef.current = null;
             setCreatingBoardIndex(null);
         }, ANIMATION_MS);
@@ -411,15 +399,15 @@ function Demo() {
                                         }
                                         sx={{
                                             "& .MuiInput-underline:before": {
-                                                borderBottom: "none", // Hides the line initially
+                                                borderBottom: "none",
                                             },
                                             "& .MuiInput-underline:hover:not(.Mui-disabled):before":
                                                 {
                                                     borderBottom:
-                                                        "1px solid rgba(0, 0, 0, 0.87)", // Shows on hover
+                                                        "1px solid rgba(0, 0, 0, 0.87)",
                                                 },
                                         }}
-                                    ></TextField>
+                                    />
                                     <Tooltip title="Delete board" arrow>
                                         <IconButton
                                             onClick={() =>
@@ -452,7 +440,6 @@ function Demo() {
                                     handleViewSample={handleViewSample}
                                     handlePlayWithAI={handlePlayWithAI}
                                     gameData={gameData[i]}
-                                    setGameData={setGameData}
                                     currentMove={currentAnalyzedMoves[i]}
                                     setCurrentMove={setCurrentMove}
                                     useSamples={useSamples[i]}

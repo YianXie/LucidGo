@@ -1,26 +1,25 @@
-/* eslint-disable no-undef */
 import mdx from "@mdx-js/rollup";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import path from "path";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://vite.dev/config/
 export default defineConfig({
     plugins: [
         react({
-            // Ensure React plugin processes JSX properly
             jsxRuntime: "automatic",
         }),
         tailwindcss(),
         mdx({
-            // Process MDX files - use glob patterns that work from the frontend directory
             include: [
                 "**/*.{mdx,md}",
                 path.resolve(__dirname, "../docs/**/*.{mdx,md}"),
                 path.resolve(__dirname, "../articles/**/*.{mdx,md}"),
             ],
-            // Use React's JSX runtime
             jsxImportSource: "react",
         }),
     ],
@@ -35,7 +34,6 @@ export default defineConfig({
     },
     build: {
         rollupOptions: {
-            // Ensure React and jsx-runtime are not externalized
             external: [],
         },
         commonjsOptions: {

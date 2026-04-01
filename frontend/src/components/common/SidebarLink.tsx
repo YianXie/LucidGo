@@ -1,9 +1,20 @@
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
-function SidebarLink({ className = "", to, isActive, children }) {
+function SidebarLink({
+    className = "",
+    to,
+    isActive,
+    children,
+}: {
+    className?: string;
+    to: string;
+    isActive: boolean;
+    children: ReactNode;
+}) {
     return (
         <ListItem disablePadding className={className}>
             <ListItemButton

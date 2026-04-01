@@ -1,26 +1,30 @@
 import IconButton from "@mui/material/IconButton";
+import type { ReactNode } from "react";
 
 import placeStoneSound from "../../assets/sounds/board/place-stone.wav";
 
 const placeStoneSoundInstance = new Audio(placeStoneSound);
 
-/**
- * ControlMoveButton component
- * @param {React.ReactNode} icon The icon to display
- * @param {string} label The aria-label of the icon
- * @param {number} amount The amount of move to update
- * @param {function} handleMove The function to update the move
- * @param {boolean} disabled Whether the button is disabled
- * @returns {React.ReactNode} The button component
- */
-function ControlMoveButton({ icon, label, amount, handleMove, disabled }) {
+function ControlMoveButton({
+    icon,
+    label,
+    amount,
+    handleMove,
+    disabled,
+}: {
+    icon: ReactNode;
+    label: string;
+    amount: number;
+    handleMove: (amount: number) => void;
+    disabled: boolean;
+}) {
     return (
         <IconButton
             disabled={disabled}
             aria-label={label}
             onClick={() => {
                 placeStoneSoundInstance.currentTime = 0;
-                placeStoneSoundInstance.play();
+                void placeStoneSoundInstance.play();
                 handleMove(amount);
             }}
         >

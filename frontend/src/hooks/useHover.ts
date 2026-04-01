@@ -2,9 +2,11 @@ import { useState } from "react";
 
 /**
  * Custom hook for managing hover state
- * @returns {[boolean, object]} - [isHovered, hoverProps]
  */
-function useHover() {
+function useHover(): [
+    boolean,
+    { onMouseEnter: () => void; onMouseLeave: () => void },
+] {
     const [isHovered, setIsHovered] = useState(false);
 
     const hoverProps = {

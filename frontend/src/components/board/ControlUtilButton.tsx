@@ -1,4 +1,12 @@
-function ControlUtilButton({ className, onClick, label }) {
+function ControlUtilButton({
+    className,
+    onClick,
+    label,
+}: {
+    className: string;
+    onClick: () => void;
+    label: string;
+}) {
     return (
         <div
             className="cursor-pointer hover:opacity-80 active:translate-y-1"

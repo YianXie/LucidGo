@@ -13,15 +13,15 @@ import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import useScrollTrigger from "@mui/material/useScrollTrigger";
-import { useState } from "react";
+import { type ReactElement, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../contexts/AuthContext";
 import logo from "/logo.png";
 
-function HideOnScroll({ children }) {
+function HideOnScroll({ children }: { children: ReactElement }) {
     const trigger = useScrollTrigger({
-        target: window,
+        target: typeof window !== "undefined" ? window : undefined,
         threshold: 100,
     });
     return (
@@ -133,9 +133,7 @@ function Header() {
                                     <NavLink
                                         key={item.path}
                                         to={item.path}
-                                        className={
-                                            "no-underline transition-all hover:opacity-80 hover:underline"
-                                        }
+                                        className="no-underline transition-all hover:opacity-80 hover:underline"
                                     >
                                         {item.label}
                                     </NavLink>
@@ -151,7 +149,7 @@ function Header() {
                 anchor="right"
                 onClose={handleDrawerToggle}
                 ModalProps={{
-                    keepMounted: true, // Better open performance on mobile.
+                    keepMounted: true,
                 }}
                 sx={{
                     display: { xs: "block", md: "none" },

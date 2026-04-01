@@ -18,7 +18,6 @@ function Layout() {
             </Box>
             <Footer />
 
-            {/* For React Toastify */}
             <ToastContainer
                 position="bottom-left"
                 autoClose={5000}

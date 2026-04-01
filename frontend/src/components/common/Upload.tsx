@@ -3,20 +3,26 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { useState } from "react";
 
-function Upload({ setFile, accept, ...props }) {
+function Upload({
+    setFile,
+    accept,
+}: {
+    setFile: (file: File) => void;
+    accept: string;
+}) {
     const [isDragging, setIsDragging] = useState(false);
 
-    const handleDragOver = (e) => {
+    const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
         setIsDragging(true);
     };
 
-    const handleDragLeave = (e) => {
+    const handleDragLeave = (e: React.DragEvent) => {
         e.preventDefault();
         setIsDragging(false);
     };
 
-    const handleDrop = (e) => {
+    const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
         setIsDragging(false);
         const files = e.dataTransfer.files;
@@ -25,7 +31,7 @@ function Upload({ setFile, accept, ...props }) {
         }
     };
 
-    const handleFileChange = (e) => {
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             setFile(e.target.files[0]);
         }
@@ -77,7 +83,6 @@ function Upload({ setFile, accept, ...props }) {
                 accept={accept}
                 style={{ display: "none" }}
                 onChange={handleFileChange}
-                {...props}
             />
         </Paper>
     );

@@ -1,10 +1,19 @@
 import List from "@mui/material/List";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
+import type { ReactNode } from "react";
 
 import { drawerWidth } from "../../constants";
 
-function Sidebar({ className, children, title = "Documentation" }) {
+function Sidebar({
+    className,
+    children,
+    title = "Documentation",
+}: {
+    className?: string;
+    children: ReactNode;
+    title?: string;
+}) {
     return (
         <Paper
             elevation={0}

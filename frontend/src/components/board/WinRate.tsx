@@ -1,12 +1,17 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import {
+    type ActiveElement,
     CategoryScale,
+    type Chart,
+    type ChartData,
+    type ChartEvent,
     Chart as ChartJS,
     Legend,
     LineElement,
     LinearScale,
     PointElement,
+    type ScriptableLineSegmentContext,
     Title,
     Tooltip,
 } from "chart.js";
@@ -24,18 +29,27 @@ ChartJS.register(
     Legend
 );
 
-function WinRate({ data, maxMove, setMove, currentMove }) {
-    const [hoverX, setHoverX] = useState(null);
-    const chartRef = useRef(null);
+function WinRate({
+    data,
+    maxMove,
+    setMove,
+    currentMove,
+}: {
+    data: number[] | null | undefined;
+    maxMove: number;
+    setMove: (n: number) => void;
+    currentMove: number;
+}) {
+    const [hoverX, setHoverX] = useState<number | null>(null);
+    const chartRef = useRef<Chart<"line"> | null>(null);
 
-    // Memoize options to avoid recreating on every render
     const options = useMemo(
         () => ({
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: "top",
+                    position: "top" as const,
                 },
                 title: {
                     display: true,
@@ -64,21 +78,19 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                     },
                 },
             },
-            onHover: (event) => {
-                const chart = chartRef.current;
-                if (!chart) {
-                    return;
-                }
-
+            onHover: (
+                event: ChartEvent,
+                _active: ActiveElement[],
+                chart: Chart
+            ) => {
                 const chartArea = chart.chartArea;
                 const chartWidth = chartArea.right - chartArea.left;
                 const xScale = chart.scales.x;
 
                 const { x: mouseX, y: mouseY } = getRelativePosition(
-                    event,
-                    chartArea
+                    event as unknown as MouseEvent,
+                    chart
                 );
-                const xValue = xScale.getValueForPixel(mouseX); // x-axis is 0-based, so we need to add 1
 
                 if (
                     mouseX < chartArea.left ||
@@ -88,24 +100,25 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                 ) {
                     setHoverX(null);
                 } else {
+                    const xValue = xScale.getValueForPixel(mouseX);
                     setHoverX(
-                        xValue * (chartWidth / xScale.max) + chartArea.left
+                        (xValue ?? 0) * (chartWidth / (xScale.max ?? 1)) +
+                            chartArea.left
                     );
                 }
             },
-            onClick: (event) => {
-                const chart = chartRef.current;
-                if (!chart) {
-                    return;
-                }
-
+            onClick: (
+                event: ChartEvent,
+                _elements: ActiveElement[],
+                chart: Chart
+            ) => {
                 const { x: mouseX } = getRelativePosition(
-                    event,
-                    chart.chartArea
+                    event as unknown as MouseEvent,
+                    chart
                 );
                 const xScale = chart.scales.x;
                 const xValue = Math.min(
-                    xScale.getValueForPixel(mouseX) + 1,
+                    (xScale.getValueForPixel(mouseX) ?? 0) + 1,
                     maxMove - 1
                 );
                 setMove(xValue);
@@ -118,7 +131,11 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
         () => [
             {
                 id: "customCanvasBackgroundColor",
-                beforeDraw: (chart, _, options) => {
+                beforeDraw: (
+                    chart: Chart,
+                    _args: unknown,
+                    options: { color?: string }
+                ) => {
                     const { ctx: canvasContext } = chart;
                     canvasContext.save();
                     canvasContext.globalCompositeOperation = "destination-over";
@@ -129,9 +146,12 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
             },
             {
                 id: "verticalLine",
-                afterDraw: (chart) => {
-                    const hoverXValue =
-                        chart.options.plugins.verticalLine?.hoverX;
+                afterDraw: (chart: Chart) => {
+                    const hoverXValue = (
+                        chart.options.plugins as {
+                            verticalLine?: { hoverX?: number | null };
+                        }
+                    ).verticalLine?.hoverX;
 
                     if (!hoverXValue) {
                         return;
@@ -153,7 +173,10 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
             },
             {
                 id: "eventListener",
-                beforeEvent: (chart, args) => {
+                beforeEvent: (
+                    chart: Chart,
+                    args: { event: { type: string } }
+                ) => {
                     const event = args.event;
                     if (event.type === "mouseout") {
                         setHoverX(null);
@@ -164,15 +187,14 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
         []
     );
 
-    // Consolidate all data processing into a single effect
-    const lineData = useMemo(() => {
+    const lineData = useMemo((): ChartData<"line"> => {
         if (!data || data.length === 0) {
             return {
-                labels: [],
+                labels: [] as number[],
                 datasets: [
                     {
                         label: "Black",
-                        data: [],
+                        data: [] as number[],
                         fill: false,
                         borderColor: "black",
                         tension: 0.2,
@@ -180,7 +202,7 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                     },
                     {
                         label: "White",
-                        data: [],
+                        data: [] as number[],
                         fill: false,
                         borderColor: "white",
                         tension: 0.2,
@@ -204,8 +226,8 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                     tension: 0.2,
                     pointRadius: 0,
                     segment: {
-                        borderColor: (ctx) => {
-                            const moveIndex = ctx.p0.parsed.x + 1;
+                        borderColor: (ctx: ScriptableLineSegmentContext) => {
+                            const moveIndex = (ctx.p0.parsed.x ?? 0) + 1;
                             if (moveIndex < currentMove) {
                                 return "black";
                             }
@@ -221,8 +243,8 @@ function WinRate({ data, maxMove, setMove, currentMove }) {
                     tension: 0.2,
                     pointRadius: 0,
                     segment: {
-                        borderColor: (ctx) => {
-                            const moveIndex = ctx.p0.parsed.x + 1;
+                        borderColor: (ctx: ScriptableLineSegmentContext) => {
+                            const moveIndex = (ctx.p0.parsed.x ?? 0) + 1;
                             if (moveIndex < currentMove) {
                                 return "white";
                             }

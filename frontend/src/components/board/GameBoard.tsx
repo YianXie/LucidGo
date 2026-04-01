@@ -3,11 +3,23 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import Board from "@sabaki/go-board";
-import { useEffect, useRef, useState } from "react";
+import {
+    type Dispatch,
+    type SetStateAction,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 
 import api from "../../api";
 import board_bg from "../../assets/images/board/board-bg.png";
 import { GTPLetters, getAnalysisURL } from "../../constants";
+import {
+    type AnalysisResult,
+    type GameData,
+    type GameMove,
+    isValidMove,
+} from "../../types/game";
 import { toGTPFormat, toRowColFormat } from "../../utils";
 import Upload from "../common/Upload";
 import Controls from "./Controls";
@@ -28,41 +40,55 @@ function GameBoard({
     showRecommendedMoves,
     setShowRecommendedMoves,
     setFiles,
+}: {
+    boardIdx: number;
+    gameData: GameData | null;
+    analysisData: AnalysisResult[] | null;
+    isLoading: boolean;
+    loadedValue: number;
+    useAI: boolean;
+    handleViewSample: (boardIndex: number) => void;
+    handlePlayWithAI: (boardIndex: number) => void;
+    currentMove: number | null;
+    setCurrentMove: Dispatch<SetStateAction<(number | null)[]>>;
+    useSamples: boolean | null;
+    setUseSamples: Dispatch<SetStateAction<(boolean | null)[]>>;
+    showRecommendedMoves: boolean;
+    setShowRecommendedMoves: Dispatch<SetStateAction<boolean[]>>;
+    setFiles: Dispatch<SetStateAction<(File | null)[]>>;
 }) {
-    // Canvas variables
-    const boardSize = gameData?.size || 19;
+    const boardSize = gameData?.size ?? 19;
     const canvasSize = 800;
     const padding = 50;
     const margin = (canvasSize - padding * 2) / (boardSize - 1);
     const stoneRadius = margin / 2;
 
-    // Single Board instance for play/hover — must not be recreated when listeners re-bind.
     const gameRef = useRef(Board.fromDimensions(boardSize));
-    const toPlayRef = useRef("B");
+    const toPlayRef = useRef<"B" | "W">("B");
 
-    // React variables
-    const canvasRef = useRef(null);
-    const [boardImageData, setBoardImageData] = useState(null);
-    const [toPlay, setToPlay] = useState("B");
-    const [moves, setMoves] = useState(gameData?.moves || []);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [boardImageData, setBoardImageData] = useState<ImageData | null>(
+        null
+    );
+    const [toPlay, setToPlay] = useState<"B" | "W">("B");
+    const [moves, setMoves] = useState<GameMove[]>(gameData?.moves ?? []);
     const movesRef = useRef(moves);
     movesRef.current = moves;
 
-    const hoverRef = useRef(null);
-    const clickRef = useRef(null);
+    const hoverRef = useRef<(event: MouseEvent) => void>(() => {});
+    const clickRef = useRef<(event: MouseEvent) => void>(() => {});
 
     toPlayRef.current = toPlay;
 
     useEffect(() => {
         if (!gameData) return;
-        setMoves(gameData.moves || []);
+        setMoves(gameData.moves ?? []);
     }, [gameData]);
 
-    /** Plies to replay: live moves in AI mode; always use server moves in analysis so we never lag one frame behind gameData. */
     const replayMoves = useAI ? moves : (gameData?.moves ?? []);
 
-    const userColor = "B";
-    const AIColor = "W";
+    const userColor = "B" as const;
+    const AIColor = "W" as const;
 
     useEffect(() => {
         if (boardSize > 19 || boardSize < 2) {
@@ -78,12 +104,13 @@ function GameBoard({
         const canvasContext = canvas.getContext("2d", {
             willReadFrequently: true,
         });
+        if (!canvasContext) return;
+
         const devicePixelRatio = window.devicePixelRatio || 1;
         canvas.width = canvasSize * devicePixelRatio;
         canvas.height = canvasSize * devicePixelRatio;
         canvasContext.scale(devicePixelRatio, devicePixelRatio);
 
-        // The background image
         const boardBackgroundImage = new Image();
         boardBackgroundImage.src = board_bg;
 
@@ -115,7 +142,7 @@ function GameBoard({
         const n = Math.min(cm, replayMoves.length);
         for (let i = 0; i < n; i++) {
             const move = replayMoves[i];
-            if (!move || move.includes(null)) continue;
+            if (!move || !isValidMove(move)) continue;
 
             const [color, [row, col]] = move;
             const sign = color.toUpperCase() === "B" ? 1 : -1;
@@ -130,13 +157,14 @@ function GameBoard({
             setToPlay("B");
         } else {
             const last = replayMoves[cm - 1];
-            if (last && !last.includes(null)) {
+            if (last && isValidMove(last)) {
                 setToPlay(last[0].toUpperCase() === "B" ? "W" : "B");
             }
         }
 
         if (!canvasRef.current) return;
         const canvasContext = canvasRef.current.getContext("2d");
+        if (!canvasContext) return;
         redrawBoardAndStones(canvasContext);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
@@ -148,30 +176,17 @@ function GameBoard({
         showRecommendedMoves,
     ]);
 
-    /**
-     * Convert client coordinates to canvas coordinates
-     * @param {number} x - The x coordinate of the client
-     * @param {number} y - The y coordinate of the client
-     * @returns {number[]} - The canvas coordinates [x, y]
-     */
-    const clientToCanvasCoords = (x, y) => {
-        if (!canvasRef.current) return [null, null];
+    const clientToCanvasCoords = (x: number, y: number) => {
+        if (!canvasRef.current) return [null, null] as const;
 
         const bounds = canvasRef.current.getBoundingClientRect();
         const canvasX = x - bounds.left;
         const canvasY = y - bounds.top;
 
-        return [canvasX, canvasY];
+        return [canvasX, canvasY] as const;
     };
 
-    /**
-     * Convert board coordinates to canvas coordinates
-     * @param {number} row - The row of the board
-     * @param {number} col - The column of the board
-     * @returns {number[]} - The canvas coordinates [x, y], [null, null] if row or col is out of the board
-     */
-    const boardToCanvasCoords = (row, col) => {
-        // row or col is out of the board
+    const boardToCanvasCoords = (row: number, col: number) => {
         if (row < 0 || row > boardSize - 1 || col < 0 || col > boardSize - 1) {
             throw new RangeError(
                 `<row> or <col> must be between 0 and ${boardSize - 1}, received ${row} or ${col}`
@@ -181,17 +196,13 @@ function GameBoard({
         return [
             margin * col + padding,
             (boardSize - row - 1) * margin + padding,
-        ];
+        ] as const;
     };
 
-    /**
-     * Convert canvas coordinates to board coordinates
-     * @param {number} x - The x coordinate of the canvas
-     * @param {number} y - The y coordinate of the canvas
-     * @returns {number[]} - The board coordinates [row, col], [null, null] if x or y is out of the canvas
-     */
-    const canvasToBoardCoords = (x, y) => {
-        // x or y is out of the canvas
+    const canvasToBoardCoords = (
+        x: number,
+        y: number
+    ): [number, number] | [null, null] => {
         if (
             x < padding ||
             x > canvasSize - padding ||
@@ -207,11 +218,7 @@ function GameBoard({
         ];
     };
 
-    /**
-     * Draw the game board with lines
-     * @param {CanvasRenderingContext2D} canvasContext - The canvas context
-     */
-    const drawBoard = (canvasContext) => {
+    const drawBoard = (canvasContext: CanvasRenderingContext2D) => {
         for (let i = 0; i < boardSize; i++) {
             if (i === 0 || i === boardSize - 1) {
                 canvasContext.lineWidth = 1.25;
@@ -219,12 +226,10 @@ function GameBoard({
                 canvasContext.lineWidth = 0.75;
             }
 
-            // Vertical lines
             canvasContext.beginPath();
             canvasContext.moveTo(padding + margin * i, padding);
             canvasContext.lineTo(padding + margin * i, canvasSize - padding);
 
-            // Horizontal lines
             canvasContext.moveTo(padding, padding + margin * i);
             canvasContext.lineTo(canvasSize - padding, padding + margin * i);
 
@@ -233,7 +238,6 @@ function GameBoard({
 
             if (boardSize === 19) {
                 if ([4 - 1, 10 - 1, 16 - 1].includes(i)) {
-                    // Draw the 3*3 dots
                     for (let x = 0; x < 3; x++) {
                         canvasContext.beginPath();
                         canvasContext.arc(
@@ -252,18 +256,13 @@ function GameBoard({
         }
     };
 
-    /**
-     * Draw the game board's coords at both side (letter + number, GTP format)
-     * @param {CanvasRenderingContext2D} canvasContext - The canvas context
-     */
-    const drawCoords = (canvasContext) => {
+    const drawCoords = (canvasContext: CanvasRenderingContext2D) => {
         canvasContext.font = "15px Arial";
         canvasContext.textBaseline = "middle";
         canvasContext.textAlign = "center";
         canvasContext.fillStyle = "black";
 
         for (let i = 0; i < boardSize; i++) {
-            // Draw the letters (exclude 'i')
             canvasContext.fillText(
                 GTPLetters[i],
                 padding + margin * i,
@@ -275,25 +274,20 @@ function GameBoard({
                 padding / 2
             );
 
-            // Draw the numbers
             canvasContext.fillText(
-                i + 1,
+                String(i + 1),
                 canvasSize - padding / 2,
                 canvasSize - padding - margin * i
             );
             canvasContext.fillText(
-                i + 1,
+                String(i + 1),
                 padding / 2,
                 canvasSize - padding - margin * i
             );
         }
     };
 
-    /**
-     * Apply a user move on the live board (gameRef).
-     * @param {string[][]} move - The move data [color, [row, col]]
-     */
-    const tryPlayMove = (move) => {
+    const tryPlayMove = (move: [string, [number, number]]) => {
         const [color, [row, col]] = move;
         const sign = color.toUpperCase() === "B" ? 1 : -1;
         const g = gameRef.current;
@@ -313,7 +307,6 @@ function GameBoard({
                 getAIMove(nextMoves)
                     .then((aiMove) => {
                         if (aiMove) {
-                            // console.log("AI move:", aiMove);
                             tryPlayMove(aiMove);
                         }
                     })
@@ -326,9 +319,11 @@ function GameBoard({
         }
     };
 
-    const redrawBoardAndStones = (canvasContext) => {
+    const redrawBoardAndStones = (
+        canvasContext: CanvasRenderingContext2D | null
+    ) => {
         const canvas = canvasRef.current;
-        if (!canvas || !boardImageData) return;
+        if (!canvas || !boardImageData || !canvasContext) return;
         canvasContext.putImageData(boardImageData, 0, 0);
         drawStones(canvasContext);
 
@@ -347,17 +342,12 @@ function GameBoard({
         }
     };
 
-    /**
-     * Draw all the stones out until moveIndex
-     * @param {CanvasRenderingContext2D} canvasContext - The canvas context
-     */
-    const drawStones = (canvasContext) => {
-        // Get the most recent move to highlight
+    const drawStones = (canvasContext: CanvasRenderingContext2D) => {
         const cm = currentMove ?? 0;
         const lastMove = cm !== 0 ? replayMoves[cm - 1] : null;
-        let lastMoveCoords = null;
+        let lastMoveCoords: [number, number] | null = null;
 
-        if (lastMove && !lastMove.includes(null)) {
+        if (lastMove && isValidMove(lastMove)) {
             const [, [row, col]] = lastMove;
             lastMoveCoords = [row, col];
         }
@@ -367,14 +357,12 @@ function GameBoard({
             for (let col = 0; col < board.signMap[row].length; col++) {
                 const color = board.get([row, col]);
 
-                // if color is 0, it means there is no move at that point
-                if (color === 0) {
+                if (color === 0 || color === null) {
                     continue;
                 }
 
-                // Check if this stone is the most recent move
                 const isHighlighted =
-                    lastMoveCoords &&
+                    lastMoveCoords !== null &&
                     lastMoveCoords[0] === row &&
                     lastMoveCoords[1] === col;
 
@@ -390,25 +378,14 @@ function GameBoard({
         }
     };
 
-    /**
-     * Draw a stone based on the given information
-     * @param {CanvasRenderingContext2D} canvasContext - The canvas context
-     * @param {number} row - the row of the move
-     * @param {number} col - the column of the move
-     * @param {string} color the color of the move
-     * @param {boolean} stroke whether to stroke the stone or not
-     * @param {boolean} highlight whether to highlight the move or not
-     * @param {string} text the text to draw on the stone
-     * @param {string} textColor the color of the text
-     */
     const drawStone = (
-        canvasContext,
-        row,
-        col,
-        color,
+        canvasContext: CanvasRenderingContext2D,
+        row: number,
+        col: number,
+        color: string,
         stroke = true,
         highlight = false,
-        text = null,
+        text: string | null = null,
         textColor = "white"
     ) => {
         canvasContext.fillStyle = color;
@@ -420,7 +397,6 @@ function GameBoard({
         canvasContext.closePath();
 
         if (highlight) {
-            // Draw a red dot in the center of the stone
             canvasContext.beginPath();
             canvasContext.arc(
                 canvasX,
@@ -443,7 +419,7 @@ function GameBoard({
         }
     };
 
-    const handleHover = (event) => {
+    const handleHover = (event: MouseEvent) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
         if (toPlayRef.current !== userColor) {
@@ -452,7 +428,9 @@ function GameBoard({
         }
 
         const { clientX, clientY } = event;
-        const [canvasX, canvasY] = clientToCanvasCoords(clientX, clientY);
+        const coords = clientToCanvasCoords(clientX, clientY);
+        if (coords[0] === null || coords[1] === null) return;
+        const [canvasX, canvasY] = coords;
         const [row, col] = canvasToBoardCoords(canvasX, canvasY);
 
         const canvasContext = canvas.getContext("2d");
@@ -469,7 +447,7 @@ function GameBoard({
                     userColor === "B"
                         ? "rgba(0, 0, 0, 0.5)"
                         : "rgba(255, 255, 255, 0.5)";
-                drawStone(canvasContext, row, col, color, false);
+                drawStone(canvasContext!, row, col, color, false);
             } else {
                 nextCursor = "not-allowed";
             }
@@ -479,10 +457,12 @@ function GameBoard({
         }
     };
 
-    const handleClick = (event) => {
+    const handleClick = (event: MouseEvent) => {
         if (toPlayRef.current !== userColor) return;
         const { clientX, clientY } = event;
-        const [canvasX, canvasY] = clientToCanvasCoords(clientX, clientY);
+        const coords = clientToCanvasCoords(clientX, clientY);
+        if (coords[0] === null || coords[1] === null) return;
+        const [canvasX, canvasY] = coords;
         const [row, col] = canvasToBoardCoords(canvasX, canvasY);
 
         if (row !== null && col !== null) {
@@ -496,34 +476,34 @@ function GameBoard({
         }
     };
 
-    /**
-     * Get the AI move from the server
-     * @param {string[][]} movesForRequest - Plies to send (must include the latest stone just played)
-     * @returns {Promise<string[][]>} - The AI move [color, [row, col]]
-     */
-    const getAIMove = async (movesForRequest) => {
-        const gtpMoves = [];
+    const getAIMove = async (
+        movesForRequest: GameMove[]
+    ): Promise<[string, [number, number]] | null> => {
+        if (!gameData) return null;
+
+        const gtpMoves: [string, string][] = [];
         const src = movesForRequest ?? movesRef.current;
         for (const move of src) {
-            if (move.includes(null)) continue;
+            if (!isValidMove(move)) continue;
             const [color, [row, col]] = move;
             gtpMoves.push([color, toGTPFormat(row, col)]);
         }
 
-        // console.log("gtpMoves:", gtpMoves);
-
         const request = {
             board_size: gameData.size,
             rules: "japanese",
-            komi: gameData.komi || 6.5,
+            komi: gameData.komi ?? 6.5,
             to_play: AIColor,
             moves: gtpMoves,
             algo: "nn",
         };
 
         try {
-            const response = await api.post(getAnalysisURL, request);
-            const data = await response.data;
+            const response = await api.post<AnalysisResult>(
+                getAnalysisURL,
+                request
+            );
+            const data = response.data;
             const [row, col] = toRowColFormat(data.best_move);
             return [AIColor, [row, col]];
         } catch (error) {
@@ -539,8 +519,8 @@ function GameBoard({
         if (!useAI) return;
         const canvas = canvasRef.current;
         if (!canvas) return;
-        const onMove = (e) => hoverRef.current(e);
-        const onClick = (e) => clickRef.current(e);
+        const onMove = (e: MouseEvent) => hoverRef.current(e);
+        const onClick = (e: MouseEvent) => clickRef.current(e);
         canvas.addEventListener("mousemove", onMove);
         canvas.addEventListener("click", onClick);
 
