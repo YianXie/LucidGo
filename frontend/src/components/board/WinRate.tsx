@@ -258,7 +258,7 @@ function WinRate({
 
     return (
         <>
-            {lineData.datasets[0].data ? (
+            {data && data.length > 0 ? (
                 <Box
                     sx={{
                         position: "relative",

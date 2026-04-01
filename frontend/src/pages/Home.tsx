@@ -8,17 +8,17 @@ import CardMedia from "@mui/material/CardMedia";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import demoPicture from "../assets/images/home/demo.png";
+import useHover from "../hooks/useHover";
 import usePageTitle from "../hooks/usePageTitle";
 
 function Home() {
     usePageTitle("Home");
 
     const navigate = useNavigate();
-    const [imageHovered, setImageHovered] = useState(false);
+    const [imageHovered, hoverProps] = useHover();
 
     return (
         <Box
@@ -92,8 +92,7 @@ function Home() {
                             mt: 4,
                         }}
                         onClick={() => navigate("/demo")}
-                        onMouseEnter={() => setImageHovered(true)}
-                        onMouseLeave={() => setImageHovered(false)}
+                        {...hoverProps}
                     >
                         <CardActionArea>
                             <CardMedia
