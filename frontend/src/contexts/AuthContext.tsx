@@ -22,6 +22,11 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+function isTokenExpired(token: string): boolean {
+    const payload = jwtDecode<AccessTokenPayload>(token);
+    return (payload.exp ?? 0) < Date.now() / 1000;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [accessToken, setAccessToken] = useState<string | null>(null);
     const [refreshToken, setRefreshToken] = useState<string | null>(null);
@@ -68,11 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         initializeAuth();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const isTokenExpired = useCallback((token: string) => {
-        const payload = jwtDecode<AccessTokenPayload>(token);
-        return (payload.exp ?? 0) < Date.now() / 1000;
     }, []);
 
     const refreshAccessToken = useCallback(

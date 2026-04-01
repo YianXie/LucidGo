@@ -14,27 +14,24 @@ import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import ControlMoveButton from "./ControlMoveButton";
 
 function Controls({
-    boardIdx,
     maxMove,
     disabled,
     currentMove,
-    setCurrentMove,
-    setShowRecommendedMoves,
+    onMoveChange,
     showRecommendedMoves,
+    onShowRecommendedMovesChange,
 }: {
-    boardIdx: number;
     maxMove: number;
     disabled: boolean;
     currentMove: number | null;
-    setCurrentMove: Dispatch<SetStateAction<(number | null)[]>>;
-    setShowRecommendedMoves: Dispatch<SetStateAction<boolean[]>>;
+    onMoveChange: (move: number) => void;
     showRecommendedMoves: boolean;
+    onShowRecommendedMovesChange: (show: boolean) => void;
 }) {
     const fastForwardAmount = 5;
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -49,17 +46,8 @@ function Controls({
     };
 
     const handleMove = (amount: number) => {
-        setCurrentMove((prev) =>
-            prev.map((value, index) => {
-                if (index !== boardIdx) return value;
-                const v = value ?? 0;
-                const next = v + amount;
-                if (next > maxMove || next < 0) {
-                    return amount < 0 ? 0 : maxMove;
-                }
-                return next;
-            })
-        );
+        const next = (currentMove ?? 0) + amount;
+        onMoveChange(Math.max(0, Math.min(next, maxMove)));
     };
 
     const moveIndex = currentMove ?? 0;
@@ -68,27 +56,12 @@ function Controls({
         {
             label: "Show recommended moves",
             value: showRecommendedMoves,
-            setValue: (newValue: boolean) => {
-                setShowRecommendedMoves((prev) =>
-                    prev.map((value, index) => {
-                        if (index === boardIdx) {
-                            return newValue;
-                        }
-                        return value;
-                    })
-                );
-            },
+            onChange: onShowRecommendedMovesChange,
         },
     ];
 
-    const handleOptionChange = (index: number) => {
-        const option = options[index];
-        for (let i = 0; i < options.length; i++) {
-            if (i !== index) {
-                options[i].setValue(false);
-            }
-        }
-        option.setValue(true);
+    const handleOptionChange = (selectedIndex: number) => {
+        options.forEach((option, i) => option.onChange(i === selectedIndex));
         handleMenuClose();
     };
 

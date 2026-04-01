@@ -18,30 +18,43 @@ import usePageTitle from "../hooks/usePageTitle";
 import { type AnalysisResult, type GameData, isValidMove } from "../types/game";
 import { toGTPFormat } from "../utils";
 
+interface BoardState {
+    name: string | null;
+    file: File | null;
+    gameData: GameData | null;
+    analysisData: AnalysisResult[] | null;
+    winRate: number[] | null;
+    currentMove: number | null;
+    loading: boolean;
+    useSample: boolean | null;
+    useAI: boolean;
+    showRecommendedMoves: boolean;
+    loadedValue: number;
+}
+
+const defaultBoard = (): BoardState => ({
+    name: null,
+    file: null,
+    gameData: null,
+    analysisData: null,
+    winRate: null,
+    currentMove: null,
+    loading: false,
+    useSample: null,
+    useAI: false,
+    showRecommendedMoves: true,
+    loadedValue: 0,
+});
+
+const ANIMATION_MS = 250;
+
 function Demo() {
     usePageTitle("Demo");
 
     const { isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
-    const [totalBoards, setTotalBoards] = useState(1);
-    const [boardNames, setBoardNames] = useState<(string | null)[]>([null]);
-    const [files, setFiles] = useState<(File | null)[]>([null]);
-    const [gameData, setGameData] = useState<(GameData | null)[]>([null]);
-    const [analysisData, setAnalysisData] = useState<
-        (AnalysisResult[] | null)[]
-    >([null]);
-    const [winRate, setWinRate] = useState<(number[] | null)[]>([null]);
-    const [currentAnalyzedMoves, setCurrentMove] = useState<(number | null)[]>([
-        null,
-    ]);
-    const [loading, setLoading] = useState<boolean[]>([false]);
-    const [useSamples, setUseSamples] = useState<(boolean | null)[]>([null]);
-    const [useAI, setUseAI] = useState<boolean[]>([false]);
-
-    const [showRecommendedMoves, setShowRecommendedMoves] = useState<boolean[]>(
-        [true]
-    );
+    const [boards, setBoards] = useState<BoardState[]>([defaultBoard()]);
     const [deletingBoardIndex, setDeletingBoardIndex] = useState<number | null>(
         null
     );
@@ -52,17 +65,20 @@ function Demo() {
         null
     );
 
-    const [loadedValue, setLoadedValue] = useState<number[]>([0]);
+    const updateBoard = (index: number, updates: Partial<BoardState>) => {
+        setBoards((prev) =>
+            prev.map((board, i) => (i === index ? { ...board, ...updates } : board))
+        );
+    };
 
     useEffect(() => {
         if (isAuthenticated === null) return;
-        if (isAuthenticated === false) {
+        if (!isAuthenticated) {
             navigate("/login");
             toast.error("Please login to use the demo");
             return;
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isAuthenticated]);
+    }, [isAuthenticated, navigate]);
 
     useEffect(() => {
         return () => {
@@ -72,109 +88,86 @@ function Demo() {
         };
     }, []);
 
+    // Trigger win-rate initialisation and analysis when game data changes.
+    // The signature only changes when a board's game data is set or replaced,
+    // not when loading / analysisData / winRate / loadedValue change, so there
+    // is no risk of an infinite update loop.
+    const gameDataSignature = boards
+        .map((b) =>
+            b.gameData ? `${b.gameData.size}:${b.gameData.moves.length}` : "null"
+        )
+        .join("|");
+
     useEffect(() => {
-        for (let i = 0; i < totalBoards; i++) {
-            if (!gameData || !gameData[i] || gameData[i] === null) continue;
+        boards.forEach((board, i) => {
+            if (!board.gameData) return;
 
             if (
-                !winRate[i] ||
-                winRate[i]!.length !== gameData[i]!.moves.length
+                !board.winRate ||
+                board.winRate.length !== board.gameData.moves.length
             ) {
-                setWinRate((prev) =>
-                    prev.map((value, index) =>
-                        index === i
-                            ? Array.from(
-                                  { length: gameData[i]!.moves.length },
-                                  () => 50
-                              )
-                            : value
-                    )
-                );
+                updateBoard(i, {
+                    winRate: Array.from(
+                        { length: board.gameData.moves.length },
+                        () => 50
+                    ),
+                });
             }
 
-            if (analysisData[i] === null) {
-                const boardIndex = i;
-                async function analyze() {
-                    setLoading((prev) =>
-                        prev.map((value, index) =>
-                            index === boardIndex ? true : value
-                        )
-                    );
-                    await analyzeAllMoves(boardIndex);
-                    setLoading((prev) =>
-                        prev.map((value, index) =>
-                            index === boardIndex ? false : value
-                        )
-                    );
-                }
-                analyze();
+            if (board.analysisData === null) {
+                const boardData = board.gameData;
+                updateBoard(i, { loading: true });
+                analyzeAllMoves(i, boardData).finally(() => {
+                    updateBoard(i, { loading: false });
+                });
             }
-        }
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [gameData, totalBoards]);
+    }, [gameDataSignature]);
+
+    // Read file / sample content when a board's source changes.
+    const fileSignature = boards
+        .map((b) => `${b.file?.name ?? ""}:${String(b.useSample ?? "")}`)
+        .join("|");
 
     useEffect(() => {
-        for (let i = 0; i < totalBoards; i++) {
-            if (!files[i] && !useSamples[i]) continue;
-            if (gameData[i] && gameData[i]!.moves.length > 0) continue;
-            if (useSamples[i]) {
+        boards.forEach((board, i) => {
+            if (!board.file && board.useSample === null) return;
+            if (board.gameData && board.gameData.moves.length > 0) return;
+            if (board.useSample) {
                 getGameData(SGFSample, i);
-            } else {
-                if (files[i]) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const fileContent = e.target?.result as string;
-                        getGameData(fileContent, i);
-                    };
-                    reader.readAsText(files[i]!);
-                }
+            } else if (board.file) {
+                const reader = new FileReader();
+                reader.onload = (e) =>
+                    getGameData(e.target?.result as string, i);
+                reader.readAsText(board.file);
             }
-        }
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [files, gameData, totalBoards, useSamples]);
+    }, [fileSignature]);
 
     async function getGameData(SGFContent: string, boardIndex: number) {
-        setLoading((prev) =>
-            prev.map((value, index) => (index === boardIndex ? true : value))
-        );
+        updateBoard(boardIndex, { loading: true });
         try {
-            const gameDataResponse = await api.get<GameData>(getGameDataURL, {
-                params: {
-                    sgf_file_data: SGFContent,
-                },
+            const { data } = await api.get<GameData>(getGameDataURL, {
+                params: { sgf_file_data: SGFContent },
             });
-            const data = gameDataResponse.data;
-            setGameData((prev) =>
-                prev.map((value, index) =>
-                    index === boardIndex ? data : value
-                )
-            );
-            setCurrentMove((prev) =>
-                prev.map((value, index) => (index === boardIndex ? 0 : value))
-            );
+            updateBoard(boardIndex, { gameData: data, currentMove: 0 });
         } catch (error) {
             toast.error("Invalid .sgf file");
             console.error("Error while fetching game data:", error);
         } finally {
-            setLoading((prev) =>
-                prev.map((value, index) =>
-                    index === boardIndex ? false : value
-                )
-            );
+            updateBoard(boardIndex, { loading: false });
         }
     }
 
-    const analyzeAllMoves = async (boardIndex: number) => {
+    const analyzeAllMoves = async (boardIndex: number, boardData: GameData) => {
         const moves: [string, string][] = [];
         const analyzeResults: AnalysisResult[] = [];
-        const boardData = gameData[boardIndex];
-        if (!boardData) return;
 
         for (let i = 0; i < boardData.moves.length; i++) {
             const move = boardData.moves[i];
-            if (!isValidMove(move)) {
-                continue;
-            }
+            if (!isValidMove(move)) continue;
 
             const [color, [row, col]] = move;
             moves.push([color, toGTPFormat(row, col)]);
@@ -184,72 +177,25 @@ function Demo() {
                 rules: "japanese",
                 komi: boardData.komi ?? 6.5,
                 to_play: color.toUpperCase(),
-                moves: moves,
+                moves,
                 algo: "nn",
             };
             try {
-                const analysisResponse = await api.post<AnalysisResult>(
+                const { data } = await api.post<AnalysisResult>(
                     getAnalysisURL,
                     request
                 );
-                analyzeResults.push(analysisResponse.data);
+                analyzeResults.push(data);
             } catch (error) {
                 console.error("Error:", error);
             } finally {
-                setLoadedValue((prev) =>
-                    prev.map((value, index) =>
-                        index === boardIndex
-                            ? (100 / boardData.moves.length) * i
-                            : value
-                    )
-                );
+                updateBoard(boardIndex, {
+                    loadedValue: (100 / boardData.moves.length) * i,
+                });
             }
         }
-        setAnalysisData((prev) =>
-            prev.map((value, index) =>
-                index === boardIndex ? analyzeResults : value
-            )
-        );
+        updateBoard(boardIndex, { analysisData: analyzeResults });
     };
-
-    const handleBoardNameChange = (boardIndex: number, name: string) => {
-        setBoardNames((prev) =>
-            prev.map((value, index) => (index === boardIndex ? name : value))
-        );
-    };
-
-    const handleViewSample = (boardIndex: number) => {
-        setUseSamples((prev) =>
-            prev.map((value, index) => (index === boardIndex ? true : value))
-        );
-    };
-
-    const handlePlayWithAI = (boardIndex: number) => {
-        setGameData((prev) =>
-            prev.map((value, index) =>
-                index === boardIndex
-                    ? {
-                          komi: 6.5,
-                          moves: [],
-                          size: 19,
-                          players: {
-                              black: "Black",
-                              white: "White",
-                          },
-                          winner: "Unknown",
-                      }
-                    : value
-            )
-        );
-        setCurrentMove((prev) =>
-            prev.map((value, index) => (index === boardIndex ? 0 : value))
-        );
-        setUseAI((prev) =>
-            prev.map((value, index) => (index === boardIndex ? true : value))
-        );
-    };
-
-    const ANIMATION_MS = 250;
 
     const requestDeleteBoard = (boardIndex: number) => {
         if (deletingBoardIndex !== null || creatingBoardIndex !== null) return;
@@ -259,36 +205,9 @@ function Demo() {
         setDeletingBoardIndex(boardIndex);
         animationTimerRef.current = setTimeout(() => {
             animationTimerRef.current = null;
-            completeDeleteBoard(boardIndex);
+            setDeletingBoardIndex(null);
+            setBoards((prev) => prev.filter((_, i) => i !== boardIndex));
         }, ANIMATION_MS);
-    };
-
-    const completeDeleteBoard = (boardIndex: number) => {
-        setDeletingBoardIndex(null);
-        setTotalBoards((n) => n - 1);
-        setBoardNames((prev) =>
-            prev.filter((_, index) => index !== boardIndex)
-        );
-        setGameData((prev) => prev.filter((_, index) => index !== boardIndex));
-        setAnalysisData((prev) =>
-            prev.filter((_, index) => index !== boardIndex)
-        );
-        setCurrentMove((prev) =>
-            prev.filter((_, index) => index !== boardIndex)
-        );
-        setLoading((prev) => prev.filter((_, index) => index !== boardIndex));
-        setShowRecommendedMoves((prev) =>
-            prev.filter((_, index) => index !== boardIndex)
-        );
-        setLoadedValue((prev) =>
-            prev.filter((_, index) => index !== boardIndex)
-        );
-        setWinRate((prev) => prev.filter((_, index) => index !== boardIndex));
-        setFiles((prev) => prev.filter((_, index) => index !== boardIndex));
-        setUseSamples((prev) =>
-            prev.filter((_, index) => index !== boardIndex)
-        );
-        setUseAI((prev) => prev.filter((_, index) => index !== boardIndex));
     };
 
     const requestCreateBoard = () => {
@@ -296,21 +215,9 @@ function Demo() {
         if (animationTimerRef.current) {
             clearTimeout(animationTimerRef.current);
         }
-        const newIndex = totalBoards;
+        const newIndex = boards.length;
 
-        setTotalBoards((n) => n + 1);
-        setBoardNames((prev) => [...prev, null]);
-        setUseSamples((prev) => [...prev, null]);
-        setUseAI((prev) => [...prev, false]);
-        setGameData((prev) => [...prev, null]);
-        setAnalysisData((prev) => [...prev, null]);
-        setCurrentMove((prev) => [...prev, null]);
-        setLoading((prev) => [...prev, false]);
-        setShowRecommendedMoves((prev) => [...prev, true]);
-        setLoadedValue((prev) => [...prev, 0]);
-        setWinRate((prev) => [...prev, null]);
-        setFiles((prev) => [...prev, null]);
-
+        setBoards((prev) => [...prev, defaultBoard()]);
         setCreatingBoardIndex(newIndex);
         animationTimerRef.current = setTimeout(() => {
             animationTimerRef.current = null;
@@ -362,7 +269,7 @@ function Demo() {
                         },
                     }}
                 >
-                    {Array.from({ length: totalBoards }, (_, i) => (
+                    {boards.map((board, i) => (
                         <Box
                             key={i}
                             sx={{
@@ -386,16 +293,11 @@ function Demo() {
                                 >
                                     <TextField
                                         variant="standard"
-                                        value={
-                                            boardNames[i] === null
-                                                ? `Board ${i + 1}`
-                                                : boardNames[i]
-                                        }
+                                        value={board.name ?? `Board ${i + 1}`}
                                         onChange={(event) =>
-                                            handleBoardNameChange(
-                                                i,
-                                                event.target.value
-                                            )
+                                            updateBoard(i, {
+                                                name: event.target.value,
+                                            })
                                         }
                                         sx={{
                                             "& .MuiInput-underline:before": {
@@ -421,7 +323,7 @@ function Demo() {
                                                 },
                                             }}
                                             disabled={
-                                                totalBoards === 1 ||
+                                                boards.length === 1 ||
                                                 deletingBoardIndex !== null ||
                                                 creatingBoardIndex !== null
                                             }
@@ -432,25 +334,49 @@ function Demo() {
                                 </Stack>
                                 <GameBoard
                                     key={i}
-                                    boardIdx={i}
-                                    analysisData={analysisData[i]}
-                                    isLoading={loading[i]}
-                                    loadedValue={loadedValue[i]}
-                                    useAI={useAI[i]}
-                                    handleViewSample={handleViewSample}
-                                    handlePlayWithAI={handlePlayWithAI}
-                                    gameData={gameData[i]}
-                                    currentMove={currentAnalyzedMoves[i]}
-                                    setCurrentMove={setCurrentMove}
-                                    useSamples={useSamples[i]}
-                                    setUseSamples={setUseSamples}
+                                    analysisData={board.analysisData}
+                                    isLoading={board.loading}
+                                    loadedValue={board.loadedValue}
+                                    useAI={board.useAI}
+                                    onViewSample={() =>
+                                        updateBoard(i, { useSample: true })
+                                    }
+                                    onPlayWithAI={() =>
+                                        updateBoard(i, {
+                                            gameData: {
+                                                komi: 6.5,
+                                                moves: [],
+                                                size: 19,
+                                                players: {
+                                                    black: "Black",
+                                                    white: "White",
+                                                },
+                                                winner: "Unknown",
+                                            },
+                                            currentMove: 0,
+                                            useAI: true,
+                                        })
+                                    }
+                                    gameData={board.gameData}
+                                    currentMove={board.currentMove}
+                                    onCurrentMoveChange={(move) =>
+                                        updateBoard(i, { currentMove: move })
+                                    }
+                                    useSample={board.useSample}
+                                    onUseSampleChange={(useSample) =>
+                                        updateBoard(i, { useSample })
+                                    }
                                     showRecommendedMoves={
-                                        showRecommendedMoves[i]
+                                        board.showRecommendedMoves
                                     }
-                                    setShowRecommendedMoves={
-                                        setShowRecommendedMoves
+                                    onShowRecommendedMovesChange={(show) =>
+                                        updateBoard(i, {
+                                            showRecommendedMoves: show,
+                                        })
                                     }
-                                    setFiles={setFiles}
+                                    onFileChange={(file) =>
+                                        updateBoard(i, { file })
+                                    }
                                 />
                             </Stack>
                         </Box>

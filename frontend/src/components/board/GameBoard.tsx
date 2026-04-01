@@ -4,8 +4,6 @@ import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import Board from "@sabaki/go-board";
 import {
-    type Dispatch,
-    type SetStateAction,
     useEffect,
     useRef,
     useState,
@@ -25,37 +23,35 @@ import Upload from "../common/Upload";
 import Controls from "./Controls";
 
 function GameBoard({
-    boardIdx,
     gameData,
     analysisData,
     isLoading,
     loadedValue,
     useAI,
-    handleViewSample,
-    handlePlayWithAI,
+    onViewSample,
+    onPlayWithAI,
     currentMove,
-    setCurrentMove,
-    useSamples,
-    setUseSamples,
+    onCurrentMoveChange,
+    useSample,
+    onUseSampleChange,
     showRecommendedMoves,
-    setShowRecommendedMoves,
-    setFiles,
+    onShowRecommendedMovesChange,
+    onFileChange,
 }: {
-    boardIdx: number;
     gameData: GameData | null;
     analysisData: AnalysisResult[] | null;
     isLoading: boolean;
     loadedValue: number;
     useAI: boolean;
-    handleViewSample: (boardIndex: number) => void;
-    handlePlayWithAI: (boardIndex: number) => void;
+    onViewSample: () => void;
+    onPlayWithAI: () => void;
     currentMove: number | null;
-    setCurrentMove: Dispatch<SetStateAction<(number | null)[]>>;
-    useSamples: boolean | null;
-    setUseSamples: Dispatch<SetStateAction<(boolean | null)[]>>;
+    onCurrentMoveChange: (move: number) => void;
+    useSample: boolean | null;
+    onUseSampleChange: (useSample: boolean) => void;
     showRecommendedMoves: boolean;
-    setShowRecommendedMoves: Dispatch<SetStateAction<boolean[]>>;
-    setFiles: Dispatch<SetStateAction<(File | null)[]>>;
+    onShowRecommendedMovesChange: (show: boolean) => void;
+    onFileChange: (file: File) => void;
 }) {
     const boardSize = gameData?.size ?? 19;
     const canvasSize = 800;
@@ -297,11 +293,7 @@ function GameBoard({
             const nextMoves = [...movesRef.current, move];
             movesRef.current = nextMoves;
             setMoves(nextMoves);
-            setCurrentMove((prev) =>
-                prev.map((value, index) =>
-                    index === boardIdx ? (value ?? 0) + 1 : value
-                )
-            );
+            onCurrentMoveChange((currentMove ?? 0) + 1);
 
             if (color === userColor) {
                 getAIMove(nextMoves)
@@ -482,8 +474,7 @@ function GameBoard({
         if (!gameData) return null;
 
         const gtpMoves: [string, string][] = [];
-        const src = movesForRequest ?? movesRef.current;
-        for (const move of src) {
+        for (const move of movesForRequest) {
             if (!isValidMove(move)) continue;
             const [color, [row, col]] = move;
             gtpMoves.push([color, toGTPFormat(row, col)]);
@@ -577,7 +568,7 @@ function GameBoard({
                     </Box>
                 </Box>
             )}
-            {useSamples === null && useAI === false && (
+            {useSample === null && useAI === false && (
                 <Box
                     sx={{
                         position: "absolute",
@@ -595,24 +586,14 @@ function GameBoard({
                 >
                     <Upload
                         setFile={(file) => {
-                            setFiles((prev) =>
-                                prev.map((value, index) =>
-                                    index === boardIdx ? file : value
-                                )
-                            );
-                            setUseSamples((prev) =>
-                                prev.map((value, index) =>
-                                    index === boardIdx ? false : value
-                                )
-                            );
+                            onFileChange(file);
+                            onUseSampleChange(false);
                         }}
                         accept={".sgf"}
                     />
                     <Link
                         component="button"
-                        onClick={() => {
-                            handleViewSample(boardIdx);
-                        }}
+                        onClick={onViewSample}
                         sx={{
                             color: "primary.light",
                             textDecoration: "underline",
@@ -630,9 +611,7 @@ function GameBoard({
                     </Link>
                     <Link
                         component="button"
-                        onClick={() => {
-                            handlePlayWithAI(boardIdx);
-                        }}
+                        onClick={onPlayWithAI}
                         sx={{
                             color: "primary.light",
                             textDecoration: "underline",
@@ -657,13 +636,12 @@ function GameBoard({
                 height={canvasSize}
             />
             <Controls
-                boardIdx={boardIdx}
                 maxMove={moves.length}
                 disabled={useAI}
                 currentMove={currentMove}
-                setCurrentMove={setCurrentMove}
+                onMoveChange={onCurrentMoveChange}
                 showRecommendedMoves={showRecommendedMoves}
-                setShowRecommendedMoves={setShowRecommendedMoves}
+                onShowRecommendedMovesChange={onShowRecommendedMovesChange}
             />
         </Box>
     );

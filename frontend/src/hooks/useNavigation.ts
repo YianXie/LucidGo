@@ -9,7 +9,6 @@ function useNavigation() {
     return {
         navigateTo: (path: string) => () => navigate(path),
         openExternal: (url: string) => () => window.open(url),
-        openInNewTab: (path: string) => () => window.open(path),
     };
 }
 
