@@ -84,7 +84,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         refresh: rt,
                     }
                 );
-                setAccessToken(response.data.access);
+                const newAccess = response.data.access;
+                setAccessToken(newAccess);
+                try {
+                    const payload = jwtDecode<AccessTokenPayload>(newAccess);
+                    setUser((payload.user as Record<string, unknown>) ?? null);
+                } catch {
+                    setUser(null);
+                }
                 setIsAuthenticated(true);
             } catch (error) {
                 console.error(error);

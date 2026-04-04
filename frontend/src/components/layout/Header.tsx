@@ -1,19 +1,27 @@
+import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
+import PersonIcon from "@mui/icons-material/Person";
+import SettingsIcon from "@mui/icons-material/Settings";
 import AppBar from "@mui/material/AppBar";
+import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import Slide from "@mui/material/Slide";
 import Toolbar from "@mui/material/Toolbar";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import useScrollTrigger from "@mui/material/useScrollTrigger";
-import { type ReactElement, useState } from "react";
+import { type ReactElement, useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../contexts/AuthContext";
@@ -24,6 +32,7 @@ function HideOnScroll({ children }: { children: ReactElement }) {
         target: typeof window !== "undefined" ? window : undefined,
         threshold: 100,
     });
+
     return (
         <Slide appear={false} direction="down" in={!trigger}>
             {children}
@@ -37,7 +46,26 @@ function Header() {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const [mobileOpen, setMobileOpen] = useState(false);
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
+
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
+
+    useEffect(() => {
+        document.addEventListener("scroll", handleClose);
+
+        return () => {
+            document.removeEventListener("scroll", handleClose);
+        };
+    }, []);
+
+    const handleAccount = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
@@ -46,9 +74,33 @@ function Header() {
     const navItems = [
         { label: "Docs", path: "/docs" },
         { label: "Demo", path: "/demo" },
-        ...(isAuthenticated
-            ? [{ label: "Logout", path: "/logout" }]
-            : [{ label: "Login", path: "/login" }]),
+    ];
+
+    const accountMenuItems = [
+        {
+            label: "Profile",
+            icon: <PersonIcon />,
+            onClick: () => {
+                handleClose();
+                navigate("/profile");
+            },
+        },
+        {
+            label: "Settings",
+            icon: <SettingsIcon />,
+            onClick: () => {
+                handleClose();
+                navigate("/settings");
+            },
+        },
+        {
+            label: "Logout",
+            icon: <LogoutIcon />,
+            onClick: () => {
+                handleClose();
+                navigate("/logout");
+            },
+        },
     ];
 
     const drawer = (
@@ -74,6 +126,53 @@ function Header() {
         </Box>
     );
 
+    const accountMenu = (
+        <Menu
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+            onClick={handleClose}
+            slotProps={{
+                paper: {
+                    elevation: 0,
+                    sx: {
+                        overflow: "visible",
+                        filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+                        mt: 1.5,
+                        "& .MuiAvatar-root": {
+                            width: 32,
+                            height: 32,
+                            ml: -0.5,
+                            mr: 1,
+                        },
+                        "&::before": {
+                            content: '""',
+                            display: "block",
+                            position: "absolute",
+                            top: 0,
+                            right: 14,
+                            width: 10,
+                            height: 10,
+                            bgcolor: "background.paper",
+                            transform: "translateY(-50%) rotate(45deg)",
+                            zIndex: 0,
+                        },
+                    },
+                },
+            }}
+            transformOrigin={{ horizontal: "right", vertical: "top" }}
+            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+            disableScrollLock
+        >
+            {accountMenuItems.map((item) => (
+                <MenuItem key={item.label} onClick={item.onClick}>
+                    <ListItemIcon>{item.icon}</ListItemIcon>
+                    {item.label}
+                </MenuItem>
+            ))}
+        </Menu>
+    );
+
     return (
         <>
             <HideOnScroll>
@@ -85,6 +184,7 @@ function Header() {
                         width: "100%",
                         backgroundColor: "background.paper",
                         color: "text.primary",
+                        userSelect: "none",
                         boxShadow: 4,
                     }}
                 >
@@ -101,7 +201,11 @@ function Header() {
                             <img
                                 src={logo}
                                 alt="Logo"
-                                style={{ height: 40, width: 40 }}
+                                draggable={false}
+                                style={{
+                                    height: 40,
+                                    width: 40,
+                                }}
                             />
                             <Typography
                                 variant="h6"
@@ -138,9 +242,54 @@ function Header() {
                                         {item.label}
                                     </NavLink>
                                 ))}
+                                {isAuthenticated ? (
+                                    <Tooltip title="Account">
+                                        <IconButton
+                                            onClick={handleAccount}
+                                            size="small"
+                                            aria-controls={
+                                                open
+                                                    ? "account-menu"
+                                                    : undefined
+                                            }
+                                            aria-haspopup="true"
+                                            aria-expanded={
+                                                open ? "true" : undefined
+                                            }
+                                        >
+                                            <Avatar
+                                                sx={{
+                                                    width: 32,
+                                                    height: 32,
+                                                }}
+                                            >
+                                                {(user?.username as string)
+                                                    ?.charAt(0)
+                                                    .toUpperCase()}
+                                            </Avatar>
+                                        </IconButton>
+                                    </Tooltip>
+                                ) : (
+                                    <Tooltip title="Login/Register">
+                                        <IconButton
+                                            onClick={() => navigate("/login")}
+                                            size="small"
+                                        >
+                                            <Avatar
+                                                sx={{
+                                                    width: 32,
+                                                    height: 32,
+                                                }}
+                                            >
+                                                +
+                                            </Avatar>
+                                        </IconButton>
+                                    </Tooltip>
+                                )}
                             </Box>
                         )}
                     </Toolbar>
+                    {accountMenu}
                 </AppBar>
             </HideOnScroll>
             <Drawer

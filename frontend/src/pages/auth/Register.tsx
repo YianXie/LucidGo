@@ -14,8 +14,21 @@ import { toast } from "react-toastify";
 import api from "../../api";
 import { useAuth } from "../../contexts/AuthContext";
 
-function Login() {
-    const { login, isAuthenticated } = useAuth();
+function formatErrorPayload(data: Record<string, unknown>): string {
+    if ("detail" in data && data.detail !== undefined) {
+        return String(data.detail);
+    }
+    const parts = Object.entries(data).flatMap(([key, value]) => {
+        if (Array.isArray(value)) {
+            return value.map((item) => `${key}: ${String(item)}`);
+        }
+        return [`${key}: ${String(value)}`];
+    });
+    return parts.join("; ") || "Request failed";
+}
+
+function Register() {
+    const { isAuthenticated } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -31,26 +44,27 @@ function Login() {
         const data = new FormData(event.currentTarget);
         try {
             setIsLoading(true);
-            const response = await api.post("/auth/token/", {
+            await api.post("/auth/register/", {
+                email: data.get("email"),
                 username: data.get("username"),
                 password: data.get("password"),
             });
-            login(response.data);
-            toast.success("Login successful");
-            navigate("/");
+            toast.success("Account created. You can sign in now.");
+            navigate("/login/");
         } catch (error: unknown) {
             if (
                 isAxiosError(error) &&
                 error.response?.data &&
                 typeof error.response.data === "object" &&
-                error.response.data !== null &&
-                "detail" in error.response.data
+                error.response.data !== null
             ) {
                 toast.error(
-                    String((error.response.data as { detail: unknown }).detail)
+                    formatErrorPayload(
+                        error.response.data as Record<string, unknown>
+                    )
                 );
             } else {
-                toast.error("Login failed");
+                toast.error("Registration failed");
             }
             console.error(error);
         } finally {
@@ -81,7 +95,7 @@ function Login() {
                     }}
                 >
                     <Typography component="h1" variant="h5">
-                        Sign in to LucidGo
+                        Create an account
                     </Typography>
                     <Box
                         component="form"
@@ -93,12 +107,22 @@ function Login() {
                             margin="normal"
                             required
                             fullWidth
+                            id="email"
+                            label="Email"
+                            name="email"
+                            type="email"
+                            autoComplete="email"
+                            autoFocus
+                        />
+                        <TextField
+                            margin="normal"
+                            required
+                            fullWidth
                             id="username"
-                            label="Username or email"
+                            label="Username"
                             name="username"
                             type="text"
                             autoComplete="username"
-                            autoFocus
                         />
                         <TextField
                             margin="normal"
@@ -108,7 +132,7 @@ function Login() {
                             label="Password"
                             type="password"
                             id="password"
-                            autoComplete="current-password"
+                            autoComplete="new-password"
                         />
                         <Button
                             type="submit"
@@ -116,14 +140,14 @@ function Login() {
                             variant="contained"
                             sx={{ mt: 3, mb: 2 }}
                         >
-                            Sign In
+                            Register
                         </Button>
                         <Link
                             component={RouterLink}
-                            to="/register/"
+                            to="/login/"
                             variant="body2"
                         >
-                            Create an account
+                            Already have an account? Sign in
                         </Link>
                     </Box>
                 </Box>
@@ -132,4 +156,4 @@ function Login() {
     );
 }
 
-export default Login;
+export default Register;
