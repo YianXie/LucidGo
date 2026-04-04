@@ -342,6 +342,23 @@ function Demo() {
                                     isLoading={board.loading}
                                     loadedValue={board.loadedValue}
                                     useAI={board.useAI}
+                                    gameData={board.gameData}
+                                    currentMove={board.currentMove}
+                                    onCurrentMoveChange={(move) =>
+                                        updateBoard(i, { currentMove: move })
+                                    }
+                                    useSample={board.useSample}
+                                    onUseSampleChange={(useSample) =>
+                                        updateBoard(i, { useSample })
+                                    }
+                                    showRecommendedMoves={
+                                        board.showRecommendedMoves
+                                    }
+                                    onShowRecommendedMovesChange={(show) =>
+                                        updateBoard(i, {
+                                            showRecommendedMoves: show,
+                                        })
+                                    }
                                     onViewSample={() =>
                                         updateBoard(i, { useSample: true })
                                     }
@@ -359,23 +376,6 @@ function Demo() {
                                             },
                                             currentMove: 0,
                                             useAI: true,
-                                        })
-                                    }
-                                    gameData={board.gameData}
-                                    currentMove={board.currentMove}
-                                    onCurrentMoveChange={(move) =>
-                                        updateBoard(i, { currentMove: move })
-                                    }
-                                    useSample={board.useSample}
-                                    onUseSampleChange={(useSample) =>
-                                        updateBoard(i, { useSample })
-                                    }
-                                    showRecommendedMoves={
-                                        board.showRecommendedMoves
-                                    }
-                                    onShowRecommendedMovesChange={(show) =>
-                                        updateBoard(i, {
-                                            showRecommendedMoves: show,
                                         })
                                     }
                                     onFileChange={(file) =>

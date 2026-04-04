@@ -133,7 +133,11 @@ function GameBoard({
         let g = Board.fromDimensions(boardSize);
         for (let i = 0; i < Math.min(cm, replayMoves.length); i++) {
             const move = replayMoves[i];
-            if (!move || !isValidMove(move)) continue;
+            if (!move || !isValidMove(move)) {
+                replayMoves.splice(i, 1);
+                i--;
+                continue;
+            }
 
             const [color, [row, col]] = move;
             const sign = color.toUpperCase() === "B" ? 1 : -1;
