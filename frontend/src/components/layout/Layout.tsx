@@ -1,4 +1,4 @@
-import Box from "@mui/material/Box";
+import Container from "@mui/material/Container";
 import { useTheme } from "@mui/material/styles";
 import { Outlet } from "react-router-dom";
 import { Bounce, ToastContainer } from "react-toastify";
@@ -13,9 +13,13 @@ function Layout() {
     return (
         <>
             <Header />
-            <Box component="main" sx={{ minHeight: "100vh" }}>
+            <Container
+                maxWidth="lg"
+                component="main"
+                sx={{ minHeight: "100vh" }}
+            >
                 <Outlet />
-            </Box>
+            </Container>
             <Footer />
 
             <ToastContainer

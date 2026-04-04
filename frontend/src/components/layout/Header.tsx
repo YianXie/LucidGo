@@ -178,12 +178,11 @@ function Header() {
             <HideOnScroll>
                 <AppBar
                     component="header"
+                    color="default"
                     sx={{
                         position: "sticky",
                         top: 0,
                         width: "100%",
-                        backgroundColor: "background.paper",
-                        color: "text.primary",
                         userSelect: "none",
                         boxShadow: 4,
                     }}

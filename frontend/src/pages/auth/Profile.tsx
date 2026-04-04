@@ -1,4 +1,4 @@
-import Container from "@mui/material/Container";
+import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 
 import usePageTitle from "../../hooks/usePageTitle";
@@ -7,9 +7,9 @@ function Profile() {
     usePageTitle("Profile");
 
     return (
-        <Container>
+        <Box>
             <Typography variant="h1">Profile</Typography>
-        </Container>
+        </Box>
     );
 }
 

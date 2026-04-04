@@ -74,34 +74,32 @@ function ContentPage({
     };
 
     return (
-        <Container maxWidth="xl">
-            <Box sx={{ display: "flex" }}>
-                <Box
-                    sx={{
-                        width: drawerWidth,
-                        flexShrink: 0,
-                    }}
-                >
-                    {sidebarContent}
-                </Box>
-                {id ? (
-                    renderContent()
-                ) : (
-                    <Box sx={{ p: 3 }}>
-                        <Typography variant="h4" fontWeight={500}>
-                            {welcomeTitle}
-                        </Typography>
-                        <Typography
-                            variant="body1"
-                            color="text.secondary"
-                            sx={{ mt: 2 }}
-                        >
-                            {welcomeMessage}
-                        </Typography>
-                    </Box>
-                )}
+        <Box sx={{ display: "flex" }}>
+            <Box
+                sx={{
+                    width: drawerWidth,
+                    flexShrink: 0,
+                }}
+            >
+                {sidebarContent}
             </Box>
-        </Container>
+            {id ? (
+                renderContent()
+            ) : (
+                <Box sx={{ p: 3 }}>
+                    <Typography variant="h4" fontWeight={500}>
+                        {welcomeTitle}
+                    </Typography>
+                    <Typography
+                        variant="body1"
+                        color="text.secondary"
+                        sx={{ mt: 2 }}
+                    >
+                        {welcomeMessage}
+                    </Typography>
+                </Box>
+            )}
+        </Box>
     );
 }
 

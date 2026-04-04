@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
+import ProtectedRoute from "./components/common/ProtectedRoute";
 import Layout from "./components/layout/Layout";
 import Demo from "./pages/Demo";
 import Docs from "./pages/Docs";
@@ -20,8 +21,22 @@ function App() {
                     <Route path="demo/" element={<Demo />} />
                     <Route path="docs/" element={<Docs />} />
                     <Route path="docs/:id/" element={<Docs />} />
-                    <Route path="profile/" element={<Profile />} />
-                    <Route path="settings/" element={<Settings />} />
+                    <Route
+                        path="profile/"
+                        element={
+                            <ProtectedRoute>
+                                <Profile />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="settings/"
+                        element={
+                            <ProtectedRoute>
+                                <Settings />
+                            </ProtectedRoute>
+                        }
+                    />
                     <Route path="login/" element={<Login />} />
                     <Route path="register/" element={<Register />} />
                     <Route path="logout/" element={<Logout />} />

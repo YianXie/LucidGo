@@ -1,22 +1,20 @@
-import Box from "@mui/material/Box";
+import AppBar from "@mui/material/AppBar";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 
 function Footer() {
     return (
-        <Box
+        <AppBar
             component="footer"
+            color="default"
             sx={{
+                position: "relative",
                 marginTop: "auto",
                 width: "100%",
-                backgroundColor: "background.paper",
-                color: "text.primary",
                 boxShadow: 4,
                 padding: 2,
+                userSelect: "none",
                 textAlign: "center",
-                fontSize: "0.875rem",
-                fontWeight: 400,
-                lineHeight: "1.5",
             }}
         >
             <Typography>
@@ -29,7 +27,7 @@ function Footer() {
                     GitHub
                 </Link>
             </Typography>
-        </Box>
+        </AppBar>
     );
 }
 
