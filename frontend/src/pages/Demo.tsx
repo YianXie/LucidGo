@@ -67,7 +67,9 @@ function Demo() {
 
     const updateBoard = (index: number, updates: Partial<BoardState>) => {
         setBoards((prev) =>
-            prev.map((board, i) => (i === index ? { ...board, ...updates } : board))
+            prev.map((board, i) =>
+                i === index ? { ...board, ...updates } : board
+            )
         );
     };
 
@@ -94,7 +96,9 @@ function Demo() {
     // is no risk of an infinite update loop.
     const gameDataSignature = boards
         .map((b) =>
-            b.gameData ? `${b.gameData.size}:${b.gameData.moves.length}` : "null"
+            b.gameData
+                ? `${b.gameData.size}:${b.gameData.moves.length}`
+                : "null"
         )
         .join("|");
 

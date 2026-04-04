@@ -3,11 +3,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import Board from "@sabaki/go-board";
-import {
-    useEffect,
-    useRef,
-    useState,
-} from "react";
+import { useEffect, useRef, useState } from "react";
 
 import api from "../../api";
 import board_bg from "../../assets/images/board/board-bg.png";
