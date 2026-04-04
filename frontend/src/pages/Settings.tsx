@@ -123,7 +123,7 @@ function Settings() {
                         <TextField
                             variant="standard"
                             label="Username"
-                            defaultValue={username}
+                            value={username}
                             onChange={(e) => setUsername(e.target.value)}
                         />
                         <Button variant="contained" color="primary">
@@ -141,7 +141,8 @@ function Settings() {
                             variant="standard"
                             label="Email"
                             type="email"
-                            defaultValue={email}
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                         />
                         <Button variant="contained" color="primary">
                             Update
@@ -158,6 +159,7 @@ function Settings() {
                             variant="standard"
                             label="Password"
                             type="password"
+                            value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
                         <Button variant="contained" color="primary">

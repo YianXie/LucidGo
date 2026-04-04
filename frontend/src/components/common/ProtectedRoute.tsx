@@ -1,22 +1,25 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { type ReactNode, useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import { useAuth } from "../../contexts/AuthContext";
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({ children }: { children: ReactNode }) {
     const { isAuthenticated } = useAuth();
-    const navigate = useNavigate();
 
     useEffect(() => {
-        if (isAuthenticated === null) return;
-
-        if (!isAuthenticated) {
-            navigate("/login");
+        if (isAuthenticated === false) {
             toast.error("Please login to access this page");
-            return;
         }
-    }, [isAuthenticated, navigate]);
+    }, [isAuthenticated]);
+
+    if (isAuthenticated === null) {
+        return null;
+    }
+
+    if (!isAuthenticated) {
+        return <Navigate to="/login/" replace />;
+    }
 
     return children;
 }
