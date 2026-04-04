@@ -24,14 +24,14 @@ function GameBoard({
     isLoading,
     loadedValue,
     useAI,
-    onViewSample,
-    onPlayWithAI,
     currentMove,
     onCurrentMoveChange,
     useSample,
     onUseSampleChange,
     showRecommendedMoves,
     onShowRecommendedMovesChange,
+    onViewSample,
+    onPlayWithAI,
     onFileChange,
 }: {
     gameData: GameData | null;
@@ -41,12 +41,12 @@ function GameBoard({
     useAI: boolean;
     onViewSample: () => void;
     onPlayWithAI: () => void;
-    currentMove: number | null;
-    onCurrentMoveChange: (move: number) => void;
     useSample: boolean | null;
     onUseSampleChange: (useSample: boolean) => void;
     showRecommendedMoves: boolean;
     onShowRecommendedMovesChange: (show: boolean) => void;
+    currentMove: number | null;
+    onCurrentMoveChange: (move: number) => void;
     onFileChange: (file: File) => void;
 }) {
     const boardSize = gameData?.size ?? 19;
@@ -131,8 +131,7 @@ function GameBoard({
     useEffect(() => {
         const cm = currentMove ?? 0;
         let g = Board.fromDimensions(boardSize);
-        const n = Math.min(cm, replayMoves.length);
-        for (let i = 0; i < n; i++) {
+        for (let i = 0; i < Math.min(cm, replayMoves.length); i++) {
             const move = replayMoves[i];
             if (!move || !isValidMove(move)) continue;
 
@@ -156,7 +155,6 @@ function GameBoard({
 
         if (!canvasRef.current) return;
         const canvasContext = canvasRef.current.getContext("2d");
-        if (!canvasContext) return;
         redrawBoardAndStones(canvasContext);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
@@ -167,6 +165,21 @@ function GameBoard({
         analysisData,
         showRecommendedMoves,
     ]);
+
+    useEffect(() => {
+        if (!useAI) return;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const onMove = (e: MouseEvent) => hoverRef.current(e);
+        const onClick = (e: MouseEvent) => clickRef.current(e);
+        canvas.addEventListener("mousemove", onMove);
+        canvas.addEventListener("click", onClick);
+
+        return () => {
+            canvas.removeEventListener("mousemove", onMove);
+            canvas.removeEventListener("click", onClick);
+        };
+    }, [useAI]);
 
     const clientToCanvasCoords = (x: number, y: number) => {
         if (!canvasRef.current) return [null, null] as const;
@@ -289,7 +302,7 @@ function GameBoard({
             const nextMoves = [...movesRef.current, move];
             movesRef.current = nextMoves;
             setMoves(nextMoves);
-            onCurrentMoveChange((currentMove ?? 0) + 1);
+            onCurrentMoveChange(nextMoves.length);
 
             if (color === userColor) {
                 getAIMove(nextMoves)
@@ -501,21 +514,6 @@ function GameBoard({
 
     hoverRef.current = handleHover;
     clickRef.current = handleClick;
-
-    useEffect(() => {
-        if (!useAI) return;
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const onMove = (e: MouseEvent) => hoverRef.current(e);
-        const onClick = (e: MouseEvent) => clickRef.current(e);
-        canvas.addEventListener("mousemove", onMove);
-        canvas.addEventListener("click", onClick);
-
-        return () => {
-            canvas.removeEventListener("mousemove", onMove);
-            canvas.removeEventListener("click", onClick);
-        };
-    }, [useAI]);
 
     return (
         <Box
