@@ -32,17 +32,33 @@ function Home() {
             }}
         >
             <Container maxWidth="md">
-                <Stack spacing={6} alignItems="center">
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                    }}
+                >
                     <Typography
                         variant="h2"
                         component="h1"
                         sx={{
                             fontWeight: 600,
                             textAlign: "center",
-                            mb: 2,
                         }}
                     >
-                        Analyze your moves with LucidGo
+                        Welcome to LucidGo
+                    </Typography>
+                    <Typography
+                        variant="body1"
+                        sx={{
+                            textAlign: "center",
+                            my: 2,
+                        }}
+                    >
+                        LucidGo is a full-stack web application that allows you
+                        to play Go with a trained AI, or analyze your own games
+                        with AI assistance.
                     </Typography>
 
                     <Stack
@@ -141,7 +157,7 @@ function Home() {
                             )}
                         </CardActionArea>
                     </Card>
-                </Stack>
+                </Box>
             </Container>
         </Box>
     );
