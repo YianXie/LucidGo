@@ -156,6 +156,13 @@ function Demo() {
             const { data } = await api.get<GameData>(getGameDataURL, {
                 params: { sgf_file_data: SGFContent },
             });
+            for (let i = 0; i < data.moves.length; i++) {
+                if (!isValidMove(data.moves[i])) {
+                    data.moves.splice(i, 1);
+                    i--;
+                    continue;
+                }
+            }
             updateBoard(boardIndex, { gameData: data, currentMove: 0 });
         } catch (error) {
             toast.error("Invalid .sgf file");
