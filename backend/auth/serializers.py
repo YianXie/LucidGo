@@ -7,6 +7,8 @@ from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from .models import UserSettings
+
 User = get_user_model()
 
 
@@ -35,11 +37,13 @@ class RegisterSerializer(serializers.Serializer):
         return attrs
 
     def create(self, validated_data: dict[str, Any]) -> Any:
-        return User.objects.create_user(
+        user = User.objects.create_user(
             username=validated_data["username"],
             email=validated_data["email"],
             password=validated_data["password"],
         )
+        UserSettings.objects.create(user=user)
+        return user
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -67,9 +71,69 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user: Any) -> Any:
         token = super().get_token(user)
+        settings, _ = UserSettings.objects.get_or_create(user=user)
         token["user"] = {
             "id": user.pk,
             "username": user.get_username(),
             "email": getattr(user, "email", "") or "",
+            "analysis_config": settings.analysis_config,
         }
         return token
+
+
+class UpdateUsernameSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+
+    def validate_username(self, value: str) -> str:
+        user = self.context["request"].user
+        if User.objects.filter(username__iexact=value).exclude(pk=user.pk).exists():
+            raise serializers.ValidationError(
+                _("A user with that username already exists.")
+            )
+        return value
+
+
+class UpdateEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value: str) -> str:
+        normalized = value.strip().lower()
+        user = self.context["request"].user
+        if User.objects.filter(email__iexact=normalized).exclude(pk=user.pk).exists():
+            raise serializers.ValidationError(
+                _("A user with that email already exists.")
+            )
+        return normalized
+
+
+class UpdatePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
+
+    def validate_old_password(self, value: str) -> str:
+        user = self.context["request"].user
+        if not user.check_password(value):
+            raise serializers.ValidationError(_("Old password is incorrect."))
+        return value
+
+    def validate_new_password(self, value: str) -> str:
+        validate_password(value)
+        return value
+
+
+class AnalysisConfigSerializer(serializers.Serializer):
+    analysis_config = serializers.JSONField()
+
+    def validate_analysis_config(self, value: Any) -> dict:
+        if not isinstance(value, dict):
+            raise serializers.ValidationError(
+                _("analysis_config must be a JSON object.")
+            )
+        required_sections = {"general", "neural_network", "mcts", "minimax", "output"}
+        missing = required_sections - set(value.keys())
+        if missing:
+            raise serializers.ValidationError(
+                _("Missing required sections: %(missing)s")
+                % {"missing": ", ".join(sorted(missing))}
+            )
+        return value
