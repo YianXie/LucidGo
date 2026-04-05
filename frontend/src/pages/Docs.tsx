@@ -61,7 +61,6 @@ function Docs() {
             welcomeSubtitle="Click on a documentation to read it."
             contentSx={{
                 p: 3,
-                px: undefined,
                 "& .prose": { maxWidth: "none" },
             }}
         >

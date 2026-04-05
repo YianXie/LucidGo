@@ -1,6 +1,7 @@
 import { drawerWidth } from "@/constants";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import type { SxProps, Theme } from "@mui/material/styles";
 
 function SidebarLayout({
     sidebar,
@@ -14,7 +15,7 @@ function SidebarLayout({
     hasContent: boolean;
     welcomeTitle: string;
     welcomeSubtitle: string;
-    contentSx?: Record<string, unknown>;
+    contentSx?: SxProps<Theme>;
     children?: React.ReactNode;
 }) {
     return (
@@ -30,13 +31,19 @@ function SidebarLayout({
             {hasContent ? (
                 <Box
                     component="main"
-                    sx={{
-                        flexGrow: 1,
-                        minWidth: 0,
-                        overflowY: "auto",
-                        px: 3,
-                        ...contentSx,
-                    }}
+                    sx={[
+                        {
+                            flexGrow: 1,
+                            minWidth: 0,
+                            overflowY: "auto",
+                            px: 3,
+                        },
+                        ...(Array.isArray(contentSx)
+                            ? contentSx
+                            : contentSx
+                              ? [contentSx]
+                              : []),
+                    ]}
                 >
                     {children}
                 </Box>

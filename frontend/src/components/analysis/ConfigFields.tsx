@@ -25,7 +25,7 @@ export function ConfigTextField({
     value: string | number;
     type?: string;
     onChange: (value: string) => void;
-    inputProps?: Record<string, unknown>;
+    inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
     tooltip?: string;
 }) {
     const labelElement = tooltip ? (
