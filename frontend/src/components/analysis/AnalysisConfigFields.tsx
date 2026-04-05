@@ -16,10 +16,407 @@ function AnalysisConfigFields({
     analysisConfig: AnalysisConfig;
     onChange: (config: AnalysisConfig) => void;
 }) {
+    const nnConfigContent = (
+        <Box>
+            <Typography variant="h4" component="h2" fontWeight={500}>
+                Neural Network
+            </Typography>
+            <Box
+                sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                    mt: 1,
+                }}
+            >
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                    }}
+                >
+                    <Typography variant="body1">Model:</Typography>
+                    <TextField
+                        variant="standard"
+                        type="text"
+                        value={analysisConfig.neural_network.model}
+                        onChange={(e) =>
+                            onChange({
+                                ...analysisConfig,
+                                neural_network: {
+                                    ...analysisConfig.neural_network,
+                                    model: e.target.value,
+                                },
+                            })
+                        }
+                    />
+                </Box>
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                    }}
+                >
+                    <Typography variant="body1">
+                        Policy Softmax Temperature:
+                    </Typography>
+                    <TextField
+                        variant="standard"
+                        type="number"
+                        value={
+                            analysisConfig.neural_network
+                                .policy_softmax_temperature
+                        }
+                        inputProps={{
+                            min: 0,
+                            max: 1,
+                            step: 0.1,
+                        }}
+                        onChange={(e) =>
+                            onChange({
+                                ...analysisConfig,
+                                neural_network: {
+                                    ...analysisConfig.neural_network,
+                                    policy_softmax_temperature: Number(
+                                        e.target.value
+                                    ),
+                                },
+                            })
+                        }
+                    />
+                </Box>
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                    }}
+                >
+                    <Checkbox
+                        checked={analysisConfig.neural_network.use_value_head}
+                        onChange={(e) =>
+                            onChange({
+                                ...analysisConfig,
+                                neural_network: {
+                                    ...analysisConfig.neural_network,
+                                    use_value_head: e.target.checked,
+                                },
+                            })
+                        }
+                        sx={{
+                            width: 16,
+                            p: 0,
+                        }}
+                    />
+                    <Typography variant="body1">Use Value Head</Typography>
+                </Box>
+            </Box>
+        </Box>
+    );
+
+    const mctsConfigContent = (
+        <Box>
+            <Typography variant="h4" component="h2" fontWeight={500}>
+                Monte Carlo Tree Search
+            </Typography>
+            <Box
+                sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                    mt: 1,
+                }}
+            >
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                    }}
+                >
+                    <Typography variant="body1">Num Simulations:</Typography>
+                    <Stack
+                        direction="row"
+                        spacing={2}
+                        sx={{
+                            width: "500px",
+                            alignItems: "center",
+                        }}
+                    >
+                        <Typography variant="body1">100</Typography>
+                        <Slider
+                            value={analysisConfig.mcts.num_simulations}
+                            onChange={(_, value) =>
+                                onChange({
+                                    ...analysisConfig,
+                                    mcts: {
+                                        ...analysisConfig.mcts,
+                                        num_simulations: value,
+                                    },
+                                })
+                            }
+                            min={100}
+                            max={5000}
+                            step={100}
+                            valueLabelDisplay="auto"
+                            aria-label="num-simulations"
+                        />
+                        <Typography variant="body1">5000</Typography>
+                    </Stack>
+                </Box>
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                    }}
+                >
+                    <Typography variant="body1">C-PUCT:</Typography>
+                    <TextField
+                        variant="standard"
+                        type="number"
+                        value={analysisConfig.mcts.c_puct}
+                        inputProps={{
+                            min: 0.1,
+                            max: 5,
+                            step: 0.1,
+                        }}
+                        onChange={(e) =>
+                            onChange({
+                                ...analysisConfig,
+                                mcts: {
+                                    ...analysisConfig.mcts,
+                                    c_puct: Number(e.target.value),
+                                },
+                            })
+                        }
+                    />
+                </Box>
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                    }}
+                >
+                    <Typography variant="body1">Dirichlet Alpha:</Typography>
+                    <TextField
+                        variant="standard"
+                        type="number"
+                        value={analysisConfig.mcts.dirichlet_alpha}
+                        inputProps={{
+                            min: 0,
+                            max: 1,
+                            step: 0.1,
+                        }}
+                        onChange={(e) =>
+                            onChange({
+                                ...analysisConfig,
+                                mcts: {
+                                    ...analysisConfig.mcts,
+                                    dirichlet_alpha: Number(e.target.value),
+                                },
+                            })
+                        }
+                    />
+                </Box>
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                    }}
+                >
+                    <Typography variant="body1">Dirichlet Epsilon:</Typography>
+                    <TextField
+                        variant="standard"
+                        type="number"
+                        value={analysisConfig.mcts.dirichlet_epsilon}
+                        inputProps={{
+                            min: 0,
+                            max: 1,
+                            step: 0.1,
+                        }}
+                        onChange={(e) =>
+                            onChange({
+                                ...analysisConfig,
+                                mcts: {
+                                    ...analysisConfig.mcts,
+                                    dirichlet_epsilon: Number(e.target.value),
+                                },
+                            })
+                        }
+                    />
+                </Box>
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                    }}
+                >
+                    <Typography variant="body1">Value Weight:</Typography>
+                    <TextField
+                        variant="standard"
+                        type="number"
+                        value={analysisConfig.mcts.value_weight}
+                        inputProps={{
+                            min: 0,
+                            max: 1,
+                            step: 0.1,
+                        }}
+                        onChange={(e) =>
+                            onChange({
+                                ...analysisConfig,
+                                mcts: {
+                                    ...analysisConfig.mcts,
+                                    value_weight: Number(e.target.value),
+                                },
+                            })
+                        }
+                    />
+                </Box>
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                    }}
+                >
+                    <Typography variant="body1">Policy Weight:</Typography>
+                    <TextField
+                        variant="standard"
+                        type="number"
+                        value={analysisConfig.mcts.policy_weight}
+                        inputProps={{
+                            min: 0,
+                            max: 1,
+                            step: 0.1,
+                        }}
+                        onChange={(e) =>
+                            onChange({
+                                ...analysisConfig,
+                                mcts: {
+                                    ...analysisConfig.mcts,
+                                    policy_weight: Number(e.target.value),
+                                },
+                            })
+                        }
+                    />
+                </Box>
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                    }}
+                >
+                    <Typography variant="body1">Select By:</Typography>
+                    <Select
+                        variant="standard"
+                        value={analysisConfig.mcts.select_by}
+                        onChange={(e) =>
+                            onChange({
+                                ...analysisConfig,
+                                mcts: {
+                                    ...analysisConfig.mcts,
+                                    select_by: e.target.value as
+                                        | "visit_count"
+                                        | "value",
+                                },
+                            })
+                        }
+                    >
+                        <MenuItem value="visit_count">Visit Count</MenuItem>
+                        <MenuItem value="value">Value</MenuItem>
+                    </Select>
+                </Box>
+            </Box>
+        </Box>
+    );
+
+    const minimaxConfigContent = (
+        <Box>
+            <Typography variant="h4" component="h2" fontWeight={500}>
+                MiniMax
+            </Typography>
+            <Box
+                sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                    mt: 1,
+                }}
+            >
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                    }}
+                >
+                    <Typography variant="body1">Depth:</Typography>
+                    <TextField
+                        variant="standard"
+                        type="number"
+                        value={analysisConfig.minimax.depth}
+                        inputProps={{
+                            min: 1,
+                            max: 5,
+                            step: 1,
+                        }}
+                        onChange={(e) =>
+                            onChange({
+                                ...analysisConfig,
+                                minimax: {
+                                    ...analysisConfig.minimax,
+                                    depth: Number(e.target.value),
+                                },
+                            })
+                        }
+                    />
+                </Box>
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                    }}
+                >
+                    <Checkbox
+                        sx={{
+                            width: 16,
+                            p: 0,
+                        }}
+                        checked={analysisConfig.minimax.use_alpha_beta}
+                        onChange={(e) =>
+                            onChange({
+                                ...analysisConfig,
+                                minimax: {
+                                    ...analysisConfig.minimax,
+                                    use_alpha_beta: e.target.checked,
+                                },
+                            })
+                        }
+                    />
+                    <Typography variant="body1">Use Alpha Beta</Typography>
+                </Box>
+            </Box>
+        </Box>
+    );
+
+    const content = {
+        nn: nnConfigContent,
+        mcts: mctsConfigContent,
+        minimax: minimaxConfigContent,
+    };
+
     return (
-        <Stack direction="column" spacing={3} sx={{ mt: 2 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
             <Box>
-                <Typography variant="h5" component="h3" fontWeight={500}>
+                <Typography variant="h4" component="h2" fontWeight={500}>
                     General
                 </Typography>
                 <Box
@@ -27,6 +424,7 @@ function AnalysisConfigFields({
                         display: "flex",
                         flexDirection: "column",
                         gap: 2,
+                        mt: 1,
                     }}
                 >
                     <Box
@@ -219,400 +617,9 @@ function AnalysisConfigFields({
                     </Box>
                 </Box>
             </Box>
+            {content[analysisConfig.general.algorithm as keyof typeof content]}
             <Box>
-                <Typography variant="h5" component="h3" fontWeight={500}>
-                    Neural Network
-                </Typography>
-                <Box
-                    sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 2,
-                        mt: 2,
-                    }}
-                >
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                        }}
-                    >
-                        <Typography variant="body1">Model:</Typography>
-                        <TextField
-                            variant="standard"
-                            type="text"
-                            value={analysisConfig.neural_network.model}
-                            onChange={(e) =>
-                                onChange({
-                                    ...analysisConfig,
-                                    neural_network: {
-                                        ...analysisConfig.neural_network,
-                                        model: e.target.value,
-                                    },
-                                })
-                            }
-                        />
-                    </Box>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                        }}
-                    >
-                        <Typography variant="body1">
-                            Policy Softmax Temperature:
-                        </Typography>
-                        <TextField
-                            variant="standard"
-                            type="number"
-                            value={
-                                analysisConfig.neural_network
-                                    .policy_softmax_temperature
-                            }
-                            inputProps={{
-                                min: 0,
-                                max: 1,
-                                step: 0.1,
-                            }}
-                            onChange={(e) =>
-                                onChange({
-                                    ...analysisConfig,
-                                    neural_network: {
-                                        ...analysisConfig.neural_network,
-                                        policy_softmax_temperature: Number(
-                                            e.target.value
-                                        ),
-                                    },
-                                })
-                            }
-                        />
-                    </Box>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                        }}
-                    >
-                        <Checkbox
-                            checked={
-                                analysisConfig.neural_network.use_value_head
-                            }
-                            onChange={(e) =>
-                                onChange({
-                                    ...analysisConfig,
-                                    neural_network: {
-                                        ...analysisConfig.neural_network,
-                                        use_value_head: e.target.checked,
-                                    },
-                                })
-                            }
-                            sx={{
-                                width: 16,
-                                p: 0,
-                            }}
-                        />
-                        <Typography variant="body1">Use Value Head</Typography>
-                    </Box>
-                </Box>
-            </Box>
-            <Box>
-                <Typography variant="h5" component="h3" fontWeight={500}>
-                    Monte Carlo Tree Search
-                </Typography>
-                <Box
-                    sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 2,
-                        mt: 2,
-                    }}
-                >
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                        }}
-                    >
-                        <Typography variant="body1">
-                            Num Simulations:
-                        </Typography>
-                        <Stack
-                            direction="row"
-                            spacing={2}
-                            sx={{
-                                width: "500px",
-                                alignItems: "center",
-                            }}
-                        >
-                            <Typography variant="body1">100</Typography>
-                            <Slider
-                                value={analysisConfig.mcts.num_simulations}
-                                onChange={(_, value) =>
-                                    onChange({
-                                        ...analysisConfig,
-                                        mcts: {
-                                            ...analysisConfig.mcts,
-                                            num_simulations: value,
-                                        },
-                                    })
-                                }
-                                min={100}
-                                max={5000}
-                                step={100}
-                                valueLabelDisplay="auto"
-                                aria-label="num-simulations"
-                            />
-                            <Typography variant="body1">5000</Typography>
-                        </Stack>
-                    </Box>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                        }}
-                    >
-                        <Typography variant="body1">C-PUCT:</Typography>
-                        <TextField
-                            variant="standard"
-                            type="number"
-                            value={analysisConfig.mcts.c_puct}
-                            inputProps={{
-                                min: 0.1,
-                                max: 5,
-                                step: 0.1,
-                            }}
-                            onChange={(e) =>
-                                onChange({
-                                    ...analysisConfig,
-                                    mcts: {
-                                        ...analysisConfig.mcts,
-                                        c_puct: Number(e.target.value),
-                                    },
-                                })
-                            }
-                        />
-                    </Box>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                        }}
-                    >
-                        <Typography variant="body1">
-                            Dirichlet Alpha:
-                        </Typography>
-                        <TextField
-                            variant="standard"
-                            type="number"
-                            value={analysisConfig.mcts.dirichlet_alpha}
-                            inputProps={{
-                                min: 0,
-                                max: 1,
-                                step: 0.1,
-                            }}
-                            onChange={(e) =>
-                                onChange({
-                                    ...analysisConfig,
-                                    mcts: {
-                                        ...analysisConfig.mcts,
-                                        dirichlet_alpha: Number(e.target.value),
-                                    },
-                                })
-                            }
-                        />
-                    </Box>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                        }}
-                    >
-                        <Typography variant="body1">
-                            Dirichlet Epsilon:
-                        </Typography>
-                        <TextField
-                            variant="standard"
-                            type="number"
-                            value={analysisConfig.mcts.dirichlet_epsilon}
-                            inputProps={{
-                                min: 0,
-                                max: 1,
-                                step: 0.1,
-                            }}
-                            onChange={(e) =>
-                                onChange({
-                                    ...analysisConfig,
-                                    mcts: {
-                                        ...analysisConfig.mcts,
-                                        dirichlet_epsilon: Number(
-                                            e.target.value
-                                        ),
-                                    },
-                                })
-                            }
-                        />
-                    </Box>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                        }}
-                    >
-                        <Typography variant="body1">Value Weight:</Typography>
-                        <TextField
-                            variant="standard"
-                            type="number"
-                            value={analysisConfig.mcts.value_weight}
-                            inputProps={{
-                                min: 0,
-                                max: 1,
-                                step: 0.1,
-                            }}
-                            onChange={(e) =>
-                                onChange({
-                                    ...analysisConfig,
-                                    mcts: {
-                                        ...analysisConfig.mcts,
-                                        value_weight: Number(e.target.value),
-                                    },
-                                })
-                            }
-                        />
-                    </Box>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                        }}
-                    >
-                        <Typography variant="body1">Policy Weight:</Typography>
-                        <TextField
-                            variant="standard"
-                            type="number"
-                            value={analysisConfig.mcts.policy_weight}
-                            inputProps={{
-                                min: 0,
-                                max: 1,
-                                step: 0.1,
-                            }}
-                            onChange={(e) =>
-                                onChange({
-                                    ...analysisConfig,
-                                    mcts: {
-                                        ...analysisConfig.mcts,
-                                        policy_weight: Number(e.target.value),
-                                    },
-                                })
-                            }
-                        />
-                    </Box>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                        }}
-                    >
-                        <Typography variant="body1">Select By:</Typography>
-                        <Select
-                            variant="standard"
-                            value={analysisConfig.mcts.select_by}
-                            onChange={(e) =>
-                                onChange({
-                                    ...analysisConfig,
-                                    mcts: {
-                                        ...analysisConfig.mcts,
-                                        select_by: e.target.value as
-                                            | "visit_count"
-                                            | "value",
-                                    },
-                                })
-                            }
-                        >
-                            <MenuItem value="visit_count">Visit Count</MenuItem>
-                            <MenuItem value="value">Value</MenuItem>
-                        </Select>
-                    </Box>
-                </Box>
-            </Box>
-            <Box>
-                <Typography variant="h5" component="h3" fontWeight={500}>
-                    MiniMax
-                </Typography>
-                <Box
-                    sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 2,
-                        mt: 2,
-                    }}
-                >
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                        }}
-                    >
-                        <Typography variant="body1">Depth:</Typography>
-                        <TextField
-                            variant="standard"
-                            type="number"
-                            value={analysisConfig.minimax.depth}
-                            inputProps={{
-                                min: 1,
-                                max: 5,
-                                step: 1,
-                            }}
-                            onChange={(e) =>
-                                onChange({
-                                    ...analysisConfig,
-                                    minimax: {
-                                        ...analysisConfig.minimax,
-                                        depth: Number(e.target.value),
-                                    },
-                                })
-                            }
-                        />
-                    </Box>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                        }}
-                    >
-                        <Checkbox
-                            sx={{
-                                width: 16,
-                                p: 0,
-                            }}
-                            checked={analysisConfig.minimax.use_alpha_beta}
-                            onChange={(e) =>
-                                onChange({
-                                    ...analysisConfig,
-                                    minimax: {
-                                        ...analysisConfig.minimax,
-                                        use_alpha_beta: e.target.checked,
-                                    },
-                                })
-                            }
-                        />
-                        <Typography variant="body1">Use Alpha Beta</Typography>
-                    </Box>
-                </Box>
-            </Box>
-            <Box>
-                <Typography variant="h5" component="h3" fontWeight={500}>
+                <Typography variant="h4" component="h2" fontWeight={500}>
                     Output
                 </Typography>
                 <Box
@@ -620,7 +627,7 @@ function AnalysisConfigFields({
                         display: "flex",
                         flexDirection: "column",
                         gap: 2,
-                        mt: 2,
+                        mt: 1,
                     }}
                 >
                     <Box
@@ -709,7 +716,7 @@ function AnalysisConfigFields({
                     </Box>
                 </Box>
             </Box>
-        </Stack>
+        </Box>
     );
 }
 

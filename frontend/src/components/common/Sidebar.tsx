@@ -6,11 +6,9 @@ import type { ReactNode } from "react";
 import { drawerWidth } from "../../constants";
 
 function Sidebar({
-    className,
     children,
     title = "Documentation",
 }: {
-    className?: string;
     children: ReactNode;
     title?: string;
 }) {
@@ -28,7 +26,6 @@ function Sidebar({
                 p: 3,
                 backgroundColor: "background.paper",
             }}
-            className={className}
         >
             <Typography variant="h6" sx={{ mb: 2, fontWeight: 700 }}>
                 {title}

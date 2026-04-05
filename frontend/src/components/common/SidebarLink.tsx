@@ -5,18 +5,16 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 function SidebarLink({
-    className = "",
+    children,
     to,
     isActive,
-    children,
 }: {
-    className?: string;
+    children: ReactNode;
     to: string;
     isActive: boolean;
-    children: ReactNode;
 }) {
     return (
-        <ListItem disablePadding className={className}>
+        <ListItem disablePadding>
             <ListItemButton
                 component={Link}
                 to={to}
@@ -35,9 +33,11 @@ function SidebarLink({
             >
                 <ListItemText
                     primary={children}
-                    primaryTypographyProps={{
-                        fontWeight: isActive ? 600 : 400,
-                        color: isActive ? "primary.main" : "text.primary",
+                    slotProps={{
+                        primary: {
+                            fontWeight: isActive ? 600 : 400,
+                            color: isActive ? "primary.main" : "text.primary",
+                        },
                     }}
                 />
             </ListItemButton>

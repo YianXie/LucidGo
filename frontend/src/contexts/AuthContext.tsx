@@ -11,6 +11,7 @@ import {
     useEffect,
     useState,
 } from "react";
+import { toast } from "react-toastify";
 
 interface AuthContextValue {
     accessToken: string | null;
@@ -126,20 +127,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
         }, []);
 
-    const login = useCallback(async (token: TokenPair) => {
-        localStorage.setItem("access", token.access);
-        localStorage.setItem("refresh", token.refresh);
-        setAccessToken(token.access);
-        setRefreshToken(token.refresh);
+    const login = useCallback(
+        async (token: TokenPair) => {
+            localStorage.setItem("access", token.access);
+            localStorage.setItem("refresh", token.refresh);
+            setAccessToken(token.access);
+            setRefreshToken(token.refresh);
 
-        const payload = jwtDecode<AccessTokenPayload>(token.access);
-        setUser((payload.user as Record<string, unknown>) ?? null);
-        setIsAuthenticated(true);
+            const payload = jwtDecode<AccessTokenPayload>(token.access);
+            setUser((payload.user as Record<string, unknown>) ?? null);
+            setIsAuthenticated(true);
 
-        const config = await fetchDefaultAnalysisConfig();
-        setDefaultAnalysisConfig(config);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+            try {
+                const config = await fetchDefaultAnalysisConfig();
+                setDefaultAnalysisConfig(config);
+            } catch (error) {
+                console.error(error);
+                toast.error(
+                    "Failed to fetch analysis configuration, using default settings."
+                );
+                setDefaultAnalysisConfig(DEFAULT_ANALYSIS_CONFIG);
+            }
+        },
+        [fetchDefaultAnalysisConfig]
+    );
 
     return (
         <AuthContext.Provider

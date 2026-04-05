@@ -1,15 +1,16 @@
 import AnalysisConfigFields from "@/components/analysis/AnalysisConfigFields";
-import { DEFAULT_ANALYSIS_CONFIG } from "@/constants";
+import Sidebar from "@/components/common/Sidebar";
+import SidebarLink from "@/components/common/SidebarLink";
+import { DEFAULT_ANALYSIS_CONFIG, drawerWidth } from "@/constants";
 import type { AnalysisConfig } from "@/types/game";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { type AxiosError } from "axios";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import api from "../api";
@@ -19,37 +20,175 @@ import usePageTitle from "../hooks/usePageTitle";
 function Settings() {
     usePageTitle("Settings");
 
-    const { user, login, logout } = useAuth();
-    const navigate = useNavigate();
-    const [username, setUsername] = useState<string>("");
-    const [email, setEmail] = useState<string>("");
+    const { user, login, logout, defaultAnalysisConfig } = useAuth();
+    const { id } = useParams();
+    const location = useLocation();
+    const [username, setUsername] = useState<string>(user?.username as string);
+    const [email, setEmail] = useState<string>(user?.email as string);
     const [oldPassword, setOldPassword] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [loading, setLoading] = useState<string | null>(null);
     const [analysisConfig, setAnalysisConfig] = useState<AnalysisConfig>(
-        DEFAULT_ANALYSIS_CONFIG
+        defaultAnalysisConfig
+    );
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        // console.log("defaultAnalysisConfig", defaultAnalysisConfig);
+        setAnalysisConfig(defaultAnalysisConfig);
+    }, [defaultAnalysisConfig]);
+
+    const accountContent = (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Box
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                }}
+            >
+                <TextField
+                    variant="standard"
+                    label="Username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                />
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleUpdateUsername}
+                    disabled={loading !== null}
+                >
+                    Update
+                </Button>
+            </Box>
+            <Box
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                }}
+            >
+                <TextField
+                    variant="standard"
+                    label="Email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleUpdateEmail}
+                    disabled={loading !== null}
+                >
+                    Update
+                </Button>
+            </Box>
+            <Box
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                }}
+            >
+                <TextField
+                    variant="standard"
+                    label="Current Password"
+                    type="password"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                />
+                <TextField
+                    variant="standard"
+                    label="New Password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleUpdatePassword}
+                    disabled={loading !== null}
+                >
+                    Update
+                </Button>
+            </Box>
+            <Button
+                variant="contained"
+                color="error"
+                onClick={handleDeleteAccount}
+                disabled={loading !== null}
+                sx={{ width: "fit-content", mt: 2 }}
+            >
+                Delete Account
+            </Button>
+        </Box>
     );
 
-    useEffect(() => {
-        if (user) {
-            setUsername((user.username as string) || "");
-            setEmail((user.email as string) || "");
-        }
-    }, [user]);
+    const analysisConfigContent = (
+        <Box sx={{ my: 2 }}>
+            <AnalysisConfigFields
+                analysisConfig={analysisConfig}
+                onChange={setAnalysisConfig}
+            />
+            <Box sx={{ display: "flex", gap: 2, mt: 4 }}>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    sx={{ width: "fit-content", px: 4 }}
+                    onClick={() => void handleSaveConfig()}
+                    disabled={loading !== null}
+                >
+                    Save
+                </Button>
+                <Button
+                    variant="outlined"
+                    color="error"
+                    sx={{ width: "fit-content", px: 4 }}
+                    onClick={handleResetConfig}
+                    disabled={loading !== null}
+                >
+                    Reset
+                </Button>
+            </Box>
+        </Box>
+    );
 
-    useEffect(() => {
-        async function fetchSettings() {
-            try {
-                const { data } = await api.get("/auth/user/analysis-config/");
-                if (data.analysis_config) {
-                    setAnalysisConfig(data.analysis_config);
-                }
-            } catch {
-                // Use defaults if fetch fails
-            }
-        }
-        fetchSettings();
-    }, []);
+    const pages = [
+        {
+            id: "account",
+            title: "Account",
+            content: accountContent,
+        },
+        {
+            id: "analysis-config",
+            title: "Default Analysis Configuration",
+            content: analysisConfigContent,
+        },
+    ];
+
+    const sidebarContent = (
+        <Sidebar title="Settings">
+            {pages.map((page) => (
+                <SidebarLink
+                    key={page.id}
+                    to={`/settings/${page.id}`}
+                    isActive={location.pathname === `/settings/${page.id}`}
+                >
+                    {page.title}
+                </SidebarLink>
+            ))}
+        </Sidebar>
+    );
+
+    function renderContent(): React.ReactNode | null {
+        const content = pages.find((page) => page.id === id)?.content;
+        if (!content) return null;
+
+        return content;
+    }
 
     function getErrorMessage(err: unknown): string {
         const error = err as AxiosError<Record<string, unknown>>;
@@ -70,7 +209,7 @@ function Settings() {
             const { data } = await api.patch("/auth/user/username/", {
                 username,
             });
-            login(data);
+            await login(data);
             toast.success("Username updated successfully.");
         } catch (err) {
             toast.error(getErrorMessage(err));
@@ -83,7 +222,7 @@ function Settings() {
         setLoading("email");
         try {
             const { data } = await api.patch("/auth/user/email/", { email });
-            login(data);
+            await login(data);
             toast.success("Email updated successfully.");
         } catch (err) {
             toast.error(getErrorMessage(err));
@@ -99,7 +238,7 @@ function Settings() {
                 old_password: oldPassword,
                 new_password: password,
             });
-            login(data);
+            await login(data);
             setOldPassword("");
             setPassword("");
             toast.success("Password updated successfully.");
@@ -110,18 +249,33 @@ function Settings() {
         }
     }
 
-    async function handleSaveConfig() {
+    async function handleSaveConfig(overrideAnalysisConfig?: AnalysisConfig) {
         setLoading("config");
+        const analysis_config = overrideAnalysisConfig ?? analysisConfig;
         try {
             await api.put("/auth/user/analysis-config/", {
-                analysis_config: analysisConfig,
+                analysis_config,
             });
+            if (overrideAnalysisConfig !== undefined) {
+                setAnalysisConfig(overrideAnalysisConfig);
+            }
             toast.success("Analysis configuration saved.");
         } catch (err) {
             toast.error(getErrorMessage(err));
         } finally {
             setLoading(null);
         }
+    }
+
+    async function handleResetConfig() {
+        if (
+            !window.confirm(
+                "Are you sure you want to reset the analysis configuration? This action cannot be undone."
+            )
+        ) {
+            return;
+        }
+        await handleSaveConfig(DEFAULT_ANALYSIS_CONFIG);
     }
 
     async function handleDeleteAccount() {
@@ -146,133 +300,41 @@ function Settings() {
     }
 
     return (
-        <Box
-            sx={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                gap: 2,
-                py: 4,
-            }}
-        >
-            <Typography variant="h2" component="h1" fontWeight={600}>
-                Settings
-            </Typography>
-            <Divider />
-            <Box sx={{ my: 2 }}>
-                <Typography variant="h4" component="h2" fontWeight={500}>
-                    Account
-                </Typography>
-                <Stack direction="column" spacing={2} sx={{ mt: 2 }}>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                        }}
-                    >
-                        <TextField
-                            variant="standard"
-                            label="Username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                        />
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleUpdateUsername}
-                            disabled={loading !== null}
-                        >
-                            Update
-                        </Button>
-                    </Box>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                        }}
-                    >
-                        <TextField
-                            variant="standard"
-                            label="Email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleUpdateEmail}
-                            disabled={loading !== null}
-                        >
-                            Update
-                        </Button>
-                    </Box>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                        }}
-                    >
-                        <TextField
-                            variant="standard"
-                            label="Current Password"
-                            type="password"
-                            value={oldPassword}
-                            onChange={(e) => setOldPassword(e.target.value)}
-                        />
-                        <TextField
-                            variant="standard"
-                            label="New Password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleUpdatePassword}
-                            disabled={loading !== null}
-                        >
-                            Update
-                        </Button>
-                    </Box>
-                </Stack>
+        <Box sx={{ display: "flex", py: 4 }}>
+            <Box
+                sx={{
+                    width: drawerWidth,
+                    flexShrink: 0,
+                }}
+            >
+                {sidebarContent}
             </Box>
-            <Box sx={{ my: 2 }}>
-                <Typography variant="h4" component="h2" fontWeight={500}>
-                    Default Analysis Configuration
-                </Typography>
-                <AnalysisConfigFields
-                    analysisConfig={analysisConfig}
-                    onChange={setAnalysisConfig}
-                />
-                <Button
-                    variant="contained"
-                    color="primary"
-                    sx={{ width: "100px", mt: 2 }}
-                    onClick={handleSaveConfig}
-                    disabled={loading !== null}
+            {id ? (
+                <Box
+                    component="main"
+                    sx={{
+                        flexGrow: 1,
+                        minWidth: 0,
+                        overflowY: "auto",
+                        px: 3,
+                    }}
                 >
-                    Save
-                </Button>
-            </Box>
-            <Box sx={{ my: 2 }}>
-                <Typography variant="h4" component="h2" fontWeight={500}>
-                    Dangerous Zone
-                </Typography>
-                <Button
-                    variant="contained"
-                    color="error"
-                    sx={{ mt: 2 }}
-                    onClick={handleDeleteAccount}
-                    disabled={loading !== null}
-                >
-                    Delete Account
-                </Button>
-            </Box>
+                    {renderContent()}
+                </Box>
+            ) : (
+                <Box sx={{ flexGrow: 1, p: 3 }}>
+                    <Typography variant="h4" fontWeight={500}>
+                        Welcome to the settings page
+                    </Typography>
+                    <Typography
+                        variant="body1"
+                        color="text.secondary"
+                        sx={{ mt: 2 }}
+                    >
+                        Click on a settings to read it.
+                    </Typography>
+                </Box>
+            )}
         </Box>
     );
 }

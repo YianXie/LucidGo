@@ -44,6 +44,14 @@ function App() {
                             </ProtectedRoute>
                         }
                     />
+                    <Route
+                        path="settings/:id/"
+                        element={
+                            <ProtectedRoute>
+                                <Settings />
+                            </ProtectedRoute>
+                        }
+                    />
                     <Route path="login/" element={<Login />} />
                     <Route path="register/" element={<Register />} />
                     <Route path="logout/" element={<Logout />} />
