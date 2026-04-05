@@ -1,54 +1,48 @@
-import DeleteIcon from "@mui/icons-material/Delete";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Container from "@mui/material/Container";
-import IconButton from "@mui/material/IconButton";
-import Stack from "@mui/material/Stack";
-import TextField from "@mui/material/TextField";
-import Tooltip from "@mui/material/Tooltip";
-import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-
-import api from "../api";
-import GameBoard from "../components/board/GameBoard";
+import api from "@/api";
+import AnalysisConfigFields from "@/components/analysis/AnalysisConfigFields";
+import GameBoard from "@/components/board/GameBoard";
 import {
     BOARD_SIZE,
     SGFSample,
     getAnalysisURL,
     getGameDataURL,
-} from "../constants";
-import { useAuth } from "../contexts/AuthContext";
-import usePageTitle from "../hooks/usePageTitle";
-import { type AnalysisResult, type GameData, isValidMove } from "../types/game";
-import { toGTPFormat } from "../utils";
+} from "@/constants";
+import { useAuth } from "@/contexts/AuthContext";
+import usePageTitle from "@/hooks/usePageTitle";
+import {
+    type AnalysisConfig,
+    type AnalysisResult,
+    type BoardState,
+    type GameData,
+    isValidMove,
+} from "@/types/game";
+import { toGTPFormat } from "@/utils";
+import { buildAnalysisApiPayload } from "@/utils/analysisRequest";
+import DeleteIcon from "@mui/icons-material/Delete";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import IconButton from "@mui/material/IconButton";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Tooltip from "@mui/material/Tooltip";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "react-toastify";
 
-interface BoardState {
-    name: string | null;
-    file: File | null;
-    gameData: GameData | null;
-    analysisData: AnalysisResult[] | null;
-    winRate: number[] | null;
-    currentMove: number | null;
-    loading: boolean;
-    useSample: boolean | null;
-    useAI: boolean;
-    showRecommendedMoves: boolean;
-    loadedValue: number;
-}
-
-const defaultBoard = (): BoardState => ({
+const defaultBoard = (analysisConfig: AnalysisConfig): BoardState => ({
     name: null,
     file: null,
     gameData: null,
     analysisData: null,
-    winRate: null,
     currentMove: null,
     loading: false,
     useSample: null,
     useAI: false,
-    showRecommendedMoves: true,
     loadedValue: 0,
+    analysisConfig: analysisConfig,
 });
 
 const ANIMATION_MS = 250;
@@ -56,10 +50,11 @@ const ANIMATION_MS = 250;
 function Demo() {
     usePageTitle("Demo");
 
-    const { isAuthenticated } = useAuth();
-    const navigate = useNavigate();
+    const { defaultAnalysisConfig } = useAuth();
 
-    const [boards, setBoards] = useState<BoardState[]>([defaultBoard()]);
+    const [boards, setBoards] = useState<BoardState[]>([
+        defaultBoard(defaultAnalysisConfig),
+    ]);
     const [deletingBoardIndex, setDeletingBoardIndex] = useState<number | null>(
         null
     );
@@ -70,22 +65,10 @@ function Demo() {
         null
     );
 
-    const updateBoard = (index: number, updates: Partial<BoardState>) => {
-        setBoards((prev) =>
-            prev.map((board, i) =>
-                i === index ? { ...board, ...updates } : board
-            )
-        );
-    };
-
-    useEffect(() => {
-        if (isAuthenticated === null) return;
-        if (!isAuthenticated) {
-            navigate("/login");
-            toast.error("Please login to use the demo");
-            return;
-        }
-    }, [isAuthenticated, navigate]);
+    const [analysisSettingsBoardIndex, setAnalysisSettingsBoardIndex] =
+        useState<number | null>(null);
+    const [draftAnalysisConfig, setDraftAnalysisConfig] =
+        useState<AnalysisConfig>(defaultAnalysisConfig);
 
     useEffect(() => {
         return () => {
@@ -95,44 +78,20 @@ function Demo() {
         };
     }, []);
 
-    // Trigger win-rate initialisation and analysis when game data changes.
-    // The signature only changes when a board's game data is set or replaced,
-    // not when loading / analysisData / winRate / loadedValue change, so there
-    // is no risk of an infinite update loop.
-    const gameDataSignature = boards
-        .map((b) =>
-            b.gameData
-                ? `${b.gameData.size}:${b.gameData.moves.length}`
-                : "null"
-        )
-        .join("|");
-
     useEffect(() => {
-        boards.forEach((board, i) => {
-            if (!board.gameData) return;
-
-            if (
-                !board.winRate ||
-                board.winRate.length !== board.gameData.moves.length
-            ) {
-                updateBoard(i, {
-                    winRate: Array.from(
-                        { length: board.gameData.moves.length },
-                        () => 50
-                    ),
-                });
-            }
-
-            if (board.analysisData === null) {
-                const boardData = board.gameData;
-                updateBoard(i, { loading: true });
-                analyzeAllMoves(i, boardData).finally(() => {
-                    updateBoard(i, { loading: false });
-                });
-            }
+        setBoards((prev) => {
+            if (prev.length !== 1) return prev;
+            const only = prev[0];
+            const pristine =
+                only.gameData === null &&
+                only.file === null &&
+                only.useSample === null &&
+                only.analysisData === null &&
+                !only.loading;
+            if (!pristine) return prev;
+            return [defaultBoard(defaultAnalysisConfig)];
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [gameDataSignature]);
+    }, [defaultAnalysisConfig]);
 
     // Read file / sample content when a board's source changes.
     const fileSignature = boards
@@ -143,6 +102,7 @@ function Demo() {
         boards.forEach((board, i) => {
             if (!board.file && board.useSample === null) return;
             if (board.gameData && board.gameData.moves.length > 0) return;
+
             if (board.useSample) {
                 getGameData(SGFSample, i);
             } else if (board.file) {
@@ -155,13 +115,21 @@ function Demo() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fileSignature]);
 
+    const updateBoard = (index: number, updates: Partial<BoardState>) => {
+        setBoards((prev) =>
+            prev.map((board, i) =>
+                i === index ? { ...board, ...updates } : board
+            )
+        );
+    };
+
     async function getGameData(SGFContent: string, boardIndex: number) {
         updateBoard(boardIndex, { loading: true });
         try {
             const { data } = await api.post<GameData>(getGameDataURL, {
                 sgf_file_data: SGFContent,
             });
-            if (data.size != BOARD_SIZE) {
+            if (data.size === null || data.size != BOARD_SIZE) {
                 throw new Error("Invalid board size");
             }
 
@@ -181,64 +149,114 @@ function Demo() {
         }
     }
 
-    const analyzeAllMoves = async (boardIndex: number, boardData: GameData) => {
-        const analysisResults: AnalysisResult[] = [];
-
-        for (let i = 0; i < boardData.moves.length; i++) {
-            const analysisResult = await analyzeMove(boardIndex, i);
-            console.log(analysisResult);
-            if (analysisResult) {
-                analysisResults.push(analysisResult);
+    const analyzeMove = useCallback(
+        async (
+            boardIndex: number,
+            moveIndex: number,
+            config: AnalysisConfig,
+            gameData: GameData
+        ) => {
+            const pastMoves: [string, string][] = [];
+            for (let i = 0; i < moveIndex; i++) {
+                const move = gameData.moves[i];
+                if (!isValidMove(move)) continue;
+                const [color, [row, col]] = move;
+                pastMoves.push([color, toGTPFormat(row, col)]);
             }
-            updateBoard(boardIndex, {
-                loadedValue: (100 / boardData.moves.length) * i,
+
+            const toPlay =
+                pastMoves.length > 0 &&
+                pastMoves[pastMoves.length - 1][0].toUpperCase() === "B"
+                    ? "W"
+                    : "B";
+
+            const request = buildAnalysisApiPayload(config, {
+                moves: pastMoves,
+                toPlay,
+                gameData,
             });
-        }
-        updateBoard(boardIndex, { analysisData: analysisResults });
+
+            try {
+                const { data } = await api.post<AnalysisResult>(
+                    getAnalysisURL,
+                    request
+                );
+                return data;
+            } catch (error) {
+                toast.error(
+                    `Error analyzing move ${moveIndex + 1} in board ${boardIndex + 1}`
+                );
+                console.error(
+                    `Error analyzing move ${moveIndex + 1} in board ${boardIndex + 1}:`,
+                    error
+                );
+            }
+            return null;
+        },
+        []
+    );
+
+    const analyzeAllMoves = useCallback(
+        async (
+            boardIndex: number,
+            boardData: GameData,
+            config: AnalysisConfig
+        ) => {
+            if (!boardData) return;
+
+            updateBoard(boardIndex, { loading: true });
+
+            const denom = Math.max(boardData.moves.length, 1);
+            const analysisResults: AnalysisResult[] = [];
+            for (let i = 0; i <= boardData.moves.length; i++) {
+                const analysisResult = await analyzeMove(
+                    boardIndex,
+                    i,
+                    config,
+                    boardData
+                );
+                if (analysisResult) {
+                    analysisResults.push(analysisResult);
+                }
+                updateBoard(boardIndex, {
+                    loadedValue: (100 / denom) * i,
+                });
+            }
+            updateBoard(boardIndex, { analysisData: analysisResults });
+            updateBoard(boardIndex, { loading: false });
+        },
+        [analyzeMove]
+    );
+
+    const openAnalysisSettings = (boardIndex: number) => {
+        const board = boards[boardIndex];
+        if (!board) return;
+        setDraftAnalysisConfig(structuredClone(board.analysisConfig));
+        setAnalysisSettingsBoardIndex(boardIndex);
     };
 
-    const analyzeMove = async (boardIndex: number, moveIndex: number) => {
-        const board = boards[boardIndex];
-        if (!board.gameData) return;
+    const closeAnalysisSettings = () => {
+        setAnalysisSettingsBoardIndex(null);
+    };
 
-        const pastMoves = [];
-        for (let i = 0; i <= moveIndex; i++) {
-            const move = board.gameData.moves[i];
-            if (!isValidMove(move)) continue;
-            const [color, [row, col]] = move;
-            pastMoves.push([color, toGTPFormat(row, col)]);
-        }
+    const applyAnalysisSettings = () => {
+        if (analysisSettingsBoardIndex === null) return;
+        const idx = analysisSettingsBoardIndex;
+        const next = structuredClone(draftAnalysisConfig);
 
-        const toPlay =
-            pastMoves.length > 0 &&
-            pastMoves[pastMoves.length - 1][0].toUpperCase() === "B"
-                ? "W"
-                : "B";
-
-        const request = {
-            rules: "japanese",
-            komi: board.gameData.komi ?? 6.5,
-            to_play: toPlay,
-            moves: pastMoves,
-            algo: "nn",
-        };
-
-        try {
-            const { data } = await api.post<AnalysisResult>(
-                getAnalysisURL,
-                request
+        setBoards((prev) => {
+            const gameData = prev[idx]?.gameData;
+            const updated = prev.map((b, j) =>
+                j === idx ? { ...b, analysisConfig: next } : b
             );
-            return data;
-        } catch (error) {
-            toast.error(
-                `Error analyzing move ${moveIndex + 1} in board ${boardIndex + 1}`
-            );
-            console.error(
-                `Error analyzing move ${moveIndex + 1} in board ${boardIndex + 1}:`,
-                error
-            );
-        }
-        return null;
+            if (gameData) {
+                queueMicrotask(() => {
+                    void analyzeAllMoves(idx, gameData, next);
+                });
+            }
+            return updated;
+        });
+        setAnalysisSettingsBoardIndex(null);
     };
 
     const requestDeleteBoard = (boardIndex: number) => {
@@ -258,7 +276,7 @@ function Demo() {
         if (animationTimerRef.current) clearTimeout(animationTimerRef.current);
 
         const newIndex = boards.length;
-        setBoards((prev) => [...prev, defaultBoard()]);
+        setBoards((prev) => [...prev, defaultBoard(defaultAnalysisConfig)]);
         setCreatingBoardIndex(newIndex);
         animationTimerRef.current = setTimeout(() => {
             animationTimerRef.current = null;
@@ -384,13 +402,9 @@ function Demo() {
                                 onUseSampleChange={(useSample) =>
                                     updateBoard(i, { useSample })
                                 }
-                                showRecommendedMoves={
-                                    board.showRecommendedMoves
-                                }
-                                onShowRecommendedMovesChange={(show) =>
-                                    updateBoard(i, {
-                                        showRecommendedMoves: show,
-                                    })
+                                analysisConfig={board.analysisConfig}
+                                onOpenAnalysisSettings={() =>
+                                    openAnalysisSettings(i)
                                 }
                                 onViewSample={() =>
                                     updateBoard(i, { useSample: true })
@@ -411,6 +425,16 @@ function Demo() {
                                         useAI: true,
                                     })
                                 }
+                                onAnalyzeWithAI={() => {
+                                    const gd = board.gameData;
+                                    if (gd) {
+                                        void analyzeAllMoves(
+                                            i,
+                                            gd,
+                                            board.analysisConfig
+                                        );
+                                    }
+                                }}
                                 onFileChange={(file) =>
                                     updateBoard(i, { file })
                                 }
@@ -431,6 +455,28 @@ function Demo() {
             >
                 Add Board
             </Button>
+
+            <Dialog
+                open={analysisSettingsBoardIndex !== null}
+                onClose={closeAnalysisSettings}
+                maxWidth="md"
+                fullWidth
+                scroll="paper"
+            >
+                <DialogTitle>Analysis settings</DialogTitle>
+                <DialogContent dividers>
+                    <AnalysisConfigFields
+                        analysisConfig={draftAnalysisConfig}
+                        onChange={setDraftAnalysisConfig}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeAnalysisSettings}>Cancel</Button>
+                    <Button variant="contained" onClick={applyAnalysisSettings}>
+                        Apply
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }

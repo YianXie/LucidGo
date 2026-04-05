@@ -1,3 +1,5 @@
+import type { AnalysisConfig } from "./types/game";
+
 /**
  * The size of the board
  */
@@ -23,6 +25,40 @@ export const getAnalysisURL = "/api/analyze/";
  * The URL to the get game data endpoint
  */
 export const getGameDataURL = "/api/get-game-data/";
+
+export const DEFAULT_ANALYSIS_CONFIG: AnalysisConfig = {
+    general: {
+        algorithm: "nn",
+        rules: "japanese",
+        komi: 6.5,
+        max_time_ms: 0, // 0 means no time limit
+        temperature: 0,
+        seed: 0,
+    },
+    neural_network: {
+        model: "checkpoint_19x19",
+        policy_softmax_temperature: 0.2,
+        use_value_head: true, // whether to return the win rate or not
+    },
+    mcts: {
+        num_simulations: 500,
+        c_puct: 1.5,
+        dirichlet_alpha: 0.3,
+        dirichlet_epsilon: 0.25,
+        value_weight: 1.0,
+        policy_weight: 1.0,
+        select_by: "visit_count",
+    },
+    minimax: {
+        depth: 3,
+        use_alpha_beta: true,
+    },
+    output: {
+        include_top_moves: 5,
+        include_policy: false,
+        include_win_rate: false,
+    },
+};
 
 /**
  * The width of the drawer

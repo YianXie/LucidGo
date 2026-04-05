@@ -1,3 +1,7 @@
+import api from "@/api";
+import { DEFAULT_ANALYSIS_CONFIG } from "@/constants";
+import type { AccessTokenPayload, TokenPair } from "@/types/auth";
+import type { AnalysisConfig } from "@/types/game";
 import { jwtDecode } from "jwt-decode";
 import {
     type ReactNode,
@@ -8,14 +12,12 @@ import {
     useState,
 } from "react";
 
-import api from "../api";
-import type { AccessTokenPayload, TokenPair } from "../types/auth";
-
 interface AuthContextValue {
     accessToken: string | null;
     refreshToken: string | null;
     user: Record<string, unknown> | null;
     isAuthenticated: boolean | null;
+    defaultAnalysisConfig: AnalysisConfig;
     login: (token: TokenPair) => void;
     logout: () => void;
 }
@@ -34,6 +36,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(
         null
     );
+    const [defaultAnalysisConfig, setDefaultAnalysisConfig] =
+        useState<AnalysisConfig>(DEFAULT_ANALYSIS_CONFIG);
 
     const logout = useCallback(() => {
         localStorage.removeItem("access");
@@ -42,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRefreshToken(null);
         setUser(null);
         setIsAuthenticated(false);
+        setDefaultAnalysisConfig(DEFAULT_ANALYSIS_CONFIG);
     }, []);
 
     useEffect(() => {
@@ -59,6 +64,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         setAccessToken(storedAccess);
                         setRefreshToken(storedRefresh);
                         setIsAuthenticated(true);
+
+                        const config = await fetchDefaultAnalysisConfig();
+                        setDefaultAnalysisConfig(config);
                     } catch (error) {
                         console.error(error);
                         setIsAuthenticated(false);
@@ -102,14 +110,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         [logout]
     );
 
-    const login = useCallback((token: TokenPair) => {
+    const fetchDefaultAnalysisConfig =
+        useCallback(async (): Promise<AnalysisConfig> => {
+            try {
+                const response = await api.get<{
+                    analysis_config: AnalysisConfig;
+                }>("/auth/user/analysis-config/");
+                if (!response.data || !response.data.analysis_config) {
+                    throw new Error("Invalid response from server");
+                }
+                return response.data.analysis_config;
+            } catch (error) {
+                console.error(error);
+                throw error;
+            }
+        }, []);
+
+    const login = useCallback(async (token: TokenPair) => {
         localStorage.setItem("access", token.access);
         localStorage.setItem("refresh", token.refresh);
         setAccessToken(token.access);
         setRefreshToken(token.refresh);
+
         const payload = jwtDecode<AccessTokenPayload>(token.access);
         setUser((payload.user as Record<string, unknown>) ?? null);
         setIsAuthenticated(true);
+
+        const config = await fetchDefaultAnalysisConfig();
+        setDefaultAnalysisConfig(config);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
@@ -119,6 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 refreshToken,
                 user,
                 isAuthenticated,
+                defaultAnalysisConfig,
                 login,
                 logout,
             }}

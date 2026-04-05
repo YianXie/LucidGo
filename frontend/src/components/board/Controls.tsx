@@ -2,19 +2,15 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import FastForwardIcon from "@mui/icons-material/FastForward";
 import FastRewindIcon from "@mui/icons-material/FastRewind";
-import MenuListIcon from "@mui/icons-material/Menu";
-import RefreshIcon from "@mui/icons-material/Refresh";
+import SettingsIcon from "@mui/icons-material/Settings";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
 import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
-import FormControlLabel from "@mui/material/FormControlLabel";
+import SmartToyIcon from "@mui/icons-material/SmartToy";
 import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
 import Paper from "@mui/material/Paper";
-import Radio from "@mui/material/Radio";
-import RadioGroup from "@mui/material/RadioGroup";
 import Stack from "@mui/material/Stack";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { useState } from "react";
 
 import ControlMoveButton from "./ControlMoveButton";
 
@@ -23,27 +19,17 @@ function Controls({
     disabled,
     currentMove,
     onMoveChange,
-    showRecommendedMoves,
-    onShowRecommendedMovesChange,
+    handleAnalyzeWithAI,
+    onOpenAnalysisSettings,
 }: {
     maxMove: number;
     disabled: boolean;
     currentMove: number | null;
     onMoveChange: (move: number) => void;
-    showRecommendedMoves: boolean;
-    onShowRecommendedMovesChange: (show: boolean) => void;
+    handleAnalyzeWithAI: () => void;
+    onOpenAnalysisSettings: () => void;
 }) {
     const fastForwardAmount = 5;
-    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const open = Boolean(anchorEl);
-
-    const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchorEl(event.currentTarget);
-    };
-
-    const handleMenuClose = () => {
-        setAnchorEl(null);
-    };
 
     const handleMove = (amount: number) => {
         const next = (currentMove ?? 0) + amount;
@@ -51,19 +37,6 @@ function Controls({
     };
 
     const moveIndex = currentMove ?? 0;
-
-    const options = [
-        {
-            label: "Show recommended moves",
-            value: showRecommendedMoves,
-            onChange: onShowRecommendedMovesChange,
-        },
-    ];
-
-    const handleOptionChange = (selectedIndex: number) => {
-        options.forEach((option, i) => option.onChange(i === selectedIndex));
-        handleMenuClose();
-    };
 
     return (
         <Paper
@@ -79,15 +52,15 @@ function Controls({
                 pointerEvents: disabled ? "none" : "auto",
             }}
         >
-            <IconButton
-                onClick={() => {
-                    location.reload();
-                }}
-                aria-label="Refresh your board"
-                size="small"
-            >
-                <RefreshIcon />
-            </IconButton>
+            <Tooltip title="Analyze with AI" arrow placement="top">
+                <IconButton
+                    aria-label="Analyze with AI"
+                    size="small"
+                    onClick={handleAnalyzeWithAI}
+                >
+                    <SmartToyIcon />
+                </IconButton>
+            </Tooltip>
 
             <Stack direction="row" spacing={0.5} sx={{ ml: "auto" }}>
                 <ControlMoveButton
@@ -148,56 +121,15 @@ function Controls({
                 />
             </Stack>
 
-            <IconButton
-                onClick={handleMenuClick}
-                aria-label="Show options"
-                size="small"
-            >
-                <MenuListIcon />
-            </IconButton>
-
-            <Menu
-                anchorEl={anchorEl}
-                open={open}
-                onClose={handleMenuClose}
-                anchorOrigin={{
-                    vertical: "top",
-                    horizontal: "right",
-                }}
-                transformOrigin={{
-                    vertical: "bottom",
-                    horizontal: "right",
-                }}
-            >
-                <RadioGroup
-                    value={options.findIndex((option) => option.value)}
-                    onChange={(event) => {
-                        handleOptionChange(Number(event.target.value));
-                    }}
-                    sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 1,
-                    }}
+            <Tooltip title="Show settings" arrow placement="top">
+                <IconButton
+                    aria-label="Show settings"
+                    size="small"
+                    onClick={onOpenAnalysisSettings}
                 >
-                    {options.map((option, index) => (
-                        <FormControlLabel
-                            key={index}
-                            value={index}
-                            control={<Radio />}
-                            label={option.label}
-                            sx={{
-                                width: "100%",
-                                px: 2,
-                                margin: 0,
-                                "&:hover": {
-                                    backgroundColor: "action.hover",
-                                },
-                            }}
-                        />
-                    ))}
-                </RadioGroup>
-            </Menu>
+                    <SettingsIcon />
+                </IconButton>
+            </Tooltip>
         </Paper>
     );
 }

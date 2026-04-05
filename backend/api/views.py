@@ -93,7 +93,7 @@ class GetGameDataView(APIView):
 
         game_data = {
             "moves": moves,
-            "size": game_size if game_size else "Unknown",
+            "size": game_size if game_size else None,
             "komi": game_komi if game_komi else "Unknown",
             "players": {
                 "black": black_player if black_player else "Unknown",

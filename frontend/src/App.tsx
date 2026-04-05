@@ -18,7 +18,14 @@ function App() {
             <Routes>
                 <Route path="/" element={<Layout />}>
                     <Route index element={<Home />} />
-                    <Route path="demo/" element={<Demo />} />
+                    <Route
+                        path="demo/"
+                        element={
+                            <ProtectedRoute>
+                                <Demo />
+                            </ProtectedRoute>
+                        }
+                    />
                     <Route path="docs/" element={<Docs />} />
                     <Route path="docs/:id/" element={<Docs />} />
                     <Route

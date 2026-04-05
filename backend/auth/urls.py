@@ -16,6 +16,6 @@ urlpatterns = [
     path("user/username/", UpdateUsernameView.as_view(), name="update-username"),
     path("user/email/", UpdateEmailView.as_view(), name="update-email"),
     path("user/password/", UpdatePasswordView.as_view(), name="update-password"),
-    path("user/settings/", AnalysisConfigView.as_view(), name="user-settings"),
+    path("user/analysis-config/", AnalysisConfigView.as_view(), name="analysis-config"),
     path("user/delete/", DeleteAccountView.as_view(), name="delete-account"),
 ]

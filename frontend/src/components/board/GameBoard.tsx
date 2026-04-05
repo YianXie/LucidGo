@@ -1,23 +1,24 @@
+import api from "@/api";
+import board_bg from "@/assets/images/board/board-bg.png";
+import placeStoneSound from "@/assets/sounds/board/place-stone.wav";
+import Controls from "@/components/board/Controls";
+import Upload from "@/components/common/Upload";
+import { BOARD_SIZE, GTPLetters, getAnalysisURL } from "@/constants";
+import {
+    type AnalysisConfig,
+    type AnalysisResult,
+    type GameData,
+    type GameMove,
+    isValidMove,
+} from "@/types/game";
+import { toGTPFormat, toRowColFormat } from "@/utils";
+import { buildAnalysisApiPayload } from "@/utils/analysisRequest";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import Board from "@sabaki/go-board";
 import { useEffect, useRef, useState } from "react";
-
-import api from "../../api";
-import board_bg from "../../assets/images/board/board-bg.png";
-import placeStoneSound from "../../assets/sounds/board/place-stone.wav";
-import { GTPLetters, getAnalysisURL } from "../../constants";
-import {
-    type AnalysisResult,
-    type GameData,
-    type GameMove,
-    isValidMove,
-} from "../../types/game";
-import { toGTPFormat, toRowColFormat } from "../../utils";
-import Upload from "../common/Upload";
-import Controls from "./Controls";
 
 const placeStoneSoundInstance = new Audio(placeStoneSound);
 
@@ -31,8 +32,9 @@ function GameBoard({
     onCurrentMoveChange,
     useSample,
     onUseSampleChange,
-    showRecommendedMoves,
-    onShowRecommendedMovesChange,
+    analysisConfig,
+    onOpenAnalysisSettings,
+    onAnalyzeWithAI,
     onViewSample,
     onPlayWithAI,
     onFileChange,
@@ -43,16 +45,17 @@ function GameBoard({
     loadedValue: number;
     useAI: boolean;
     onViewSample: () => void;
-    onPlayWithAI: () => void;
     useSample: boolean | null;
     onUseSampleChange: (useSample: boolean) => void;
-    showRecommendedMoves: boolean;
-    onShowRecommendedMovesChange: (show: boolean) => void;
     currentMove: number | null;
+    analysisConfig: AnalysisConfig;
+    onOpenAnalysisSettings: () => void;
+    onAnalyzeWithAI: () => void;
     onCurrentMoveChange: (move: number) => void;
+    onPlayWithAI: () => void;
     onFileChange: (file: File) => void;
 }) {
-    const boardSize = gameData?.size ?? 19;
+    const boardSize = BOARD_SIZE;
     const canvasSize = 800;
     const padding = 50;
     const margin = (canvasSize - padding * 2) / (boardSize - 1);
@@ -129,7 +132,7 @@ function GameBoard({
             );
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [boardSize]);
+    }, []);
 
     useEffect(() => {
         const cm = currentMove ?? 0;
@@ -160,14 +163,7 @@ function GameBoard({
         const canvasContext = canvasRef.current.getContext("2d");
         redrawBoardAndStones(canvasContext);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        currentMove,
-        replayMoves,
-        boardSize,
-        boardImageData,
-        analysisData,
-        showRecommendedMoves,
-    ]);
+    }, [currentMove, replayMoves, boardSize, boardImageData, analysisData]);
 
     useEffect(() => {
         if (!useAI) return;
@@ -334,14 +330,8 @@ function GameBoard({
         canvasContext.putImageData(boardImageData, 0, 0);
         drawStones(canvasContext);
 
-        const cm = currentMove ?? 0;
-        const analysisIndex = cm > 0 ? cm - 1 : null;
-        if (
-            analysisIndex !== null &&
-            analysisData &&
-            analysisData[analysisIndex] &&
-            showRecommendedMoves
-        ) {
+        const analysisIndex = currentMove ?? 0;
+        if (analysisData && analysisData[analysisIndex]) {
             const data = analysisData[analysisIndex];
             const [row, col] = toRowColFormat(data.best_move);
             const color = `rgba(255, 0, 0, 0.5)`;
@@ -495,14 +485,11 @@ function GameBoard({
             gtpMoves.push([color, toGTPFormat(row, col)]);
         }
 
-        const request = {
-            board_size: gameData.size,
-            rules: "japanese",
-            komi: gameData.komi ?? 6.5,
-            to_play: AIColor,
+        const request = buildAnalysisApiPayload(analysisConfig, {
             moves: gtpMoves,
-            algo: "nn",
-        };
+            toPlay: AIColor,
+            gameData,
+        });
 
         try {
             const response = await api.post<AnalysisResult>(
@@ -527,44 +514,66 @@ function GameBoard({
                 position: "relative",
             }}
         >
-            {isLoading && loadedValue > 0 && (
+            {isLoading && (
                 <Box
                     sx={{
                         position: "absolute",
-                        display: "inline-flex",
+                        display: "flex",
+                        flexDirection: "column",
                         justifyContent: "center",
                         alignItems: "center",
                         width: "100%",
                         height: "100%",
+                        gap: 4,
                         backdropFilter: "blur(4px) brightness(0.5)",
                         zIndex: (theme) => theme.zIndex.appBar - 1,
                     }}
                 >
-                    <CircularProgress
-                        size={120}
-                        variant="determinate"
-                        value={loadedValue}
-                    />
+                    <Typography
+                        variant="body1"
+                        fontWeight={600}
+                        sx={{
+                            color: "primary.main",
+                            textAlign: "center",
+                            width: "100%",
+                        }}
+                    >
+                        Loading...
+                    </Typography>
                     <Box
                         sx={{
-                            top: 0,
-                            left: 0,
-                            bottom: 0,
-                            right: 0,
-                            position: "absolute",
-                            display: "flex",
+                            position: "relative",
+                            display: "inline-flex",
                             alignItems: "center",
                             justifyContent: "center",
                         }}
                     >
-                        <Typography
-                            variant="body1"
-                            component="div"
-                            fontWeight={600}
-                            sx={{ color: "primary.main" }}
+                        <CircularProgress
+                            size={120}
+                            variant="determinate"
+                            value={loadedValue}
+                        />
+                        <Box
+                            sx={{
+                                top: 0,
+                                left: 0,
+                                bottom: 0,
+                                right: 0,
+                                position: "absolute",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}
                         >
-                            {loadedValue.toFixed(1)}%
-                        </Typography>
+                            <Typography
+                                variant="body1"
+                                component="div"
+                                fontWeight={600}
+                                sx={{ color: "primary.main" }}
+                            >
+                                {loadedValue.toFixed(1)}%
+                            </Typography>
+                        </Box>
                     </Box>
                 </Box>
             )}
@@ -573,12 +582,12 @@ function GameBoard({
                     sx={{
                         position: "absolute",
                         display: "flex",
+                        flexDirection: "column",
                         justifyContent: "center",
                         alignItems: "center",
                         width: "100%",
                         height: "100%",
                         color: "#fff",
-                        flexDirection: "column",
                         gap: 2,
                         backdropFilter: "blur(4px) brightness(0.5)",
                         zIndex: (theme) => theme.zIndex.appBar - 1,
@@ -640,8 +649,8 @@ function GameBoard({
                 disabled={useAI}
                 currentMove={currentMove}
                 onMoveChange={onCurrentMoveChange}
-                showRecommendedMoves={showRecommendedMoves}
-                onShowRecommendedMovesChange={onShowRecommendedMovesChange}
+                handleAnalyzeWithAI={onAnalyzeWithAI}
+                onOpenAnalysisSettings={onOpenAnalysisSettings}
             />
         </Box>
     );
