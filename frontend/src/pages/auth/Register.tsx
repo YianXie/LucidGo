@@ -2,7 +2,6 @@ import Backdrop from "@mui/material/Backdrop";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
-import Container from "@mui/material/Container";
 import Link from "@mui/material/Link";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -42,6 +41,11 @@ function Register() {
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
+        if (data.get("password") !== data.get("password_confirmation")) {
+            toast.error("Passwords do not match");
+            return;
+        }
+
         try {
             setIsLoading(true);
             await api.post("/auth/register/", {
@@ -131,6 +135,16 @@ function Register() {
                         label="Password"
                         type="password"
                         id="password"
+                        autoComplete="new-password"
+                    />
+                    <TextField
+                        margin="normal"
+                        required
+                        fullWidth
+                        name="password_confirmation"
+                        label="Password Confirmation"
+                        type="password"
+                        id="password_confirmation"
                         autoComplete="new-password"
                     />
                     <Button
