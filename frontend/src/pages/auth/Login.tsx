@@ -1,14 +1,8 @@
-import Backdrop from "@mui/material/Backdrop";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
-import Container from "@mui/material/Container";
-import Link from "@mui/material/Link";
+import AuthFormLayout from "@/components/layout/AuthFormLayout";
 import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
 import { isAxiosError } from "axios";
 import { useEffect, useState } from "react";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import api from "../../api";
@@ -59,74 +53,36 @@ function Login() {
     };
 
     return (
-        <>
-            {isLoading && (
-                <Backdrop
-                    open={true}
-                    sx={{
-                        color: "#fff",
-                        zIndex: (theme) => theme.zIndex.appBar - 1,
-                    }}
-                >
-                    <CircularProgress color="inherit" />
-                </Backdrop>
-            )}
-            <Box
-                sx={{
-                    marginTop: 8,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                }}
-            >
-                <Typography component="h1" variant="h5">
-                    Sign in to LucidGo
-                </Typography>
-                <Box
-                    component="form"
-                    onSubmit={handleSubmit}
-                    noValidate
-                    sx={{ mt: 1 }}
-                >
-                    <TextField
-                        margin="normal"
-                        required
-                        fullWidth
-                        id="username"
-                        label="Username or email"
-                        name="username"
-                        type="text"
-                        autoComplete="username"
-                        autoFocus
-                    />
-                    <TextField
-                        margin="normal"
-                        required
-                        fullWidth
-                        name="password"
-                        label="Password"
-                        type="password"
-                        id="password"
-                        autoComplete="current-password"
-                    />
-                    <Button
-                        type="submit"
-                        fullWidth
-                        variant="contained"
-                        sx={{ mt: 3, mb: 2 }}
-                    >
-                        Sign In
-                    </Button>
-                    <Link
-                        component={RouterLink}
-                        to="/register/"
-                        variant="body2"
-                    >
-                        Create an account
-                    </Link>
-                </Box>
-            </Box>
-        </>
+        <AuthFormLayout
+            title="Sign in to LucidGo"
+            submitLabel="Sign In"
+            isLoading={isLoading}
+            onSubmit={handleSubmit}
+            linkTo="/register/"
+            linkText="Create an account"
+        >
+            <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="username"
+                label="Username or email"
+                name="username"
+                type="text"
+                autoComplete="username"
+                autoFocus
+            />
+            <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="password"
+                label="Password"
+                type="password"
+                id="password"
+                autoComplete="current-password"
+            />
+        </AuthFormLayout>
     );
 }
 
