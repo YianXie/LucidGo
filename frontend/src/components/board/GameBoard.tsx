@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 
 import api from "../../api";
 import board_bg from "../../assets/images/board/board-bg.png";
+import placeStoneSound from "../../assets/sounds/board/place-stone.wav";
 import { GTPLetters, getAnalysisURL } from "../../constants";
 import {
     type AnalysisResult,
@@ -17,6 +18,8 @@ import {
 import { toGTPFormat, toRowColFormat } from "../../utils";
 import Upload from "../common/Upload";
 import Controls from "./Controls";
+
+const placeStoneSoundInstance = new Audio(placeStoneSound);
 
 function GameBoard({
     gameData,
@@ -303,6 +306,9 @@ function GameBoard({
             movesRef.current = nextMoves;
             setMoves(nextMoves);
             onCurrentMoveChange(nextMoves.length);
+
+            placeStoneSoundInstance.currentTime = 0;
+            void placeStoneSoundInstance.play();
 
             if (color === userColor) {
                 getAIMove(nextMoves)

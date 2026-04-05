@@ -12,7 +12,12 @@ import { toast } from "react-toastify";
 
 import api from "../api";
 import GameBoard from "../components/board/GameBoard";
-import { SGFSample, getAnalysisURL, getGameDataURL } from "../constants";
+import {
+    BOARD_SIZE,
+    SGFSample,
+    getAnalysisURL,
+    getGameDataURL,
+} from "../constants";
 import { useAuth } from "../contexts/AuthContext";
 import usePageTitle from "../hooks/usePageTitle";
 import { type AnalysisResult, type GameData, isValidMove } from "../types/game";
@@ -153,9 +158,13 @@ function Demo() {
     async function getGameData(SGFContent: string, boardIndex: number) {
         updateBoard(boardIndex, { loading: true });
         try {
-            const { data } = await api.get<GameData>(getGameDataURL, {
-                params: { sgf_file_data: SGFContent },
+            const { data } = await api.post<GameData>(getGameDataURL, {
+                sgf_file_data: SGFContent,
             });
+            if (data.size != BOARD_SIZE) {
+                throw new Error("Invalid board size");
+            }
+
             for (let i = 0; i < data.moves.length; i++) {
                 if (!isValidMove(data.moves[i])) {
                     data.moves.splice(i, 1);
@@ -173,46 +182,69 @@ function Demo() {
     }
 
     const analyzeAllMoves = async (boardIndex: number, boardData: GameData) => {
-        const moves: [string, string][] = [];
-        const analyzeResults: AnalysisResult[] = [];
+        const analysisResults: AnalysisResult[] = [];
 
         for (let i = 0; i < boardData.moves.length; i++) {
-            const move = boardData.moves[i];
-            if (!isValidMove(move)) continue;
-
-            const [color, [row, col]] = move;
-            moves.push([color, toGTPFormat(row, col)]);
-
-            const request = {
-                board_size: boardData.size,
-                rules: "japanese",
-                komi: boardData.komi ?? 6.5,
-                to_play: color.toUpperCase(),
-                moves,
-                algo: "nn",
-            };
-            try {
-                const { data } = await api.post<AnalysisResult>(
-                    getAnalysisURL,
-                    request
-                );
-                analyzeResults.push(data);
-            } catch (error) {
-                console.error("Error:", error);
-            } finally {
-                updateBoard(boardIndex, {
-                    loadedValue: (100 / boardData.moves.length) * i,
-                });
+            const analysisResult = await analyzeMove(boardIndex, i);
+            console.log(analysisResult);
+            if (analysisResult) {
+                analysisResults.push(analysisResult);
             }
+            updateBoard(boardIndex, {
+                loadedValue: (100 / boardData.moves.length) * i,
+            });
         }
-        updateBoard(boardIndex, { analysisData: analyzeResults });
+        updateBoard(boardIndex, { analysisData: analysisResults });
+    };
+
+    const analyzeMove = async (boardIndex: number, moveIndex: number) => {
+        const board = boards[boardIndex];
+        if (!board.gameData) return;
+
+        const pastMoves = [];
+        for (let i = 0; i <= moveIndex; i++) {
+            const move = board.gameData.moves[i];
+            if (!isValidMove(move)) continue;
+            const [color, [row, col]] = move;
+            pastMoves.push([color, toGTPFormat(row, col)]);
+        }
+
+        const toPlay =
+            pastMoves.length > 0 &&
+            pastMoves[pastMoves.length - 1][0].toUpperCase() === "B"
+                ? "W"
+                : "B";
+
+        const request = {
+            rules: "japanese",
+            komi: board.gameData.komi ?? 6.5,
+            to_play: toPlay,
+            moves: pastMoves,
+            algo: "nn",
+        };
+
+        try {
+            const { data } = await api.post<AnalysisResult>(
+                getAnalysisURL,
+                request
+            );
+            return data;
+        } catch (error) {
+            toast.error(
+                `Error analyzing move ${moveIndex + 1} in board ${boardIndex + 1}`
+            );
+            console.error(
+                `Error analyzing move ${moveIndex + 1} in board ${boardIndex + 1}:`,
+                error
+            );
+        }
+        return null;
     };
 
     const requestDeleteBoard = (boardIndex: number) => {
         if (deletingBoardIndex !== null || creatingBoardIndex !== null) return;
-        if (animationTimerRef.current) {
-            clearTimeout(animationTimerRef.current);
-        }
+        if (animationTimerRef.current) clearTimeout(animationTimerRef.current);
+
         setDeletingBoardIndex(boardIndex);
         animationTimerRef.current = setTimeout(() => {
             animationTimerRef.current = null;
@@ -223,11 +255,9 @@ function Demo() {
 
     const requestCreateBoard = () => {
         if (deletingBoardIndex !== null || creatingBoardIndex !== null) return;
-        if (animationTimerRef.current) {
-            clearTimeout(animationTimerRef.current);
-        }
-        const newIndex = boards.length;
+        if (animationTimerRef.current) clearTimeout(animationTimerRef.current);
 
+        const newIndex = boards.length;
         setBoards((prev) => [...prev, defaultBoard()]);
         setCreatingBoardIndex(newIndex);
         animationTimerRef.current = setTimeout(() => {

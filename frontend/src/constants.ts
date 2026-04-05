@@ -1,4 +1,9 @@
 /**
+ * The size of the board
+ */
+export const BOARD_SIZE = 19;
+
+/**
  * All the 19 letters in the GTP coords system (exclude 'i')
  */
 export const GTPLetters = "ABCDEFGHJKLMNOPQRST";

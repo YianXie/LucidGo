@@ -68,14 +68,14 @@ class AnalyzeView(APIView):
 class GetGameDataView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request: Request) -> Response:
-        if not request.query_params.get("sgf_file_data"):
+    def post(self, request: Request) -> Response:
+        if not request.data:
             return Response(
                 {"error": "No data provided"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        data = request.query_params.get("sgf_file_data")
+        data = request.data.get("sgf_file_data")
         try:
             game = sgf.Sgf_game.from_string(data)
         except ValueError as error:
