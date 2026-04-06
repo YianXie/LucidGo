@@ -1,6 +1,6 @@
 # Makefile for LucidGo project
 
-.PHONY: help install test lint format security ci-local run-backend run-frontend clean
+.PHONY: help install test lint format security ci-local run-all clean
 
 # Default target
 help:
@@ -11,8 +11,7 @@ help:
 	@echo "  format       - Format code"
 	@echo "  security     - Run security checks"
 	@echo "  ci-local     - Run all CI checks locally"
-	@echo "  run-backend  - Run the backend server"
-	@echo "  run-frontend - Run the frontend server"
+	@echo "  run-all      - Run all servers (separate iTerm2 windows)"
 	@echo "  clean        - Clean up generated files"
 
 # Install dependencies
@@ -52,15 +51,24 @@ security:
 ci-local:
 	@./scripts/ci-local.sh
 
-# Run the backend server
-run-backend:
-	@echo "Running backend server..."
-	cd backend && uv run python manage.py runserver
-
-# Run the frontend server
-run-frontend:
-	@echo "Running frontend server..."
-	cd frontend && npm run dev
+# Run all servers in separate iTerm2 windows (macOS)
+run-all:
+	@osascript \
+		-e 'tell application "iTerm"' \
+		-e 'activate' \
+		-e 'create window with default profile' \
+		-e 'tell current session of current window' \
+		-e 'write text "cd \"$(CURDIR)/backend\" && uv run python manage.py runserver"' \
+		-e 'end tell' \
+		-e 'create window with default profile' \
+		-e 'tell current session of current window' \
+		-e 'write text "cd \"$(CURDIR)/frontend\" && npm run dev"' \
+		-e 'end tell' \
+		-e 'create window with default profile' \
+		-e 'tell current session of current window' \
+		-e 'write text "cd \"$(HOME)/Desktop/projects/LucidTree\" && make runserver"' \
+		-e 'end tell' \
+		-e 'end tell'
 
 # Clean up generated files
 clean:
