@@ -1,5 +1,4 @@
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 import { type FC } from "react";
 import { useLocation, useParams } from "react-router-dom";
 
@@ -9,7 +8,7 @@ import howToUse from "../../../docs/how-to-use.md";
 import installation from "../../../docs/installation.md";
 import Sidebar from "../components/common/Sidebar";
 import SidebarLink from "../components/common/SidebarLink";
-import { drawerWidth } from "../constants";
+import SidebarLayout from "../components/layout/SidebarLayout";
 
 const docs: { id: string; title: string; content: FC }[] = [
     {
@@ -52,55 +51,25 @@ function Docs() {
         </Sidebar>
     );
 
-    function renderContent() {
-        const Content = docs.find((doc) => doc.id === id)?.content;
-        if (!Content) return null;
-
-        return (
-            <Box
-                component="main"
-                sx={{
-                    flexGrow: 1,
-                    overflowY: "auto",
-                    p: 3,
-                    "& .prose": {
-                        maxWidth: "none",
-                    },
-                }}
-                className="prose prose-invert"
-            >
-                <Content />
-            </Box>
-        );
-    }
+    const Content = docs.find((doc) => doc.id === id)?.content;
 
     return (
-        <Box sx={{ display: "flex" }}>
-            <Box
-                sx={{
-                    width: drawerWidth,
-                    flexShrink: 0,
-                }}
-            >
-                {sidebarContent}
-            </Box>
-            {id ? (
-                renderContent()
-            ) : (
-                <Box sx={{ p: 3 }}>
-                    <Typography variant="h4" fontWeight={500}>
-                        Welcome to the documentation page
-                    </Typography>
-                    <Typography
-                        variant="body1"
-                        color="text.secondary"
-                        sx={{ mt: 2 }}
-                    >
-                        Click on a documentation to read it.
-                    </Typography>
+        <SidebarLayout
+            sidebar={sidebarContent}
+            hasContent={!!Content}
+            welcomeTitle="Welcome to the documentation page"
+            welcomeSubtitle="Click on a documentation to read it."
+            contentSx={{
+                p: 3,
+                "& .prose": { maxWidth: "none" },
+            }}
+        >
+            {Content && (
+                <Box className="prose prose-invert">
+                    <Content />
                 </Box>
             )}
-        </Box>
+        </SidebarLayout>
     );
 }
 

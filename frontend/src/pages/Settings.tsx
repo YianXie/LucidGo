@@ -1,14 +1,13 @@
 import AnalysisConfigFields from "@/components/analysis/AnalysisConfigFields";
 import Sidebar from "@/components/common/Sidebar";
 import SidebarLink from "@/components/common/SidebarLink";
-import { DEFAULT_ANALYSIS_CONFIG, drawerWidth } from "@/constants";
+import SidebarLayout from "@/components/layout/SidebarLayout";
+import { DEFAULT_ANALYSIS_CONFIG } from "@/constants";
 import type { AnalysisConfig } from "@/types/game";
+import { getErrorMessage } from "@/utils/errorFormatting";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
-import { type AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -183,25 +182,7 @@ function Settings() {
         </Sidebar>
     );
 
-    function renderContent(): React.ReactNode | null {
-        const content = pages.find((page) => page.id === id)?.content;
-        if (!content) return null;
-
-        return content;
-    }
-
-    function getErrorMessage(err: unknown): string {
-        const error = err as AxiosError<Record<string, unknown>>;
-        if (error.response?.data) {
-            const data = error.response.data;
-            const firstKey = Object.keys(data)[0];
-            const value = data[firstKey];
-            if (Array.isArray(value)) return value[0] as string;
-            if (typeof value === "string") return value;
-            return JSON.stringify(value);
-        }
-        return "An unexpected error occurred.";
-    }
+    const selectedContent = pages.find((page) => page.id === id)?.content;
 
     async function handleUpdateUsername() {
         setLoading("username");
@@ -300,42 +281,14 @@ function Settings() {
     }
 
     return (
-        <Box sx={{ display: "flex", py: 4 }}>
-            <Box
-                sx={{
-                    width: drawerWidth,
-                    flexShrink: 0,
-                }}
-            >
-                {sidebarContent}
-            </Box>
-            {id ? (
-                <Box
-                    component="main"
-                    sx={{
-                        flexGrow: 1,
-                        minWidth: 0,
-                        overflowY: "auto",
-                        px: 3,
-                    }}
-                >
-                    {renderContent()}
-                </Box>
-            ) : (
-                <Box sx={{ flexGrow: 1, p: 3 }}>
-                    <Typography variant="h4" fontWeight={500}>
-                        Welcome to the settings page
-                    </Typography>
-                    <Typography
-                        variant="body1"
-                        color="text.secondary"
-                        sx={{ mt: 2 }}
-                    >
-                        Click on a settings to read it.
-                    </Typography>
-                </Box>
-            )}
-        </Box>
+        <SidebarLayout
+            sidebar={sidebarContent}
+            hasContent={!!selectedContent}
+            welcomeTitle="Welcome to the settings page"
+            welcomeSubtitle="Click on a settings to read it."
+        >
+            {selectedContent}
+        </SidebarLayout>
     );
 }
 
