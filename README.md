@@ -1,41 +1,34 @@
 # LucidGo
 
-LucidGo is a visual Go (Weiqi) analysis tool that allows you to see AI-powered move analysis in real-time. Built with [KataGo](https://github.com/lightvector/KataGo) as the Go engine, LucidGo provides an intuitive interface for studying and understanding Go games through AI-assisted analysis.
-
-_The new [LucidTree](https://github.com/YianXie/LucidTree) project is in work in progress!_
+LucidGo is a visual Go analysis tool that allows you to see AI-powered move analysis in real-time, with vary configurations that the users can adjust freely.
 
 ## Overview
 
-Go (Weiqi) is often referred to as abstract and difficult to understand. However, with the advancement of AI technology, such as KataGo, it has become much easier to study and play.
-
-Most people enjoy the assistance from AI but have no idea how it works and what factors affect its performance. LucidGo allows you to visually see AI, such as KataGo, make its decisions in real-time and is highly customizable to fit your needs.
+Using Go AI such as KataGo is simple, but understanding the factors that affect its performance can be abstract. LucidGo aims to solve this issue by allowing users to adjust their own analysis configurations, such as the number of simulations in Monte Carlo Tree Search and the depth in MiniMax.
 
 **Key Features:**
 
-- **Visual analysis**: Interactive Go board with real-time move analysis and win rate visualization
+- **Customizable config**: Users can set their own configuration when analyzing moves.
+- **Visual analysis**: Interactive Go board with real-time move analysis
 - **SGF file support**: Upload and analyze games from SGF (Smart Game Format) files
-- **AI-powered insights**: Leverage KataGo for deep move analysis and position evaluation
-- **Customizable interface**: Modern, responsive UI built with React and Material-UI
-- **Cloud-ready**: Optional AWS EC2 integration for GPU-accelerated analysis
+- **AI-powered insights**: Leverage [LucidTree](https://github.com/YianXie/LucidTree) for move analysis and position evaluation
+- **Intuitive design**: Modern, responsive UI built with React, Material-UI, and TailwindCSS
 
 ## Tech Stack
 
 ### Backend
 
-- Python 3.11, Django 5.2+, Django REST Framework 3.16+
-- PostgreSQL (production) and SQLite (local development)
+- Python 3.12, Django 5.2+, Django REST Framework 3.16+
 - HTTP client via `httpx` for KataGo API communication
 - SGF parsing with `sgfmill` library
 - JWT authentication with `djangorestframework-simplejwt`
 
 ### Frontend
 
-- React 19 with Vite 7 for fast development experience
+- React 18 with Vite 7 for fast development experience
 - React Router 7 for navigation
 - Material-UI 7 and Tailwind CSS 4 for styling
 - `@sabaki/go-board` for Go board rendering
-- Chart.js for win rate visualization
-- Three.js and GSAP for advanced animations
 
 ### Tooling & DevOps
 
@@ -44,47 +37,12 @@ Most people enjoy the assistance from AI but have no idea how it works and what 
 - Makefile helpers and `scripts/ci-local.sh` to mirror CI locally
 - GitHub Actions for CI/CD
 
-## Project Structure
-
-```yaml
-LucidGo/
-├── backend/                     # Django project
-│   ├── api/                     # API endpoints for analysis and game data
-│   │   ├── views.py             # AnalyzeView, GetGameDataView
-│   │   └── urls.py              # API route definitions
-│   ├── backend/                 # Django settings, URLs, WSGI/ASGI config
-│   │   ├── settings.py          # Django configuration
-│   │   └── urls.py               # Root URL configuration
-│   ├── manage.py
-│   ├── pyproject.toml           # Python tooling configuration
-│   └── requirements.txt         # Python dependencies
-├── frontend/                    # React single-page app
-│   ├── src/
-│   │   ├── components/          # UI components
-│   │   │   ├── board/           # Go board components (GameBoard, Controls, WinRate)
-│   │   │   ├── global/          # Layout components (Header, Container, Layout)
-│   │   ├── hooks/               # Custom React hooks
-│   │   ├── pages/               # Route-level screens (Home, Demo, Docs)
-│   │   ├── api.js               # API client configuration
-│   │   └── utils.js             # Utility functions
-│   ├── public/
-│   ├── package.json
-│   └── vite.config.js
-├── scripts/                     # Local CI helper scripts
-├── .github/
-│   └── workflows/               # GitHub Actions CI/CD
-├── Makefile                     # Common dev commands
-├── LICENSE
-└── README.md
-```
-
 ## Getting Started
 
 ### Prerequisites
 
-- Python 3.11
+- Python 3.12
 - Node.js 18+ (Node 20 recommended) and npm
-- (Optional) AWS EC2 instance with GPU support for KataGo analysis
 
 To verify your installation:
 
@@ -103,22 +61,21 @@ python --version && pip --version
 git clone https://github.com/YianXie/LucidGo
 cd LucidGo
 
-# Create and activate a Python virtual environment
-python -m venv env
-source env/bin/activate  # Windows: env\Scripts\activate
-
 # Install backend dependencies
 cd backend
 uv sync --dev
 
+# Activate virtual environment
+source .venv/bin/activate
+
 # Run database migrations
-uv run python manage.py migrate
+python manage.py migrate
 
 # Start the development server
-uv run python manage.py runserver
+python manage.py runserver
 ```
 
-The API listens on `http://localhost:8000`.
+The API listens on `http://localhost:8000` and `http://127.0.0.1:8000`.
 
 Create `backend/.env` following the values listed in [Environment Variables](#environment-variables) before running the server.
 
@@ -134,17 +91,6 @@ The SPA is served from `http://localhost:5173`.
 
 Create `frontend/.env.local` (or `.env`) with the keys in [Environment Variables](#environment-variables) before starting Vite.
 
-### Run Both Apps
-
-Use separate terminals for backend and frontend, or rely on the Makefile:
-
-```bash
-cd LucidGo
-make install        # installs backend + frontend deps
-```
-
-For routine development, run `python manage.py runserver` (from `backend/`) and `npm run dev` (from `frontend/`) concurrently.
-
 ## Environment Variables
 
 Create a `.env` file in `backend/`:
@@ -152,14 +98,8 @@ Create a `.env` file in `backend/`:
 ```bash
 ENVIRONMENT=""          # the environment where your backend is running, use 'development' for local dev
 SECRET_KEY=""           # your Django secret_key, can be regenerated if needed
-ALLOWED_HOSTS=""        # your domain (without https:// or http://)
-CORS_ALLOWED_ORIGINS="" # your domain (with https:// or http://)
-CSRF_TRUSTED_ORIGINS="" # your domain (with https:// or http://)
 
-# Database (only required for production)
-DB_URL=""               # PostgreSQL database URL (e.g., postgresql://user:pass@host:port/dbname)
-
-# KataGo API Configuration
+# LucidTree API Configuration
 API_ENDPOINT=""        # URL of your KataGo API server (e.g., http://your-ec2-instance:8080)
 API_TIMEOUT=300        # Timeout in seconds for API requests (default: 300)
 ```
@@ -183,6 +123,7 @@ VITE_API_URL=""        # the URL where your backend (Django REST Framework) runs
 - `make security` – run Safety and Bandit plus `npm audit`
 - `make test` – execute Django test suite
 - `make ci-local` – replicate CI pipeline locally (`scripts/ci-local.sh`)
+- `make run-all` — run all apps, including frontend, backend, and the AI
 - `make clean` – prune caches and build artifacts
 
 ## API Surface
@@ -190,23 +131,119 @@ VITE_API_URL=""        # the URL where your backend (Django REST Framework) runs
 ### Analysis
 
 - `POST /api/analyze/` – submit a move analysis request to KataGo (public)
-    - Request body: `{ "analysis_request": {...} }`
-    - Returns: KataGo analysis response with win rates and move evaluations
+    - Sample Request:
+
+        ```json
+        {
+            {
+                "rules": "japanese",
+                "komi": 6.5,
+                "to_play": "B",
+                "moves": [
+                    [
+                        "B",
+                        "Q16"
+                    ],
+                    [
+                        "W",
+                        "Q4"
+                    ],
+                    [
+                        "B",
+                        "D4"
+                    ],
+                    [
+                        "W",
+                        "D16"
+                    ]
+                ],
+                "algo": "nn",
+                "analysis_config": {
+                    "general": {
+                        "algorithm": "minimax",
+                        "rules": "japanese",
+                        "komi": 6.5,
+                        "max_time_ms": 0,
+                        "temperature": 0,
+                        "seed": 123
+                    },
+                    "neural_network": {
+                        "model": "checkpoint_19x19",
+                        "policy_softmax_temperature": 0.5,
+                        "use_value_head": true
+                    },
+                    "mcts": {
+                        "num_simulations": 250
+                    },
+                    "minimax": {
+                        "depth": 2,
+                        "use_alpha_beta": false
+                    },
+                    "output": {
+                        "include_top_moves": 5,
+                        "include_policy": false,
+                        "include_win_rate": false
+                    }
+                }
+            }
+        }
+        ```
+
+    - Sample Response:
+
+        ```json
+        {
+            "best_move": "O3",
+            "algorithm": "nn",
+            "stats": {
+                "model": "checkpoint_19x19",
+                "policy_softmax_temperature": 0.5,
+                "selected_move_probability": 0.31284284591674805,
+                "use_value_head": true,
+                "value": 0.024744708091020584,
+                "elapsed_ms": 920.17
+            }
+        }
+        ```
 
 ### Game Data
 
 - `POST /api/get-game-data/` – parse SGF file data and extract game information (public)
-    - Request body: `{ "sgf_file_data": "..." }`
-    - Returns: Parsed game data including moves, board size, komi, players, and winner
+    - Sample Request:
 
-## Current Features
+        ```txt
+        "(;RU[korean]RE[W+R]KM[6.5]PW[Player_1]PB[Player_2]SZ[19];B[pd];W[pp];B[cd];W[dp];B[qf];W[ed];B[hc];W[df];B[cf];W[cg];B[bg];W[ch];B[bf];W[qk])"
+        ```
 
-- Interactive Go board with move-by-move navigation
-- Real-time AI analysis visualization with win rate charts
-- SGF file upload and parsing
-- Move-by-move game replay with analysis
-- Responsive design with light/dark theme support
-- GPU-accelerated analysis via AWS EC2 integration
+    - Sample Response:
+
+        ```json
+        {
+            "moves": [
+                ["b", [15, 15]],
+                ["w", [3, 15]],
+                ["b", [15, 2]],
+                ["w", [3, 3]],
+                ["b", [13, 16]],
+                ["w", [15, 4]],
+                ["b", [16, 7]],
+                ["w", [13, 3]],
+                ["b", [13, 2]],
+                ["w", [12, 2]],
+                ["b", [12, 1]],
+                ["w", [11, 2]],
+                ["b", [13, 1]],
+                ["w", [8, 16]]
+            ],
+            "size": 19,
+            "komi": 6.5,
+            "players": {
+                "black": "Player_2",
+                "white": "Player_1"
+            },
+            "winner": "w"
+        }
+        ```
 
 ## Support
 
