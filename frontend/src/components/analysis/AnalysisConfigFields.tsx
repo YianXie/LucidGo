@@ -20,12 +20,12 @@ function AnalysisConfigFields({
         <ConfigSection title="Neural Network">
             <ConfigTextField
                 label="Model:"
-                value={analysisConfig.neural_network.model}
+                value={analysisConfig.nn.model}
                 onChange={(v) =>
                     onChange({
                         ...analysisConfig,
-                        neural_network: {
-                            ...analysisConfig.neural_network,
+                        nn: {
+                            ...analysisConfig.nn,
                             model: v,
                         },
                     })
@@ -34,13 +34,13 @@ function AnalysisConfigFields({
             <ConfigTextField
                 label="Policy Softmax Temperature:"
                 type="number"
-                value={analysisConfig.neural_network.policy_softmax_temperature}
+                value={analysisConfig.nn.policy_softmax_temperature}
                 inputProps={{ min: 0, max: 1, step: 0.1 }}
                 onChange={(v) =>
                     onChange({
                         ...analysisConfig,
-                        neural_network: {
-                            ...analysisConfig.neural_network,
+                        nn: {
+                            ...analysisConfig.nn,
                             policy_softmax_temperature: Number(v),
                         },
                     })
@@ -48,12 +48,12 @@ function AnalysisConfigFields({
             />
             <ConfigCheckbox
                 label="Use Value Head"
-                checked={analysisConfig.neural_network.use_value_head}
+                checked={analysisConfig.nn.use_value_head}
                 onChange={(v) =>
                     onChange({
                         ...analysisConfig,
-                        neural_network: {
-                            ...analysisConfig.neural_network,
+                        nn: {
+                            ...analysisConfig.nn,
                             use_value_head: v,
                         },
                     })

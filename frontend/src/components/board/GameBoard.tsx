@@ -3,7 +3,12 @@ import board_bg from "@/assets/images/board/board-bg.png";
 import placeStoneSound from "@/assets/sounds/board/place-stone.wav";
 import Controls from "@/components/board/Controls";
 import Upload from "@/components/common/Upload";
-import { BOARD_SIZE, GET_ANALYSIS_URL, GTP_LETTERS } from "@/constants";
+import {
+    BOARD_SIZE,
+    FIELDS_TO_MERGE,
+    GET_ANALYSIS_URL,
+    GTP_LETTERS,
+} from "@/constants";
 import {
     type AnalysisConfig,
     type AnalysisResult,
@@ -12,7 +17,7 @@ import {
     isValidMove,
 } from "@/types/game";
 import { toGTPFormat, toRowColFormat } from "@/utils";
-import { buildAnalysisApiPayload } from "@/utils/analysisRequest";
+import { buildAnalysisRequest } from "@/utils/buildAnalysisRequest";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import Link from "@mui/material/Link";
@@ -485,11 +490,9 @@ function GameBoard({
             gtpMoves.push([color, toGTPFormat(row, col)]);
         }
 
-        const request = buildAnalysisApiPayload(analysisConfig, {
-            moves: gtpMoves,
-            toPlay: AIColor,
-            gameData,
-        });
+        const request = buildAnalysisRequest(analysisConfig, gtpMoves, AIColor);
+
+        console.log(request);
 
         try {
             const response = await api.post<AnalysisResult>(

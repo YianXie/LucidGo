@@ -12,7 +12,7 @@ DEFAULT_ANALYSIS_CONFIG = {
         "temperature": 0,
         "seed": 0,
     },
-    "neural_network": {
+    "nn": {
         "model": "checkpoint_19x19",
         "policy_softmax_temperature": 0.2,
         "use_value_head": True,

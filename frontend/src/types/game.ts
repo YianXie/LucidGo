@@ -41,7 +41,7 @@ export interface AnalysisConfig {
         temperature: number;
         seed: number;
     };
-    neural_network: {
+    nn: {
         model: string;
         policy_softmax_temperature: number;
         use_value_head: boolean;

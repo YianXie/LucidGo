@@ -35,7 +35,7 @@ export const DEFAULT_ANALYSIS_CONFIG: AnalysisConfig = {
         temperature: 0,
         seed: 0,
     },
-    neural_network: {
+    nn: {
         model: "checkpoint_19x19",
         policy_softmax_temperature: 0.2,
         use_value_head: true, // whether to return the win rate or not
@@ -59,6 +59,11 @@ export const DEFAULT_ANALYSIS_CONFIG: AnalysisConfig = {
         include_win_rate: false,
     },
 };
+
+/**
+ * The fields in general that needs to be merged into the analysis params
+ */
+export const FIELDS_TO_MERGE = ["seed", "max_time_ms", "temperature"];
 
 /**
  * The width of the drawer

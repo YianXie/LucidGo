@@ -129,7 +129,7 @@ class AnalysisConfigSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 _("analysis_config must be a JSON object.")
             )
-        required_sections = {"general", "neural_network", "mcts", "minimax", "output"}
+        required_sections = {"general", "nn", "mcts", "minimax", "output"}
         missing = required_sections - set(value.keys())
         if missing:
             raise serializers.ValidationError(

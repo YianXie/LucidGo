@@ -17,7 +17,7 @@ import {
     isValidMove,
 } from "@/types/game";
 import { toGTPFormat } from "@/utils";
-import { buildAnalysisApiPayload } from "@/utils/analysisRequest";
+import { buildAnalysisRequest } from "@/utils/buildAnalysisRequest";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -170,11 +170,8 @@ function Demo() {
                     ? "W"
                     : "B";
 
-            const request = buildAnalysisApiPayload(config, {
-                moves: pastMoves,
-                toPlay,
-                gameData,
-            });
+            const request = buildAnalysisRequest(config, pastMoves, toPlay);
+            console.log(request);
 
             try {
                 const { data } = await api.post<AnalysisResult>(
