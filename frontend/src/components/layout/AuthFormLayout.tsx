@@ -52,11 +52,7 @@ function AuthFormLayout({
                     >
                         {submitLabel}
                     </Button>
-                    <Link
-                        component={RouterLink}
-                        to={linkTo}
-                        variant="body2"
-                    >
+                    <Link component={RouterLink} to={linkTo} variant="body2">
                         {linkText}
                     </Link>
                 </Box>

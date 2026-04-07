@@ -1,4 +1,4 @@
-import { drawerWidth } from "@/constants";
+import { DRAWER_WIDTH } from "@/constants";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import type { SxProps, Theme } from "@mui/material/styles";
@@ -22,7 +22,7 @@ function SidebarLayout({
         <Box sx={{ display: "flex", py: 4 }}>
             <Box
                 sx={{
-                    width: drawerWidth,
+                    width: DRAWER_WIDTH,
                     flexShrink: 0,
                 }}
             >

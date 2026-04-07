@@ -3,7 +3,7 @@ import board_bg from "@/assets/images/board/board-bg.png";
 import placeStoneSound from "@/assets/sounds/board/place-stone.wav";
 import Controls from "@/components/board/Controls";
 import Upload from "@/components/common/Upload";
-import { BOARD_SIZE, GTPLetters, getAnalysisURL } from "@/constants";
+import { BOARD_SIZE, GET_ANALYSIS_URL, GTP_LETTERS } from "@/constants";
 import {
     type AnalysisConfig,
     type AnalysisResult,
@@ -268,12 +268,12 @@ function GameBoard({
 
         for (let i = 0; i < boardSize; i++) {
             canvasContext.fillText(
-                GTPLetters[i],
+                GTP_LETTERS[i],
                 padding + margin * i,
                 canvasSize - padding / 2
             );
             canvasContext.fillText(
-                GTPLetters[i],
+                GTP_LETTERS[i],
                 padding + margin * i,
                 padding / 2
             );
@@ -493,7 +493,7 @@ function GameBoard({
 
         try {
             const response = await api.post<AnalysisResult>(
-                getAnalysisURL,
+                GET_ANALYSIS_URL,
                 request
             );
             const data = response.data;

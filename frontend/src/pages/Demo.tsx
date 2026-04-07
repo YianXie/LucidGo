@@ -3,9 +3,9 @@ import AnalysisConfigFields from "@/components/analysis/AnalysisConfigFields";
 import GameBoard from "@/components/board/GameBoard";
 import {
     BOARD_SIZE,
-    SGFSample,
-    getAnalysisURL,
-    getGameDataURL,
+    GET_ANALYSIS_URL,
+    GET_GAME_DATA_URL,
+    SGF_SAMPLE,
 } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import usePageTitle from "@/hooks/usePageTitle";
@@ -104,7 +104,7 @@ function Demo() {
             if (board.gameData && board.gameData.moves.length > 0) return;
 
             if (board.useSample) {
-                getGameData(SGFSample, i);
+                getGameData(SGF_SAMPLE, i);
             } else if (board.file) {
                 const reader = new FileReader();
                 reader.onload = (e) =>
@@ -126,7 +126,7 @@ function Demo() {
     async function getGameData(SGFContent: string, boardIndex: number) {
         updateBoard(boardIndex, { loading: true });
         try {
-            const { data } = await api.post<GameData>(getGameDataURL, {
+            const { data } = await api.post<GameData>(GET_GAME_DATA_URL, {
                 sgf_file_data: SGFContent,
             });
             if (data.size === null || data.size != BOARD_SIZE) {
@@ -178,7 +178,7 @@ function Demo() {
 
             try {
                 const { data } = await api.post<AnalysisResult>(
-                    getAnalysisURL,
+                    GET_ANALYSIS_URL,
                     request
                 );
                 return data;

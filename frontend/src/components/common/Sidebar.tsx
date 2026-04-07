@@ -3,7 +3,7 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import type { ReactNode } from "react";
 
-import { drawerWidth } from "../../constants";
+import { DRAWER_WIDTH } from "../../constants";
 
 function Sidebar({
     children,
@@ -19,7 +19,7 @@ function Sidebar({
                 position: "sticky",
                 top: 0,
                 height: "100vh",
-                width: drawerWidth,
+                width: DRAWER_WIDTH,
                 flexShrink: 0,
                 borderRight: 1,
                 borderColor: "divider",
