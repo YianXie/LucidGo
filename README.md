@@ -396,8 +396,8 @@ VITE_API_URL=""        # the URL where your backend (Django REST Framework) runs
 
 - `POST /api/get-game-data/` – parse SGF file data and extract game information (public)
 
-          <details>
-          <summary>Sample Request</summary>
+    <details>
+    <summary>Sample Request</summary>
 
     ```txt
     "(;RU[korean]RE[W+R]KM[6.5]PW[Player_1]PB[Player_2]SZ[19];B[pd];W[pp];B[cd];W[dp];B[qf];W[ed];B[hc];W[df];B[cf];W[cg];B[bg];W[ch];B[bf];W[qk])"
