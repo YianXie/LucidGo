@@ -33,7 +33,6 @@ function Settings() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // console.log("defaultAnalysisConfig", defaultAnalysisConfig);
         setAnalysisConfig(defaultAnalysisConfig);
     }, [defaultAnalysisConfig]);
 

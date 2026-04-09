@@ -1,10 +1,11 @@
 from typing import Any
 
-from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.request import Request
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework import status  # type: ignore
+from rest_framework.permissions import (AllowAny,  # type: ignore
+                                        IsAuthenticated)
+from rest_framework.request import Request  # type: ignore
+from rest_framework.response import Response  # type: ignore
+from rest_framework.views import APIView  # type: ignore
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import UserSettings

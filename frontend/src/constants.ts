@@ -38,25 +38,25 @@ export const DEFAULT_ANALYSIS_CONFIG: AnalysisConfig = {
     nn: {
         model: "checkpoint_19x19",
         policy_softmax_temperature: 0.2,
-        use_value_head: true, // whether to return the win rate or not
     },
     mcts: {
         num_simulations: 500,
         c_puct: 1.5,
-        dirichlet_alpha: 0.3,
+        dirichlet_alpha: 0.03,
         dirichlet_epsilon: 0.25,
         value_weight: 1.0,
         policy_weight: 1.0,
         select_by: "visit_count",
     },
     minimax: {
-        depth: 3,
+        depth: 2,
         use_alpha_beta: true,
     },
     output: {
         include_top_moves: 5,
-        include_policy: false,
-        include_win_rate: false,
+        include_policy: true,
+        include_winrate: true,
+        include_visits: true,
     },
 };
 

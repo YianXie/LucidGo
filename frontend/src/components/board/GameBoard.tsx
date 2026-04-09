@@ -338,7 +338,7 @@ function GameBoard({
         const analysisIndex = currentMove ?? 0;
         if (analysisData && analysisData[analysisIndex]) {
             const data = analysisData[analysisIndex];
-            const [row, col] = toRowColFormat(data.best_move);
+            const [row, col] = toRowColFormat(data.top_moves[0].move);
             const color = `rgba(255, 0, 0, 0.5)`;
             drawStone(canvasContext, row, col, color, true);
         }
@@ -491,16 +491,12 @@ function GameBoard({
         }
 
         const request = buildAnalysisRequest(analysisConfig, gtpMoves, AIColor);
-
-        console.log(request);
-
         try {
-            const response = await api.post<AnalysisResult>(
+            const { data } = await api.post<AnalysisResult>(
                 GET_ANALYSIS_URL,
                 request
             );
-            const data = response.data;
-            const [row, col] = toRowColFormat(data.best_move);
+            const [row, col] = toRowColFormat(data.top_moves[0].move);
             return [AIColor, [row, col]];
         } catch (error) {
             console.error("Error while getting AI move:", error);

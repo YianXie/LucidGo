@@ -44,7 +44,6 @@ export interface AnalysisConfig {
     nn: {
         model: string;
         policy_softmax_temperature: number;
-        use_value_head: boolean;
     };
     mcts: {
         num_simulations: number;
@@ -62,12 +61,19 @@ export interface AnalysisConfig {
     output: {
         include_top_moves: number;
         include_policy: boolean;
-        include_win_rate: boolean;
+        include_winrate: boolean;
+        include_visits: boolean;
     };
 }
 
 /** One analyze API response entry (shape may grow with the backend). */
 export interface AnalysisResult {
-    best_move: string;
+    algo: string;
+    top_moves: {
+        move: string;
+        policy?: number;
+        winrate?: number;
+        visits?: number;
+    }[];
     [key: string]: unknown;
 }

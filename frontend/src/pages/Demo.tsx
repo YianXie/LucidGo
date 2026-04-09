@@ -171,8 +171,6 @@ function Demo() {
                     : "B";
 
             const request = buildAnalysisRequest(config, pastMoves, toPlay);
-            console.log(request);
-
             try {
                 const { data } = await api.post<AnalysisResult>(
                     GET_ANALYSIS_URL,

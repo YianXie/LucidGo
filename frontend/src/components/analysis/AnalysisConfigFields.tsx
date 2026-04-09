@@ -46,19 +46,6 @@ function AnalysisConfigFields({
                     })
                 }
             />
-            <ConfigCheckbox
-                label="Use Value Head"
-                checked={analysisConfig.nn.use_value_head}
-                onChange={(v) =>
-                    onChange({
-                        ...analysisConfig,
-                        nn: {
-                            ...analysisConfig.nn,
-                            use_value_head: v,
-                        },
-                    })
-                }
-            />
         </ConfigSection>
     );
 
@@ -97,7 +84,7 @@ function AnalysisConfigFields({
                 label="Dirichlet Alpha:"
                 type="number"
                 value={analysisConfig.mcts.dirichlet_alpha}
-                inputProps={{ min: 0, max: 1, step: 0.1 }}
+                inputProps={{ min: 0, max: 0.5, step: 0.01 }}
                 onChange={(v) =>
                     onChange({
                         ...analysisConfig,
@@ -349,18 +336,31 @@ function AnalysisConfigFields({
                 />
                 <ConfigCheckbox
                     label="Include Win Rate"
-                    checked={analysisConfig.output.include_win_rate}
+                    checked={analysisConfig.output.include_winrate}
                     onChange={(v) =>
                         onChange({
                             ...analysisConfig,
                             output: {
                                 ...analysisConfig.output,
-                                include_win_rate: v,
+                                include_winrate: v,
                             },
                         })
                     }
                 />
             </ConfigSection>
+            <ConfigCheckbox
+                label="Include Visits"
+                checked={analysisConfig.output.include_visits}
+                onChange={(v) =>
+                    onChange({
+                        ...analysisConfig,
+                        output: {
+                            ...analysisConfig.output,
+                            include_visits: v,
+                        },
+                    })
+                }
+            />
         </Box>
     );
 }

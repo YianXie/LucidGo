@@ -3,8 +3,8 @@ from typing import Any
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext_lazy as _
-from rest_framework import serializers
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework import serializers  # type: ignore
+from rest_framework.exceptions import AuthenticationFailed  # type: ignore
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import UserSettings
@@ -37,7 +37,7 @@ class RegisterSerializer(serializers.Serializer):
         return attrs
 
     def create(self, validated_data: dict[str, Any]) -> Any:
-        user = User.objects.create_user(
+        user = User.objects.create_user(  # type: ignore
             username=validated_data["username"],
             email=validated_data["email"],
             password=validated_data["password"],
