@@ -16,7 +16,7 @@ import {
     type GameMove,
     isValidMove,
 } from "@/types/game";
-import { toGTPFormat, toRowColFormat } from "@/utils";
+import { parseGtpBoardPoint, toGTPFormat, toRowColFormat } from "@/utils";
 import { buildAnalysisRequest } from "@/utils/buildAnalysisRequest";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -24,6 +24,14 @@ import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import Board from "@sabaki/go-board";
 import { useEffect, useRef, useState } from "react";
+
+type TopMoveEntry = AnalysisResult["top_moves"][number];
+
+/** Display API winrate: values in [0, 1] are shown as percent; otherwise as-is. */
+function formatAnalysisWinrate(winrate: number): string {
+    // NOTE: the winrate for each top moves refers to the winrate of the opponent after the next player has played the move
+    return `${(((-winrate + 1) / 2) * 100).toFixed(1)}%`;
+}
 
 const placeStoneSoundInstance = new Audio(placeStoneSound);
 
@@ -336,11 +344,44 @@ function GameBoard({
         drawStones(canvasContext);
 
         const analysisIndex = currentMove ?? 0;
-        if (analysisData && analysisData[analysisIndex]) {
-            const data = analysisData[analysisIndex];
-            const [row, col] = toRowColFormat(data.top_moves[0].move);
-            const color = `rgba(255, 0, 0, 0.5)`;
-            drawStone(canvasContext, row, col, color, true);
+        const slice = analysisData?.[analysisIndex];
+        if (slice?.top_moves?.length) {
+            const ordered = slice.top_moves
+                .map((entry) => {
+                    const pt = parseGtpBoardPoint(entry.move);
+                    return pt ? { entry, row: pt[0], col: pt[1] } : null;
+                })
+                .filter(
+                    (
+                        x
+                    ): x is { entry: TopMoveEntry; row: number; col: number } =>
+                        x !== null
+                );
+
+            const board = gameRef.current;
+            for (const [index, { entry, row, col }] of ordered.entries()) {
+                const sign = board.get([row, col]);
+                if (sign !== 0 && sign != null) continue;
+
+                const fill = `rgba(255, 0, 0, ${Math.max(0.3, 1 / (index + 1))})`;
+                const [cx, cy] = boardToCanvasCoords(row, col);
+                canvasContext.beginPath();
+                canvasContext.arc(cx, cy, stoneRadius - 2, 0, 2 * Math.PI);
+                canvasContext.fillStyle = fill;
+                canvasContext.fill();
+
+                if (entry.winrate != null) {
+                    const label = formatAnalysisWinrate(entry.winrate);
+                    canvasContext.font = "bold 11px Arial";
+                    canvasContext.textBaseline = "middle";
+                    canvasContext.textAlign = "center";
+                    canvasContext.lineWidth = 3;
+                    canvasContext.strokeStyle = "rgba(0,0,0,0.65)";
+                    canvasContext.strokeText(label, cx, cy);
+                    canvasContext.fillStyle = "#fff";
+                    canvasContext.fillText(label, cx, cy);
+                }
+            }
         }
     };
 
@@ -386,9 +427,7 @@ function GameBoard({
         col: number,
         color: string,
         stroke = true,
-        highlight = false,
-        text: string | null = null,
-        textColor = "white"
+        highlight = false
     ) => {
         canvasContext.fillStyle = color;
         canvasContext.beginPath();
@@ -410,14 +449,6 @@ function GameBoard({
             canvasContext.fillStyle = "red";
             canvasContext.fill();
             canvasContext.closePath();
-        }
-
-        if (text) {
-            canvasContext.font = "12px Arial";
-            canvasContext.textBaseline = "middle";
-            canvasContext.textAlign = "center";
-            canvasContext.fillStyle = textColor;
-            canvasContext.fillText(text, canvasX, canvasY);
         }
     };
 

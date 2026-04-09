@@ -1,8 +1,8 @@
 from typing import Any
 
 from rest_framework import status  # type: ignore
-from rest_framework.permissions import (AllowAny,  # type: ignore
-                                        IsAuthenticated)
+from rest_framework.permissions import AllowAny  # type: ignore
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request  # type: ignore
 from rest_framework.response import Response  # type: ignore
 from rest_framework.views import APIView  # type: ignore

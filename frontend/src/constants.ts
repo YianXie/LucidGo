@@ -1,4 +1,4 @@
-import type { AnalysisConfig } from "./types/game";
+import type { AnalysisConfig, MoveCoords } from "./types/game";
 
 /**
  * The size of the board
@@ -9,6 +9,11 @@ export const BOARD_SIZE = 19;
  * All the 19 letters in the GTP coords system (exclude 'i')
  */
 export const GTP_LETTERS = "ABCDEFGHJKLMNOPQRST";
+
+/**
+ * The row and column of a pass move
+ */
+export const PASS_MOVE_ROW_COL: MoveCoords = [-1, -1];
 
 /**
  * A sample SGF file content
