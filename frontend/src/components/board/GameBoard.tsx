@@ -3,12 +3,7 @@ import board_bg from "@/assets/images/board/board-bg.png";
 import placeStoneSound from "@/assets/sounds/board/place-stone.wav";
 import Controls from "@/components/board/Controls";
 import Upload from "@/components/common/Upload";
-import {
-    BOARD_SIZE,
-    FIELDS_TO_MERGE,
-    GET_ANALYSIS_URL,
-    GTP_LETTERS,
-} from "@/constants";
+import { BOARD_SIZE, GET_ANALYSIS_URL, GTP_LETTERS } from "@/constants";
 import {
     type AnalysisConfig,
     type AnalysisResult,
@@ -46,7 +41,8 @@ function GameBoard({
     useSample,
     onUseSampleChange,
     analysisConfig,
-    onOpenAnalysisSettings,
+    allowPass,
+    onPassMove,
     onAnalyzeWithAI,
     onViewSample,
     onPlayWithAI,
@@ -62,7 +58,8 @@ function GameBoard({
     onUseSampleChange: (useSample: boolean) => void;
     currentMove: number | null;
     analysisConfig: AnalysisConfig;
-    onOpenAnalysisSettings: () => void;
+    allowPass: boolean;
+    onPassMove: () => void;
     onAnalyzeWithAI: () => void;
     onCurrentMoveChange: (move: number) => void;
     onPlayWithAI: () => void;
@@ -680,7 +677,8 @@ function GameBoard({
                 currentMove={currentMove}
                 onMoveChange={onCurrentMoveChange}
                 handleAnalyzeWithAI={onAnalyzeWithAI}
-                onOpenAnalysisSettings={onOpenAnalysisSettings}
+                allowPass={allowPass}
+                onPassMove={onPassMove}
             />
         </Box>
     );

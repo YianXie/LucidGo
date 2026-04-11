@@ -1,8 +1,8 @@
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import BackHandIcon from "@mui/icons-material/BackHand";
 import FastForwardIcon from "@mui/icons-material/FastForward";
 import FastRewindIcon from "@mui/icons-material/FastRewind";
-import SettingsIcon from "@mui/icons-material/Settings";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
 import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
@@ -20,14 +20,16 @@ function Controls({
     currentMove,
     onMoveChange,
     handleAnalyzeWithAI,
-    onOpenAnalysisSettings,
+    allowPass,
+    onPassMove,
 }: {
     maxMove: number;
     disabled: boolean;
     currentMove: number | null;
     onMoveChange: (move: number) => void;
     handleAnalyzeWithAI: () => void;
-    onOpenAnalysisSettings: () => void;
+    allowPass: boolean;
+    onPassMove: () => void;
 }) {
     const fastForwardAmount = 5;
 
@@ -121,13 +123,14 @@ function Controls({
                 />
             </Stack>
 
-            <Tooltip title="Show settings" arrow placement="top">
+            <Tooltip title="Pass the move" arrow placement="top">
                 <IconButton
-                    aria-label="Show settings"
+                    aria-label="Pass the move"
                     size="small"
-                    onClick={onOpenAnalysisSettings}
+                    disabled={!allowPass}
+                    onClick={onPassMove}
                 >
-                    <SettingsIcon />
+                    <BackHandIcon />
                 </IconButton>
             </Tooltip>
         </Paper>

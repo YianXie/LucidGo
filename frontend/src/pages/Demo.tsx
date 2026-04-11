@@ -21,15 +21,14 @@ import { buildAnalysisRequest } from "@/utils/buildAnalysisRequest";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
+import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
+import Typography from "@mui/material/Typography";
 import { useCallback, useEffect, useRef, useState } from "react";
+import Draggable from "react-draggable";
 import { toast } from "react-toastify";
 
 const defaultBoard = (analysisConfig: AnalysisConfig): BoardState => ({
@@ -65,8 +64,7 @@ function Demo() {
         null
     );
 
-    const [analysisSettingsBoardIndex, setAnalysisSettingsBoardIndex] =
-        useState<number | null>(null);
+    const [settingsBoardIndex, setSettingsBoardIndex] = useState(0);
     const [draftAnalysisConfig, setDraftAnalysisConfig] =
         useState<AnalysisConfig>(defaultAnalysisConfig);
 
@@ -92,6 +90,23 @@ function Demo() {
             return [defaultBoard(defaultAnalysisConfig)];
         });
     }, [defaultAnalysisConfig]);
+
+    useEffect(() => {
+        setSettingsBoardIndex((idx) => {
+            if (boards.length === 0) return 0;
+            return Math.min(idx, boards.length - 1);
+        });
+    }, [boards.length]);
+
+    useEffect(() => {
+        const board = boards[settingsBoardIndex];
+        if (board) {
+            setDraftAnalysisConfig(structuredClone(board.analysisConfig));
+        }
+        // Reload draft when switching boards or when auth default config changes (pristine board reset).
+        // Omit `boards` to avoid resetting while editing when unrelated board state updates.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [settingsBoardIndex, defaultAnalysisConfig]);
 
     // Read file / sample content when a board's source changes.
     const fileSignature = boards
@@ -223,20 +238,17 @@ function Demo() {
         [analyzeMove]
     );
 
-    const openAnalysisSettings = (boardIndex: number) => {
-        const board = boards[boardIndex];
-        if (!board) return;
-        setDraftAnalysisConfig(structuredClone(board.analysisConfig));
-        setAnalysisSettingsBoardIndex(boardIndex);
-    };
-
-    const closeAnalysisSettings = () => {
-        setAnalysisSettingsBoardIndex(null);
+    const resetAnalysisSettingsDraft = () => {
+        const board = boards[settingsBoardIndex];
+        if (board) {
+            setDraftAnalysisConfig(structuredClone(board.analysisConfig));
+        }
     };
 
     const applyAnalysisSettings = () => {
-        if (analysisSettingsBoardIndex === null) return;
-        const idx = analysisSettingsBoardIndex;
+        const idx = settingsBoardIndex;
+        const board = boards[idx];
+        if (!board) return;
         const next = structuredClone(draftAnalysisConfig);
 
         setBoards((prev) => {
@@ -251,7 +263,6 @@ function Demo() {
             }
             return updated;
         });
-        setAnalysisSettingsBoardIndex(null);
     };
 
     const requestDeleteBoard = (boardIndex: number) => {
@@ -283,195 +294,275 @@ function Demo() {
         <Box
             sx={{
                 display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 4,
-                py: 4,
+                flexDirection: { xs: "column", md: "row" },
+                alignItems: "stretch",
+                gap: 0,
+                width: "100%",
                 minHeight: "calc(100vh - 100px)",
             }}
         >
             <Box
                 sx={{
+                    flex: 1,
+                    minWidth: 0,
                     display: "flex",
                     flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "flex-start",
                     gap: 4,
-                    "@keyframes boardDeleteExit": {
-                        from: {
-                            transform: "scale(1)",
-                            opacity: 1,
-                            filter: "brightness(1)",
-                        },
-                        to: {
-                            transform: "scale(0.22)",
-                            opacity: 0,
-                            filter: "brightness(0.2)",
-                        },
-                    },
-                    "@keyframes boardCreate": {
-                        from: {
-                            transform: "scale(0.22)",
-                            opacity: 0,
-                            filter: "brightness(0.2)",
-                        },
-                        to: {
-                            transform: "scale(1)",
-                            opacity: 1,
-                            filter: "brightness(1)",
-                        },
-                    },
+                    py: 4,
+                    px: 2,
                 }}
             >
-                {boards.map((board, i) => (
-                    <Box
-                        key={i}
-                        sx={{
-                            transformOrigin: "center center",
-                            willChange: "transform",
-                            ...(deletingBoardIndex === i && {
-                                animation: `boardDeleteExit ${ANIMATION_MS}ms ease-in forwards`,
-                                pointerEvents: "none",
-                            }),
-                            ...(creatingBoardIndex === i && {
-                                animation: `boardCreate ${ANIMATION_MS}ms ease-out forwards`,
-                                pointerEvents: "none",
-                            }),
-                        }}
-                    >
-                        <Stack gap={1}>
-                            <Stack
-                                direction="row"
-                                justifyContent="space-between"
-                                alignItems="center"
-                            >
-                                <TextField
-                                    variant="standard"
-                                    value={board.name ?? `Board ${i + 1}`}
-                                    onChange={(event) =>
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 4,
+                        "@keyframes boardDeleteExit": {
+                            from: {
+                                transform: "scale(1)",
+                                opacity: 1,
+                                filter: "brightness(1)",
+                            },
+                            to: {
+                                transform: "scale(0.22)",
+                                opacity: 0,
+                                filter: "brightness(0.2)",
+                            },
+                        },
+                        "@keyframes boardCreate": {
+                            from: {
+                                transform: "scale(0.22)",
+                                opacity: 0,
+                                filter: "brightness(0.2)",
+                            },
+                            to: {
+                                transform: "scale(1)",
+                                opacity: 1,
+                                filter: "brightness(1)",
+                            },
+                        },
+                    }}
+                >
+                    {boards.map((board, i) => (
+                        <Stack
+                            key={i}
+                            gap={1}
+                            direction="row"
+                            alignItems="center"
+                            justifyContent="center"
+                            sx={{
+                                position: "relative",
+                                width: "100vw",
+                                transformOrigin: "center center",
+                                willChange: "transform",
+                                ...(deletingBoardIndex === i && {
+                                    animation: `boardDeleteExit ${ANIMATION_MS}ms ease-in forwards`,
+                                    pointerEvents: "none",
+                                }),
+                                ...(creatingBoardIndex === i && {
+                                    animation: `boardCreate ${ANIMATION_MS}ms ease-out forwards`,
+                                    pointerEvents: "none",
+                                }),
+                            }}
+                        >
+                            <Box>
+                                <Stack
+                                    direction="row"
+                                    justifyContent="space-between"
+                                    alignItems="center"
+                                >
+                                    <TextField
+                                        variant="standard"
+                                        value={board.name ?? `Board ${i + 1}`}
+                                        onChange={(event) =>
+                                            updateBoard(i, {
+                                                name: event.target.value,
+                                            })
+                                        }
+                                        sx={{
+                                            "& .MuiInput-underline:before": {
+                                                borderBottom: "none",
+                                            },
+                                            "& .MuiInput-underline:hover:not(.Mui-disabled):before":
+                                                {
+                                                    borderBottom:
+                                                        "1px solid rgba(0, 0, 0, 0.87)",
+                                                },
+                                        }}
+                                    />
+                                    <Tooltip title="Delete board" arrow>
+                                        <IconButton
+                                            onClick={() =>
+                                                requestDeleteBoard(i)
+                                            }
+                                            sx={{
+                                                color: "error.main",
+                                                "&:hover": {
+                                                    backgroundColor:
+                                                        "#ff000010",
+                                                },
+                                            }}
+                                            disabled={
+                                                boards.length === 1 ||
+                                                deletingBoardIndex !== null ||
+                                                creatingBoardIndex !== null
+                                            }
+                                        >
+                                            <DeleteIcon color="inherit" />
+                                        </IconButton>
+                                    </Tooltip>
+                                </Stack>
+                                <GameBoard
+                                    key={i}
+                                    analysisData={board.analysisData}
+                                    isLoading={board.loading}
+                                    loadedValue={board.loadedValue}
+                                    useAI={board.useAI}
+                                    gameData={board.gameData}
+                                    currentMove={board.currentMove}
+                                    onCurrentMoveChange={(move) =>
                                         updateBoard(i, {
-                                            name: event.target.value,
+                                            currentMove: move,
                                         })
                                     }
-                                    sx={{
-                                        "& .MuiInput-underline:before": {
-                                            borderBottom: "none",
-                                        },
-                                        "& .MuiInput-underline:hover:not(.Mui-disabled):before":
-                                            {
-                                                borderBottom:
-                                                    "1px solid rgba(0, 0, 0, 0.87)",
-                                            },
-                                    }}
-                                />
-                                <Tooltip title="Delete board" arrow>
-                                    <IconButton
-                                        onClick={() => requestDeleteBoard(i)}
-                                        sx={{
-                                            color: "error.main",
-                                            "&:hover": {
-                                                backgroundColor: "#ff000010",
-                                            },
-                                        }}
-                                        disabled={
-                                            boards.length === 1 ||
-                                            deletingBoardIndex !== null ||
-                                            creatingBoardIndex !== null
-                                        }
-                                    >
-                                        <DeleteIcon color="inherit" />
-                                    </IconButton>
-                                </Tooltip>
-                            </Stack>
-                            <GameBoard
-                                key={i}
-                                analysisData={board.analysisData}
-                                isLoading={board.loading}
-                                loadedValue={board.loadedValue}
-                                useAI={board.useAI}
-                                gameData={board.gameData}
-                                currentMove={board.currentMove}
-                                onCurrentMoveChange={(move) =>
-                                    updateBoard(i, { currentMove: move })
-                                }
-                                useSample={board.useSample}
-                                onUseSampleChange={(useSample) =>
-                                    updateBoard(i, { useSample })
-                                }
-                                analysisConfig={board.analysisConfig}
-                                onOpenAnalysisSettings={() =>
-                                    openAnalysisSettings(i)
-                                }
-                                onViewSample={() =>
-                                    updateBoard(i, { useSample: true })
-                                }
-                                onPlayWithAI={() =>
-                                    updateBoard(i, {
-                                        gameData: {
-                                            komi: 6.5,
-                                            moves: [],
-                                            size: 19,
-                                            players: {
-                                                black: "Black",
-                                                white: "White",
-                                            },
-                                            winner: "Unknown",
-                                        },
-                                        currentMove: 0,
-                                        useAI: true,
-                                    })
-                                }
-                                onAnalyzeWithAI={() => {
-                                    const gd = board.gameData;
-                                    if (gd) {
-                                        void analyzeAllMoves(
-                                            i,
-                                            gd,
-                                            board.analysisConfig
-                                        );
+                                    useSample={board.useSample}
+                                    onUseSampleChange={(useSample) =>
+                                        updateBoard(i, { useSample })
                                     }
-                                }}
-                                onFileChange={(file) =>
-                                    updateBoard(i, { file })
-                                }
-                            />
+                                    analysisConfig={board.analysisConfig}
+                                    allowPass={true}
+                                    onPassMove={() => alert("WIP")}
+                                    onViewSample={() =>
+                                        updateBoard(i, { useSample: true })
+                                    }
+                                    onPlayWithAI={() =>
+                                        updateBoard(i, {
+                                            gameData: {
+                                                komi: 6.5,
+                                                moves: [],
+                                                size: 19,
+                                                players: {
+                                                    black: "Black",
+                                                    white: "White",
+                                                },
+                                                winner: "Unknown",
+                                            },
+                                            currentMove: 0,
+                                            useAI: true,
+                                        })
+                                    }
+                                    onAnalyzeWithAI={() => {
+                                        const gd = board.gameData;
+                                        if (gd) {
+                                            void analyzeAllMoves(
+                                                i,
+                                                gd,
+                                                board.analysisConfig
+                                            );
+                                        }
+                                    }}
+                                    onFileChange={(file) =>
+                                        updateBoard(i, { file })
+                                    }
+                                />
+                            </Box>
+                            <Draggable bounds="parent">
+                                <Paper
+                                    elevation={1}
+                                    square
+                                    sx={{
+                                        width: { xs: "100%", md: 400 },
+                                        maxWidth: "100%",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        maxHeight: {
+                                            xs: "none",
+                                            md: "calc(100vh - 100px)",
+                                        },
+                                        cursor: "grab",
+                                        "&:active": {
+                                            cursor: "grabbing",
+                                        },
+                                        zIndex: 1500,
+                                    }}
+                                >
+                                    <Box
+                                        sx={{
+                                            px: 2,
+                                            pt: 2,
+                                            pb: 1,
+                                            borderBottom: 1,
+                                            borderColor: "divider",
+                                        }}
+                                    >
+                                        <Typography variant="h6" component="h2">
+                                            Analysis settings
+                                        </Typography>
+                                        <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                            sx={{ mt: 0.5 }}
+                                        >
+                                            Board {i + 1}
+                                        </Typography>
+                                    </Box>
+                                    <Box
+                                        sx={{
+                                            flex: 1,
+                                            overflow: "auto",
+                                            px: 2,
+                                            py: 2,
+                                        }}
+                                    >
+                                        <AnalysisConfigFields
+                                            analysisConfig={draftAnalysisConfig}
+                                            onChange={setDraftAnalysisConfig}
+                                        />
+                                    </Box>
+                                    <Stack
+                                        direction="row"
+                                        justifyContent="flex-end"
+                                        spacing={1}
+                                        sx={{
+                                            px: 2,
+                                            py: 2,
+                                            borderTop: 1,
+                                            borderColor: "divider",
+                                        }}
+                                    >
+                                        <Button
+                                            onClick={resetAnalysisSettingsDraft}
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            variant="contained"
+                                            onClick={applyAnalysisSettings}
+                                        >
+                                            Apply
+                                        </Button>
+                                    </Stack>
+                                </Paper>
+                            </Draggable>
                         </Stack>
-                    </Box>
-                ))}
+                    ))}
+                </Box>
+                <Button
+                    variant="outlined"
+                    sx={{
+                        borderColor: "divider",
+                    }}
+                    onClick={requestCreateBoard}
+                    disabled={
+                        deletingBoardIndex !== null ||
+                        creatingBoardIndex !== null
+                    }
+                >
+                    Add Board
+                </Button>
             </Box>
-            <Button
-                variant="outlined"
-                sx={{
-                    borderColor: "divider",
-                }}
-                onClick={requestCreateBoard}
-                disabled={
-                    deletingBoardIndex !== null || creatingBoardIndex !== null
-                }
-            >
-                Add Board
-            </Button>
-
-            <Dialog
-                open={analysisSettingsBoardIndex !== null}
-                onClose={closeAnalysisSettings}
-                maxWidth="md"
-                fullWidth
-                scroll="paper"
-            >
-                <DialogTitle>Analysis settings</DialogTitle>
-                <DialogContent dividers>
-                    <AnalysisConfigFields
-                        analysisConfig={draftAnalysisConfig}
-                        onChange={setDraftAnalysisConfig}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={closeAnalysisSettings}>Cancel</Button>
-                    <Button variant="contained" onClick={applyAnalysisSettings}>
-                        Apply
-                    </Button>
-                </DialogActions>
-            </Dialog>
         </Box>
     );
 }

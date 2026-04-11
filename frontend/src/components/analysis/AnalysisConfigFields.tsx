@@ -261,8 +261,8 @@ function AnalysisConfigFields({
                     tooltip="Note: 0 means no time limit"
                     value={analysisConfig.general.max_time_ms}
                     min={0}
-                    max={60000}
-                    step={250}
+                    max={1000}
+                    step={100}
                     ariaLabel="max-time-ms"
                     onChange={(v) =>
                         onChange({
