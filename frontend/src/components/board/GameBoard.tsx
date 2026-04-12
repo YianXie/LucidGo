@@ -42,7 +42,6 @@ function GameBoard({
     onUseSampleChange,
     analysisConfig,
     allowPass,
-    onPassMove,
     onAnalyzeWithAI,
     onViewSample,
     onPlayWithAI,
@@ -59,7 +58,6 @@ function GameBoard({
     currentMove: number | null;
     analysisConfig: AnalysisConfig;
     allowPass: boolean;
-    onPassMove: () => void;
     onAnalyzeWithAI: () => void;
     onCurrentMoveChange: (move: number) => void;
     onPlayWithAI: () => void;
@@ -164,7 +162,7 @@ function GameBoard({
             setToPlay("B");
         } else {
             const last = replayMoves[cm - 1];
-            if (last && isValidMove(last)) {
+            if (last) {
                 setToPlay(last[0].toUpperCase() === "B" ? "W" : "B");
             }
         }
@@ -532,6 +530,25 @@ function GameBoard({
         }
     };
 
+    const handlePassMove = () => {
+        if (toPlayRef.current !== userColor) return;
+        const passMove: GameMove = [userColor, null];
+        const nextMoves = [...movesRef.current, passMove];
+        movesRef.current = nextMoves;
+        setMoves(nextMoves);
+        onCurrentMoveChange(nextMoves.length);
+
+        getAIMove(nextMoves)
+            .then((aiMove) => {
+                if (aiMove) {
+                    tryPlayMove(aiMove);
+                }
+            })
+            .catch((error) => {
+                console.error("Error while getting AI move after pass:", error);
+            });
+    };
+
     hoverRef.current = handleHover;
     clickRef.current = handleClick;
 
@@ -673,12 +690,13 @@ function GameBoard({
             />
             <Controls
                 maxMove={moves.length}
-                disabled={useAI}
                 currentMove={currentMove}
+                allowMoveChange={!useAI && moves.length > 0}
                 onMoveChange={onCurrentMoveChange}
-                handleAnalyzeWithAI={onAnalyzeWithAI}
-                allowPass={allowPass}
-                onPassMove={onPassMove}
+                allowAnalyzeWithAI={!useAI && moves.length > 0}
+                onAnalyzeWithAI={onAnalyzeWithAI}
+                allowPass={allowPass && useAI && toPlay === userColor}
+                onPassMove={handlePassMove}
             />
         </Box>
     );

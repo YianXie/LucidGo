@@ -12,32 +12,32 @@ import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 
+import { FAST_FORWARD_AMOUNT } from "../../constants";
 import ControlMoveButton from "./ControlMoveButton";
 
 function Controls({
     maxMove,
-    disabled,
     currentMove,
+    allowMoveChange,
     onMoveChange,
-    handleAnalyzeWithAI,
+    allowAnalyzeWithAI,
+    onAnalyzeWithAI,
     allowPass,
     onPassMove,
 }: {
     maxMove: number;
-    disabled: boolean;
     currentMove: number | null;
+    allowMoveChange: boolean;
     onMoveChange: (move: number) => void;
-    handleAnalyzeWithAI: () => void;
+    allowAnalyzeWithAI: boolean;
+    onAnalyzeWithAI: () => void;
     allowPass: boolean;
     onPassMove: () => void;
 }) {
-    const fastForwardAmount = 5;
-
     const handleMove = (amount: number) => {
         const next = (currentMove ?? 0) + amount;
         onMoveChange(Math.max(0, Math.min(next, maxMove)));
     };
-
     const moveIndex = currentMove ?? 0;
 
     return (
@@ -50,18 +50,19 @@ function Controls({
                 p: 1,
                 borderRadius: "0 0 12px 12px",
                 flexWrap: "wrap",
-                opacity: disabled ? 0.5 : 1,
-                pointerEvents: disabled ? "none" : "auto",
             }}
         >
             <Tooltip title="Analyze with AI" arrow placement="top">
-                <IconButton
-                    aria-label="Analyze with AI"
-                    size="small"
-                    onClick={handleAnalyzeWithAI}
-                >
-                    <SmartToyIcon />
-                </IconButton>
+                <span>
+                    <IconButton
+                        aria-label="Analyze with AI"
+                        size="small"
+                        disabled={!allowAnalyzeWithAI}
+                        onClick={onAnalyzeWithAI}
+                    >
+                        <SmartToyIcon />
+                    </IconButton>
+                </span>
             </Tooltip>
 
             <Stack direction="row" spacing={0.5} sx={{ ml: "auto" }}>
@@ -70,21 +71,21 @@ function Controls({
                     icon={<SkipPreviousIcon />}
                     label="Move to the beginning"
                     handleMove={handleMove}
-                    disabled={moveIndex <= 0}
+                    disabled={moveIndex <= 0 || !allowMoveChange}
                 />
                 <ControlMoveButton
-                    amount={-fastForwardAmount}
+                    amount={-FAST_FORWARD_AMOUNT}
                     icon={<FastRewindIcon />}
-                    label={`Rewind ${fastForwardAmount} moves`}
+                    label={`Rewind ${FAST_FORWARD_AMOUNT} moves`}
                     handleMove={handleMove}
-                    disabled={moveIndex <= 0}
+                    disabled={moveIndex <= 0 || !allowMoveChange}
                 />
                 <ControlMoveButton
                     amount={-1}
                     icon={<ArrowBackIosIcon />}
                     label="Move backward 1 move"
                     handleMove={handleMove}
-                    disabled={moveIndex <= 0}
+                    disabled={moveIndex <= 0 || !allowMoveChange}
                 />
             </Stack>
 
@@ -105,33 +106,35 @@ function Controls({
                     icon={<ArrowForwardIosIcon fontSize="small" />}
                     label="Move forward 1 move"
                     handleMove={handleMove}
-                    disabled={moveIndex >= maxMove}
+                    disabled={moveIndex >= maxMove || !allowMoveChange}
                 />
                 <ControlMoveButton
-                    amount={fastForwardAmount}
+                    amount={FAST_FORWARD_AMOUNT}
                     icon={<FastForwardIcon />}
-                    label={`Fast forward ${fastForwardAmount} moves`}
+                    label={`Fast forward ${FAST_FORWARD_AMOUNT} moves`}
                     handleMove={handleMove}
-                    disabled={moveIndex >= maxMove}
+                    disabled={moveIndex >= maxMove || !allowMoveChange}
                 />
                 <ControlMoveButton
                     amount={maxMove}
                     icon={<SkipNextIcon />}
                     label="Move to the end"
                     handleMove={handleMove}
-                    disabled={moveIndex >= maxMove}
+                    disabled={moveIndex >= maxMove || !allowMoveChange}
                 />
             </Stack>
 
             <Tooltip title="Pass the move" arrow placement="top">
-                <IconButton
-                    aria-label="Pass the move"
-                    size="small"
-                    disabled={!allowPass}
-                    onClick={onPassMove}
-                >
-                    <BackHandIcon />
-                </IconButton>
+                <span>
+                    <IconButton
+                        aria-label="Pass the move"
+                        size="small"
+                        disabled={!allowPass}
+                        onClick={onPassMove}
+                    >
+                        <BackHandIcon />
+                    </IconButton>
+                </span>
             </Tooltip>
         </Paper>
     );

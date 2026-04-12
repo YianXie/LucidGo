@@ -28,7 +28,6 @@ import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { useCallback, useEffect, useRef, useState } from "react";
-import Draggable from "react-draggable";
 import { toast } from "react-toastify";
 
 const defaultBoard = (analysisConfig: AnalysisConfig): BoardState => ({
@@ -103,8 +102,6 @@ function Demo() {
         if (board) {
             setDraftAnalysisConfig(structuredClone(board.analysisConfig));
         }
-        // Reload draft when switching boards or when auth default config changes (pristine board reset).
-        // Omit `boards` to avoid resetting while editing when unrelated board state updates.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [settingsBoardIndex, defaultAnalysisConfig]);
 
@@ -237,13 +234,6 @@ function Demo() {
         },
         [analyzeMove]
     );
-
-    const resetAnalysisSettingsDraft = () => {
-        const board = boards[settingsBoardIndex];
-        if (board) {
-            setDraftAnalysisConfig(structuredClone(board.analysisConfig));
-        }
-    };
 
     const applyAnalysisSettings = () => {
         const idx = settingsBoardIndex;
@@ -393,25 +383,28 @@ function Demo() {
                                         }}
                                     />
                                     <Tooltip title="Delete board" arrow>
-                                        <IconButton
-                                            onClick={() =>
-                                                requestDeleteBoard(i)
-                                            }
-                                            sx={{
-                                                color: "error.main",
-                                                "&:hover": {
-                                                    backgroundColor:
-                                                        "#ff000010",
-                                                },
-                                            }}
-                                            disabled={
-                                                boards.length === 1 ||
-                                                deletingBoardIndex !== null ||
-                                                creatingBoardIndex !== null
-                                            }
-                                        >
-                                            <DeleteIcon color="inherit" />
-                                        </IconButton>
+                                        <span>
+                                            <IconButton
+                                                onClick={() =>
+                                                    requestDeleteBoard(i)
+                                                }
+                                                sx={{
+                                                    color: "error.main",
+                                                    "&:hover": {
+                                                        backgroundColor:
+                                                            "#ff000010",
+                                                    },
+                                                }}
+                                                disabled={
+                                                    boards.length === 1 ||
+                                                    deletingBoardIndex !==
+                                                        null ||
+                                                    creatingBoardIndex !== null
+                                                }
+                                            >
+                                                <DeleteIcon color="inherit" />
+                                            </IconButton>
+                                        </span>
                                     </Tooltip>
                                 </Stack>
                                 <GameBoard
@@ -433,7 +426,6 @@ function Demo() {
                                     }
                                     analysisConfig={board.analysisConfig}
                                     allowPass={true}
-                                    onPassMove={() => alert("WIP")}
                                     onViewSample={() =>
                                         updateBoard(i, { useSample: true })
                                     }
@@ -468,84 +460,64 @@ function Demo() {
                                     }
                                 />
                             </Box>
-                            <Draggable bounds="parent">
-                                <Paper
-                                    elevation={1}
-                                    square
+                            <Paper
+                                elevation={1}
+                                square
+                                sx={{
+                                    width: { xs: "100%", md: 400 },
+                                    maxWidth: "100%",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    maxHeight: {
+                                        xs: "none",
+                                        md: "calc(100vh - 100px)",
+                                    },
+                                }}
+                            >
+                                <Box
                                     sx={{
-                                        width: { xs: "100%", md: 400 },
-                                        maxWidth: "100%",
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        maxHeight: {
-                                            xs: "none",
-                                            md: "calc(100vh - 100px)",
-                                        },
-                                        cursor: "grab",
-                                        "&:active": {
-                                            cursor: "grabbing",
-                                        },
-                                        zIndex: 1500,
+                                        px: 2,
+                                        pt: 2,
+                                        pb: 1,
+                                        borderBottom: 1,
+                                        borderColor: "divider",
                                     }}
                                 >
-                                    <Box
-                                        sx={{
-                                            px: 2,
-                                            pt: 2,
-                                            pb: 1,
-                                            borderBottom: 1,
-                                            borderColor: "divider",
-                                        }}
+                                    <Typography variant="h6" component="h2">
+                                        Analysis settings
+                                    </Typography>
+                                    <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                        sx={{ mt: 0.5 }}
                                     >
-                                        <Typography variant="h6" component="h2">
-                                            Analysis settings
-                                        </Typography>
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                            sx={{ mt: 0.5 }}
-                                        >
-                                            Board {i + 1}
-                                        </Typography>
-                                    </Box>
-                                    <Box
-                                        sx={{
-                                            flex: 1,
-                                            overflow: "auto",
-                                            px: 2,
-                                            py: 2,
-                                        }}
-                                    >
-                                        <AnalysisConfigFields
-                                            analysisConfig={draftAnalysisConfig}
-                                            onChange={setDraftAnalysisConfig}
-                                        />
-                                    </Box>
-                                    <Stack
-                                        direction="row"
-                                        justifyContent="flex-end"
-                                        spacing={1}
-                                        sx={{
-                                            px: 2,
-                                            py: 2,
-                                            borderTop: 1,
-                                            borderColor: "divider",
-                                        }}
-                                    >
-                                        <Button
-                                            onClick={resetAnalysisSettingsDraft}
-                                        >
-                                            Cancel
-                                        </Button>
-                                        <Button
-                                            variant="contained"
-                                            onClick={applyAnalysisSettings}
-                                        >
-                                            Apply
-                                        </Button>
-                                    </Stack>
-                                </Paper>
-                            </Draggable>
+                                        Board {i + 1}
+                                    </Typography>
+                                </Box>
+                                <Box
+                                    sx={{
+                                        flex: 1,
+                                        overflow: "auto",
+                                        px: 2,
+                                        py: 2,
+                                        scrollbarWidth: "thin",
+                                    }}
+                                >
+                                    <AnalysisConfigFields
+                                        analysisConfig={draftAnalysisConfig}
+                                        onChange={setDraftAnalysisConfig}
+                                    />
+                                </Box>
+                                <Button
+                                    variant="contained"
+                                    onClick={applyAnalysisSettings}
+                                    sx={{
+                                        m: 2,
+                                    }}
+                                >
+                                    Apply
+                                </Button>
+                            </Paper>
                         </Stack>
                     ))}
                 </Box>

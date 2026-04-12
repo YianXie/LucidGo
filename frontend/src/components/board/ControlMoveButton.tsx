@@ -19,17 +19,19 @@ function ControlMoveButton({
     disabled: boolean;
 }) {
     return (
-        <IconButton
-            disabled={disabled}
-            aria-label={label}
-            onClick={() => {
-                placeStoneSoundInstance.currentTime = 0;
-                void placeStoneSoundInstance.play();
-                handleMove(amount);
-            }}
-        >
-            {icon}
-        </IconButton>
+        <span>
+            <IconButton
+                disabled={disabled}
+                aria-label={label}
+                onClick={() => {
+                    placeStoneSoundInstance.currentTime = 0;
+                    void placeStoneSoundInstance.play();
+                    handleMove(amount);
+                }}
+            >
+                {icon}
+            </IconButton>
+        </span>
     );
 }
 

@@ -16,6 +16,11 @@ export const GTP_LETTERS = "ABCDEFGHJKLMNOPQRST";
 export const PASS_MOVE_ROW_COL: MoveCoords = [-1, -1];
 
 /**
+ * The amount of moves to fast forward by
+ */
+export const FAST_FORWARD_AMOUNT = 5;
+
+/**
  * A sample SGF file content
  */
 export const SGF_SAMPLE =
