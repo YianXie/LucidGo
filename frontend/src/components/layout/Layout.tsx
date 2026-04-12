@@ -16,7 +16,7 @@ function Layout() {
             <Container
                 maxWidth="xl"
                 component="main"
-                sx={{ minHeight: "100vh", marginTop: 6 }}
+                sx={{ flex: 1, overflow: "auto" }}
             >
                 <Outlet />
             </Container>

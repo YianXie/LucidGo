@@ -10,6 +10,7 @@ function Footer() {
             sx={{
                 position: "relative",
                 marginTop: "auto",
+                height: "fit-content",
                 width: "100%",
                 boxShadow: 4,
                 padding: 2,

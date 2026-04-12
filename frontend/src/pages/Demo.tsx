@@ -347,10 +347,10 @@ function Demo() {
             sx={{
                 flex: 1,
                 minWidth: 0,
+                width: "100%",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                justifyContent: "flex-start",
                 gap: 4,
                 py: 4,
                 px: 2,
@@ -396,7 +396,10 @@ function Demo() {
                         justifyContent="center"
                         sx={{
                             position: "relative",
-                            width: "100vw",
+                            width: "max-content",
+                            maxWidth: "none",
+                            mx: "auto",
+                            flexShrink: 0,
                             transformOrigin: "center center",
                             willChange: "transform",
                             ...(deletingBoardIndex === i && {

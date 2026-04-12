@@ -180,7 +180,8 @@ function Header() {
                     component="header"
                     color="default"
                     sx={{
-                        position: "fixed",
+                        position: "sticky",
+                        top: 0,
                         width: "100%",
                         userSelect: "none",
                         boxShadow: 4,
