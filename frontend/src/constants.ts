@@ -37,6 +37,11 @@ export const GET_ANALYSIS_URL = "/api/analyze/";
 export const GET_GAME_DATA_URL = "/api/get-game-data/";
 
 /**
+ * The URL to the games endpoint
+ */
+export const GAMES_URL = "/api/games/";
+
+/**
  * The regex to validate an email
  */
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

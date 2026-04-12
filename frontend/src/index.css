@@ -1,14 +1,5 @@
 @import "tailwindcss";
 
-html,
-body {
-    overflow-x: hidden;
-}
-
-/* body {
-
-} */
-
 /* Documentation Styles - Updated to work with MUI theme */
 .prose {
     max-width: none;

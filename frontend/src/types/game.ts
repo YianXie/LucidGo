@@ -22,6 +22,7 @@ export interface GameData {
 export interface BoardState {
     name: string | null;
     file: File | null;
+    gameId: string | null;
     gameData: GameData | null;
     analysisData: AnalysisResult[] | null;
     currentMove: number | null;
@@ -76,4 +77,19 @@ export interface AnalysisResult {
         visits?: number;
     }[];
     [key: string]: unknown;
+}
+
+export interface GameSummary {
+    id: string;
+    name: string;
+    source: "upload" | "live";
+    board_size: number;
+    komi: number | null;
+    black_player: string;
+    white_player: string;
+    winner: string;
+    analysis_count: number;
+    last_analyzed_at: string | null;
+    created_at: string;
+    updated_at: string;
 }

@@ -14,9 +14,9 @@ function Layout() {
         <>
             <Header />
             <Container
-                maxWidth="lg"
+                maxWidth="xl"
                 component="main"
-                sx={{ minHeight: "100vh" }}
+                sx={{ minHeight: "100vh", marginTop: 6 }}
             >
                 <Outlet />
             </Container>

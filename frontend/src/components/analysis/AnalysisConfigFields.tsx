@@ -347,20 +347,20 @@ function AnalysisConfigFields({
                         })
                     }
                 />
+                <ConfigCheckbox
+                    label="Include Visits"
+                    checked={analysisConfig.output.include_visits}
+                    onChange={(v) =>
+                        onChange({
+                            ...analysisConfig,
+                            output: {
+                                ...analysisConfig.output,
+                                include_visits: v,
+                            },
+                        })
+                    }
+                />
             </ConfigSection>
-            <ConfigCheckbox
-                label="Include Visits"
-                checked={analysisConfig.output.include_visits}
-                onChange={(v) =>
-                    onChange({
-                        ...analysisConfig,
-                        output: {
-                            ...analysisConfig.output,
-                            include_visits: v,
-                        },
-                    })
-                }
-            />
         </Box>
     );
 }

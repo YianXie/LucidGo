@@ -1,12 +1,19 @@
 import httpx
 from django.conf import settings
+from django.db.models import Count, Max
 from rest_framework import status  # type: ignore
+from rest_framework.generics import get_object_or_404  # type: ignore
 from rest_framework.permissions import AllowAny  # type: ignore
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request  # type: ignore
 from rest_framework.response import Response  # type: ignore
 from rest_framework.views import APIView  # type: ignore
 from sgfmill import sgf  # type: ignore
+
+from .models import Game
+from .serializers import (AnalysisSessionCreateSerializer,
+                          GameCreateSerializer, GameDetailSerializer,
+                          GameListSerializer)
 
 # Reusable HTTP client to avoid connection overhead
 _http_client = None
@@ -106,3 +113,50 @@ class GetGameDataView(APIView):
             game_data,
             status=status.HTTP_200_OK,
         )
+
+
+class GameListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request) -> Response:
+        games = (
+            Game.objects.filter(user=request.user)
+            .annotate(
+                analysis_count=Count("analysis_sessions"),
+                last_analyzed_at=Max("analysis_sessions__created_at"),
+            )
+            .order_by("-updated_at")
+        )
+        serializer = GameListSerializer(games, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request: Request) -> Response:
+        serializer = GameCreateSerializer(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        game = serializer.save()
+        return Response(
+            GameDetailSerializer(game).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class GameDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request, game_id: str) -> Response:
+        game = get_object_or_404(Game, id=game_id, user=request.user)
+        serializer = GameDetailSerializer(game)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AnalysisSessionCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request, game_id: str) -> Response:
+        game = get_object_or_404(Game, id=game_id, user=request.user)
+        serializer = AnalysisSessionCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(game=game)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
