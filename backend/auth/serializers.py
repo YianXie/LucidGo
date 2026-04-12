@@ -14,15 +14,7 @@ User = get_user_model()
 
 class RegisterSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    username = serializers.CharField(max_length=150)
     password = serializers.CharField(write_only=True, style={"input_type": "password"})
-
-    def validate_username(self, value: str) -> str:
-        if User.objects.filter(username__iexact=value).exists():
-            raise serializers.ValidationError(
-                _("A user with that username already exists.")
-            )
-        return value
 
     def validate_email(self, value: str) -> str:
         normalized = value.strip().lower()
@@ -38,7 +30,7 @@ class RegisterSerializer(serializers.Serializer):
 
     def create(self, validated_data: dict[str, Any]) -> Any:
         user = User.objects.create_user(  # type: ignore
-            username=validated_data["username"],
+            username=validated_data["email"],
             email=validated_data["email"],
             password=validated_data["password"],
         )
@@ -47,18 +39,20 @@ class RegisterSerializer(serializers.Serializer):
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.fields.pop(self.username_field, None)
+        self.fields["email"] = serializers.EmailField(write_only=True)
+
     def validate(self, attrs: dict[str, Any]) -> dict[str, str]:
-        identifier = attrs.get(self.username_field)
+        identifier = attrs.get("email")
         if not identifier:
             raise AuthenticationFailed(
                 self.error_messages["no_active_account"],
                 "no_active_account",
             )
 
-        user = User.objects.filter(username=identifier).first()
-        if user is None:
-            user = User.objects.filter(email__iexact=identifier).first()
-
+        user = User.objects.filter(email__iexact=identifier).first()
         if user is None:
             raise AuthenticationFailed(
                 self.error_messages["no_active_account"],
@@ -74,23 +68,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         settings, _ = UserSettings.objects.get_or_create(user=user)
         token["user"] = {
             "id": user.pk,
-            "username": user.get_username(),
             "email": getattr(user, "email", "") or "",
             "analysis_config": settings.analysis_config,
         }
         return token
-
-
-class UpdateUsernameSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=150)
-
-    def validate_username(self, value: str) -> str:
-        user = self.context["request"].user
-        if User.objects.filter(username__iexact=value).exclude(pk=user.pk).exists():
-            raise serializers.ValidationError(
-                _("A user with that username already exists.")
-            )
-        return value
 
 
 class UpdateEmailSerializer(serializers.Serializer):

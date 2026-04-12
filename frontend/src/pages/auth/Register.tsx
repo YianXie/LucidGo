@@ -33,7 +33,6 @@ function Register() {
             setIsLoading(true);
             await api.post("/auth/register/", {
                 email: data.get("email"),
-                username: data.get("username"),
                 password: data.get("password"),
             });
             toast.success("Account created. You can sign in now.");
@@ -78,16 +77,6 @@ function Register() {
                 type="email"
                 autoComplete="email"
                 autoFocus
-            />
-            <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="username"
-                label="Username"
-                name="username"
-                type="text"
-                autoComplete="username"
             />
             <TextField
                 margin="normal"

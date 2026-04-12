@@ -1,3 +1,5 @@
+# fmt: off
+
 from typing import Any
 
 from rest_framework import status  # type: ignore
@@ -11,8 +13,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import UserSettings
 from .serializers import (AnalysisConfigSerializer,
                           CustomTokenObtainPairSerializer, RegisterSerializer,
-                          UpdateEmailSerializer, UpdatePasswordSerializer,
-                          UpdateUsernameSerializer)
+                          UpdateEmailSerializer, UpdatePasswordSerializer)
+
+# fmt: on
 
 
 def _generate_token_pair(user: Any) -> dict[str, str]:
@@ -33,7 +36,6 @@ class RegisterView(APIView):
         return Response(
             {
                 "id": user.pk,
-                "username": user.get_username(),
                 "email": user.email or "",
             },
             status=status.HTTP_201_CREATED,
@@ -42,19 +44,6 @@ class RegisterView(APIView):
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
-
-
-class UpdateUsernameView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def patch(self, request: Request) -> Response:
-        serializer = UpdateUsernameSerializer(
-            data=request.data, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-        request.user.username = serializer.validated_data["username"]
-        request.user.save(update_fields=["username"])
-        return Response(_generate_token_pair(request.user), status=status.HTTP_200_OK)
 
 
 class UpdateEmailView(APIView):

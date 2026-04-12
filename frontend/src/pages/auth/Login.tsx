@@ -1,4 +1,5 @@
 import AuthFormLayout from "@/components/layout/AuthFormLayout";
+import { EMAIL_REGEX } from "@/constants";
 import TextField from "@mui/material/TextField";
 import { isAxiosError } from "axios";
 import { useEffect, useState } from "react";
@@ -22,12 +23,19 @@ function Login() {
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        setIsLoading(true);
         const data = new FormData(event.currentTarget);
         try {
-            setIsLoading(true);
+            const email = data.get("email") as string;
+            const password = data.get("password") as string;
+            if (!EMAIL_REGEX.test(email)) {
+                toast.error("Invalid email");
+                return;
+            }
+
             const response = await api.post("/auth/token/", {
-                username: data.get("username"),
-                password: data.get("password"),
+                email: email,
+                password: password,
             });
             login(response.data);
             toast.success("Login successful");
@@ -65,11 +73,11 @@ function Login() {
                 margin="normal"
                 required
                 fullWidth
-                id="username"
-                label="Username or email"
-                name="username"
-                type="text"
-                autoComplete="username"
+                id="email"
+                label="Email"
+                name="email"
+                type="email"
+                autoComplete="email"
                 autoFocus
             />
             <TextField

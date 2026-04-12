@@ -262,7 +262,7 @@ function Header() {
                                                     height: 32,
                                                 }}
                                             >
-                                                {(user?.username as string)
+                                                {(user?.email as string)
                                                     ?.charAt(0)
                                                     .toUpperCase()}
                                             </Avatar>
