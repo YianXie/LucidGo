@@ -123,12 +123,27 @@ WSGI_APPLICATION = "backend.wsgi.application"
 
 # Database Settings
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if ENVIRONMENT == "development":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
+else:
+    import dj_database_url
+
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    if DATABASE_URL is None:
+        raise RuntimeError("DATABASE_URL environment variable must be set")
+
+    DATABASES = {
+        "default": dj_database_url.parse(  # type: ignore
+            DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
 
 
 # Authentication Settings

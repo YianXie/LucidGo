@@ -16,7 +16,13 @@ function Layout() {
             <Container
                 maxWidth="xl"
                 component="main"
-                sx={{ flex: 1, overflow: "auto" }}
+                sx={{
+                    flex: 1,
+                    minWidth: 0,
+                    width: "100%",
+                    overflowX: "auto",
+                    overflowY: "auto",
+                }}
             >
                 <Outlet />
             </Container>
