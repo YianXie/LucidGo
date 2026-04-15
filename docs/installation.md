@@ -1,109 +1,134 @@
 # Installation
 
+This guide walks you through setting up LucidGo on your local machine for development.
+
 ## Prerequisites
 
-Before installing LucidGo, ensure you have the following installed on your system:
+You need the following tools installed before starting:
 
-- **Node.js** (v16 or higher) - [Download here](https://nodejs.org/)
-- **Python** (v3.8 or higher) - [Download here](https://www.python.org/downloads/)
-- **npm** or **yarn** - Comes with Node.js
+| Tool                             | Version              | Notes                                       |
+| -------------------------------- | -------------------- | ------------------------------------------- |
+| Python                           | 3.12+                | Required by the backend                     |
+| [uv](https://docs.astral.sh/uv/) | latest               | Python package manager used by this project |
+| Node.js                          | 22.12+               | Required by the frontend                    |
+| npm                              | bundled with Node.js |                                             |
 
-### Verify Installation
-
-Check if you have the required tools installed:
+Check your versions:
 
 ```bash
-# Check Node.js and npm versions
+python --version
+uv --version
 node -v && npm -v
-
-# Check Python and pip versions
-python --version && pip --version
 ```
 
-## Local Installation
-
-### 1. Clone the Repository
+## Clone the repository
 
 ```bash
 git clone https://github.com/YianXie/LucidGo
 cd LucidGo
 ```
 
-### 2. Backend Setup
+## Install dependencies
 
-Create and activate a Python virtual environment:
+The top-level `Makefile` installs both backend and frontend dependencies in one step:
 
 ```bash
-# Create virtual environment
-python -m venv env
-
-# Activate virtual environment
-# On macOS/Linux:
-source env/bin/activate
-
-# On Windows:
-env\Scripts\activate
+make install
 ```
 
-Install Python dependencies:
+Or install them separately:
+
+```bash
+# Backend
+cd backend && uv sync --dev
+
+# Frontend
+cd frontend && npm install
+```
+
+## Configure environment variables
+
+### Backend
 
 ```bash
 cd backend
-pip install -r requirements.txt
+cp .env.example .env
 ```
 
-### 3. Frontend Setup
+Open `.env` and fill in:
 
-Install Node.js dependencies:
+| Variable       | Description                                                                                                                                        |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SECRET_KEY`   | Django secret key — generate one with `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"` |
+| `API_ENDPOINT` | Base URL of your LucidTree API instance (e.g. `http://localhost:8001`)                                                                             |
+| `API_TIMEOUT`  | HTTP timeout in seconds for requests to LucidTree (e.g. `30`)                                                                                      |
+| `ENVIRONMENT`  | Set to `development`                                                                                                                               |
+
+### Frontend
 
 ```bash
-cd ../frontend
-npm install
+cd frontend
+cp .env.example .env
 ```
 
-## AWS EC2 Setup (Optional)
+Open `.env` and fill in:
 
-For better performance with KataGo analysis, you can set up an AWS EC2 instance.
+| Variable           | Description                                     |
+| ------------------ | ----------------------------------------------- |
+| `VITE_API_URL`     | Backend base URL (e.g. `http://localhost:8000`) |
+| `VITE_ENVIRONMENT` | Set to `development`                            |
 
-### Create EC2 Instance
+## Run database migrations
 
-1. Choose a **Linux-based system** with Nvidia Driver pre-installed
-2. **DO NOT use Neural Network instances**
-3. Recommended: _Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 24.04)_
-4. Instance type: `g4dn.xlarge` or better
-5. Start your instance
+```bash
+cd backend
+uv run python manage.py migrate
+```
 
-> **Note:** If you encounter quota issues, you may need to request a quota increase from AWS.
+## Starting the application
 
-### Configure Backend
+Once installed, start both servers:
 
-1. Copy your instance's **public IPv4 address**
-2. Create a `.env` file in your `backend` directory
-3. Add the EC2 instance address to your environment variables
+```bash
+# Backend (http://localhost:8000)
+cd backend
+uv run python manage.py runserver
+```
 
-### Install KataGo on EC2
+```bash
+# Frontend (http://localhost:5173)
+cd frontend
+npm run dev
+```
 
-Detailed KataGo installation instructions coming soon.
+Alternatively, you may also run the make command directly:
+
+```bash
+make run-all
+```
+
+> The frontend will be hosted on `http://localhost:5173`
+> The backend will be hosted on `http://localhost:8000`
+> The LucidTree will be hosted on `http://localhost:9000`
+
+Then open `http://localhost:5173` in your browser and log in.
+
+## LucidTree API
+
+LucidGo's analysis features depend on a running [LucidTree](https://github.com/YianXie/LucidTree) API instance. Without it, you can still upload and navigate SGF files — analysis requests will just fail.
+
+To run LucidTree locally, follow the setup instructions in its own repository. Once it's running, point `API_ENDPOINT` in your `.env` at it.
 
 ## Troubleshooting
 
-### Common Issues
+**`uv` not found:**
+Install it from [docs.astral.sh/uv](https://docs.astral.sh/uv/getting-started/installation/).
 
-**Python not found:**
-
-- Ensure Python is installed and added to your PATH
-- Try using `python3` instead of `python`
-
-**npm install fails:**
-
-- Clear npm cache: `npm cache clean --force`
-- Delete `node_modules` and `package-lock.json`, then reinstall
+**`npm install` fails:**
+Clear the cache and retry: `npm cache clean --force`, then delete `node_modules` and `package-lock.json`.
 
 **Port already in use:**
+Kill the process on that port or change it. For the backend: `python manage.py runserver 8001`. For the frontend, edit `vite.config.ts`.
 
-- Change the port in your configuration files
-- Kill the process using the port
-
-## Next Steps
-
-Once installation is complete, proceed to the [How to Use](/docs/how-to-use) guide to start analyzing your Go games!
+**Analysis requests return 502:**
+Your `API_ENDPOINT` is pointing at a LucidTree instance that isn't reachable. Check that LucidTree is running and the URL in `.env` is correct.

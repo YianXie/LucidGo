@@ -1,164 +1,153 @@
 # How to Use
 
-## Getting Started
+## Uploading a game
 
-LucidGo provides an intuitive interface for analyzing your Go games with AI assistance.
+1. Navigate to the **Demo** page.
+2. Click the upload area and select an SGF file, or click **View a Sample** to try a built-in game.
+3. The board will appear with the game loaded at move 0.
 
-## Starting the Application
+## Play live-game against a trained AI
 
-### 1. Start the Backend Server
+1. Navigate to the **Demo** page.
+2. Click play against AI
+3. The board will appear with hover for each move
 
-```bash
-cd backend
-source env/bin/activate  # On macOS/Linux
-python app.py
-```
+## Navigating moves
 
-The backend server will start on `http://localhost:5000`
+Use the slider below the board to jump to any move. The move counter and board state update as you drag.
 
-### 2. Start the Frontend
+The fast-forward buttons step through the game 5 moves at a time.
 
-In a new terminal:
+## Requesting analysis
 
-```bash
-cd frontend
-npm run dev
-```
+Click **Analyze** to send the current position to LucidTree. The result shows:
 
-The frontend will be available at `http://localhost:5173`
+- **Top moves**: The AI's ranked candidate moves, overlaid on the board.
+- **Win rate**: The estimated probability of winning from the current position.
+- **Policy**: The raw probability distribution across the board (how likely the AI considers each intersection as a candidate move).
 
-## Analyzing a Game
+What's included in the result depends on your output settings — see the [Output](#output) section below.
 
-### Upload an SGF File
+## Multiple boards
 
-1. Navigate to the **Demo** page
-2. Click the upload area or drag and drop your SGF file
-3. The game board will appear with your game loaded
+You can open several games at the same time. Click **Add Board** to create a new one. Each board has its own analysis config, game data, and current position.
 
-### Understanding the Interface
+To remove a board, click the delete icon next to it.
 
-The demo interface provides several key features:
+## Analysis settings
 
-- **Game Board**: Interactive Go board showing the current position
-- **Move Navigation**: Step through moves using the range selector
-- **Win Rate Chart**: Visual representation of winning probability throughout the game
-- **AI Recommendations**: See suggested moves from KataGo
-- **Policy Network**: View the AI's move probabilities
-- **Ownership Map**: See territory predictions
+The sidebar on the Demo page (and the default config under **Settings → Default Analysis Configuration**) controls how LucidTree runs its analysis.
 
-### Controls
+Settings are grouped into four sections: General, algorithm-specific, and Output.
 
-**Move Navigation:**
+---
 
-- Use the slider to jump to any move in the game
-- Click on the board to see variations
+### General
 
-**Analysis Options:**
+These settings apply regardless of which algorithm you choose.
 
-- Toggle **Recommended Moves** to show AI suggestions
-- Enable **Policy** to see move probabilities
-- Enable **Ownership** to view territory estimates
+**Algorithm**
+Selects which analysis algorithm to use:
 
-**Max Visits:**
+- **Neural Network** — Runs a single forward pass through LucidTree's trained neural network. It's the fastest option and gives you win rate estimates and policy probabilities directly. Good for most game reviews.
+- **Monte Carlo Tree Search (MCTS)** — Builds a search tree by running many simulated game continuations, guided by the neural network. Stronger than a bare network pass but takes longer. Simulation count is tunable.
+- **MiniMax** — A classic depth-limited tree search with optional alpha-beta pruning. Much weaker than the neural network on a 19x19 board, but included for educational purposes.
 
-- Adjust the analysis depth (higher = more accurate, slower)
-- Default: 500 visits
-- Range: 100 - 2000 visits
+**Rules**
+Determines how territory and scoring are calculated. Match this to the ruleset your game was actually played under.
 
-## Customizing Analysis
+- **Japanese** — Territory scoring. Dead stones inside territory are counted, dame are not.
+- **Chinese** — Area scoring. Counts living stones and enclosed territory together.
 
-### Adjusting AI Strength
+**Komi**
+The point compensation given to White at the start of the game. 6.5 is standard for 19x19 under most rulesets. If your SGF file includes a komi value, you may want to set this to match.
 
-You can control the analysis depth by changing the max visits parameter:
+**Max Time (ms)**
+Sets a time limit (in milliseconds) on how long the engine can spend per analysis request. `0` means no time limit — the engine runs until it finishes all planned simulations. Set a value like `500` or `1000` if you want faster responses at the cost of some accuracy.
 
-- **Quick Analysis**: 100-300 visits
-- **Standard**: 500-800 visits
-- **Deep Analysis**: 1000-2000 visits
+**Temperature**
+Controls how much randomness is applied when selecting moves. `0` means the AI always picks the highest-scoring option deterministically. Values above 0 introduce stochasticity — useful if you want to see varied candidate moves rather than always the same top choice.
 
-### Viewing Different Aspects
+**Seed**
+Random seed for the analysis. `0` means a different result each run. Set a fixed integer to make results reproducible.
 
-**Win Rate Analysis:**
+---
 
-- Shows the probability of winning throughout the game
-- Helps identify critical moments and mistakes
+### Neural Network
 
-**Policy Network:**
+These settings appear when **Algorithm** is set to Neural Network.
 
-- Displays where the AI thinks good moves are
-- Useful for learning opening patterns
+**Model**
+The name of the LucidTree checkpoint to load. This should match a `.pt` file available on the server. The default (`checkpoint_19x19`) is the 19×19 model trained on professional game data.
 
-**Ownership Map:**
+**Policy Softmax Temperature**
+Adjusts the sharpness of the policy output before it's returned. Lower values (closer to 0) concentrate probability on the top moves; higher values spread it more evenly. `0.2` is the default — it makes the displayed policy easier to read without completely flattening it.
 
-- Predicts final territory
-- Helps understand position evaluation
+---
 
-## Tips for Effective Analysis
+### Monte Carlo Tree Search
 
-### Best Practices
+These settings appear when **Algorithm** is set to Monte Carlo Tree Search.
 
-1. **Start with key positions**: Focus on moves where the win rate changed significantly
-2. **Compare with AI suggestions**: Look for differences between your moves and AI recommendations
-3. **Understand the reasoning**: Don't just memorize moves, try to understand why they're good
-4. **Use appropriate depth**: Balance speed and accuracy based on your needs
+**Num Simulations**
+How many MCTS simulations to run. Each simulation traverses the search tree, expands a node, and backs up the result. More simulations → stronger analysis, but it takes longer. Default is 500; range is 100–5000.
 
-### Common Use Cases
+**C-PUCT**
+The exploration constant in the PUCT formula. It balances how much MCTS prefers moves with high visit counts (exploitation) vs. moves with promising but underexplored priors (exploration). A higher value pushes the search to explore more broadly. Default is 1.5.
 
-**Game Review:**
+**Dirichlet Alpha**
+Concentration parameter for the Dirichlet noise added to the root node's prior probabilities. Smaller values (e.g. 0.03) focus the noise on a few moves; larger values spread it across more. Set to `0` to disable root noise entirely. Noise is typically used during training to encourage exploration — during analysis you can leave it at `0`.
 
-- Upload your completed game
-- Look for sharp win rate changes
-- Analyze critical positions
+**Dirichlet Epsilon**
+How much weight the Dirichlet noise contributes relative to the neural network's prior. `0` means no noise; `0.25` is common during training. For pure analysis, keep this at `0` unless you specifically want to inject randomness.
 
-**Opening Study:**
+**Value Weight**
+Scales the contribution of the neural network's value estimate to each node's score during backup. Default `1.0`. Lower values reduce how much the network's value head influences the search.
 
-- Focus on the first 20-40 moves
-- Compare with AI recommendations
-- Learn new patterns
+**Policy Weight**
+Scales how much the neural network's policy prior influences which nodes MCTS selects for exploration. Default `1.0`. Lowering it makes the search less guided by the policy.
 
-**Endgame Practice:**
+**Select By**
+Determines how MCTS picks the final best move after all simulations are complete.
 
-- Navigate to the endgame
-- Check territory predictions
-- Verify your counting
+- **Visit Count** — Picks the move that was visited most often. More robust and less susceptible to outlier evaluations. Recommended.
+- **Value** — Picks the move with the highest average Q-value (average backed-up value). Can prefer sharp tactical lines over solid positional moves.
 
-## Sample Games
+---
 
-LucidGo includes sample games you can load directly:
+### MiniMax
 
-1. Click the demo link with sample parameter
-2. Explore pre-analyzed professional games
-3. Learn from high-level play
+These settings appear when **Algorithm** is set to MiniMax.
 
-## Keyboard Shortcuts
+**Depth**
+How many half-moves (plies) the minimax search looks ahead. Each extra ply multiplies the search space, so keep this low (2–3) unless you're prepared to wait. On a 19x19 board, MiniMax without the neural network is quite weak — treat this as an educational comparison more than a practical analysis tool.
 
-Coming soon: keyboard shortcuts for faster navigation!
+**Use Alpha Beta**
+Enables alpha-beta pruning, which skips evaluating branches that can't possibly affect the final decision. This significantly reduces the number of nodes evaluated without changing the result. Leave this on.
 
-## Need Help?
+---
 
-If you encounter issues:
+### Output
 
-1. Check the [Installation](/docs/installation) guide
-2. Review the troubleshooting section
-3. Visit our [GitHub repository](https://github.com/YianXie/LucidGo) to report issues
+These settings control what data gets included in the analysis response.
 
-## Advanced Features
+**Include Top Moves**
+How many candidate moves to return, ranked by the algorithm's scoring. Default is 5. Set to 1 if you just want the best move; set higher (up to 10) if you want a broader view of the AI's options.
 
-### API Integration
+**Include Policy**
+Whether to include the neural network's raw policy probability for each top move. Useful for understanding how the network's prior compares to the MCTS-refined ranking.
 
-LucidGo provides an API for programmatic access:
+**Include Win Rate**
+Whether to include the estimated win probability for each top move. Turn this off if you only care about move ordering and want a lighter response.
 
-- `POST /api/get-game-data/` - Upload and parse SGF files
-- `POST /api/analyze/` - Request AI analysis for positions
+**Include Visits**
+Whether to include the MCTS visit count for each top move. Only meaningful when using the MCTS algorithm — the visit count shows how much time MCTS spent investigating each candidate.
 
-### Custom Configuration
+---
 
-You can customize various aspects of the analysis through the backend configuration files.
+## Tips
 
-## Next Steps
-
-- Experiment with different analysis depths
-- Try analyzing your own games
-- Explore the win rate patterns
-- Learn from AI suggestions
-
-Happy analyzing! 🎮
+- **Start from large win rate swings.** The win rate chart makes it easy to spot the critical moments in a game. Jump to the move just before a big swing and analyze there.
+- **Compare policy vs. MCTS.** The neural network's policy shows its immediate intuition; MCTS refines that through simulation. If they disagree on the best move, that position is worth studying.
+- **Use lower simulation counts for quick reviews.** 100–200 simulations is fast and often good enough to see whether your move was in the top candidates. Alternatively, you can also configure the max_time_ms variable.
+- **MiniMax is weak on 19x19.** Its evaluation is heuristic and won't keep up with the neural network. Use it to compare algorithm behavior, not for serious game review.
