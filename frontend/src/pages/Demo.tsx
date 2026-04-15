@@ -15,15 +15,22 @@ import {
     type AnalysisResult,
     type BoardState,
     type GameData,
-    HistoryEntry,
+    type HistoryAnalysisSession,
+    type HistoryEntry,
     isValidMove,
 } from "@/types/game";
 import { toGTPFormat } from "@/utils";
 import { buildAnalysisRequest } from "@/utils/buildAnalysisRequest";
+import CheckIcon from "@mui/icons-material/Check";
 import DeleteIcon from "@mui/icons-material/Delete";
+import HistoryIcon from "@mui/icons-material/History";
+import { ListItemIcon } from "@mui/material";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
+import ListItemText from "@mui/material/ListItemText";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
@@ -72,6 +79,14 @@ function Demo() {
     const [settingsBoardIndex, setSettingsBoardIndex] = useState(0);
     const [draftAnalysisConfig, setDraftAnalysisConfig] =
         useState<AnalysisConfig>(defaultAnalysisConfig);
+    const [analysisSessions, setAnalysisSessions] = useState<
+        HistoryAnalysisSession[]
+    >([]);
+    const [historyMenuAnchor, setHistoryMenuAnchor] =
+        useState<HTMLElement | null>(null);
+    const [selectedAnalysisSession, setSelectedAnalysisSession] = useState<
+        string | null
+    >(null);
 
     useEffect(() => {
         return () => {
@@ -82,35 +97,51 @@ function Demo() {
     }, []);
 
     useEffect(() => {
+        if (analysisSessions.length > 0) {
+            setSelectedAnalysisSession(analysisSessions[0].id);
+            void loadHistorySession(analysisSessions[0].id);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [analysisSessions]);
+
+    useEffect(() => {
         if (gameId) {
-            void api
-                .get<HistoryEntry>(`${GAMES_URL}${gameId}`)
-                .then(({ data }) => {
-                    setBoards((prev) => {
-                        if (prev.length !== 1) return prev;
-                        const newBoard = defaultBoard(defaultAnalysisConfig);
-                        newBoard.gameData = {
-                            size: data.board_size,
-                            moves: data.moves,
-                            komi: data.komi ?? undefined,
-                            players: {
-                                black: data.black_player,
-                                white: data.white_player,
-                            },
-                            winner: data.winner ?? undefined,
-                        };
-                        newBoard.name = data.name;
-                        newBoard.gameId = data.id;
-                        newBoard.currentMove = 0;
-                        newBoard.loading = false;
-                        newBoard.useSample = false;
-                        newBoard.useAI = false;
-                        newBoard.loadedValue = 0;
-                        newBoard.analysisConfig = defaultAnalysisConfig;
-                        return [newBoard];
+            try {
+                void api
+                    .get<HistoryEntry>(`${GAMES_URL}${gameId}`)
+                    .then(({ data }) => {
+                        setAnalysisSessions(data.analysis_sessions ?? []);
+                        setBoards((prev) => {
+                            if (prev.length !== 1) return prev;
+                            const newBoard = defaultBoard(
+                                defaultAnalysisConfig
+                            );
+                            newBoard.gameData = {
+                                size: data.board_size,
+                                moves: data.moves,
+                                komi: data.komi ?? undefined,
+                                players: {
+                                    black: data.black_player,
+                                    white: data.white_player,
+                                },
+                                winner: data.winner ?? undefined,
+                            };
+                            newBoard.name = data.name;
+                            newBoard.gameId = data.id;
+                            newBoard.currentMove = 0;
+                            newBoard.loading = false;
+                            newBoard.useSample = false;
+                            newBoard.useAI = false;
+                            newBoard.loadedValue = 0;
+                            newBoard.analysisConfig = defaultAnalysisConfig;
+                            return [newBoard];
+                        });
                     });
-                });
+            } catch (error) {
+                console.error("Failed to load game data:", error);
+            }
         } else {
+            setAnalysisSessions([]);
             setBoards([defaultBoard(defaultAnalysisConfig)]);
         }
     }, [defaultAnalysisConfig, gameId, setBoards]);
@@ -355,6 +386,27 @@ function Demo() {
         });
     };
 
+    const loadHistorySession = async (sessionId: string) => {
+        if (!gameId) return;
+        setHistoryMenuAnchor(null);
+        const idx = settingsBoardIndex;
+        try {
+            const { data } = await api.get<HistoryAnalysisSession>(
+                `${GAMES_URL}${gameId}/analyses/${sessionId}/`
+            );
+            const config = structuredClone(data.analysis_config);
+            setDraftAnalysisConfig(config);
+            updateBoard(idx, {
+                analysisConfig: config,
+                analysisData: data.results,
+                loading: false,
+            });
+        } catch (error) {
+            toast.error("Failed to load past analysis session");
+            console.error("Failed to load analysis session:", error);
+        }
+    };
+
     const requestDeleteBoard = (boardIndex: number) => {
         if (deletingBoardIndex !== null || creatingBoardIndex !== null) return;
         if (animationTimerRef.current) clearTimeout(animationTimerRef.current);
@@ -596,18 +648,110 @@ function Demo() {
                                         pb: 1,
                                         borderBottom: 1,
                                         borderColor: "divider",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
                                     }}
                                 >
-                                    <Typography variant="h6" component="h2">
-                                        Analysis settings
-                                    </Typography>
-                                    <Typography
-                                        variant="body2"
-                                        color="text.secondary"
-                                        sx={{ mt: 0.5 }}
-                                    >
-                                        Board {i + 1}
-                                    </Typography>
+                                    <Box>
+                                        <Typography variant="h6" component="h2">
+                                            Analysis settings
+                                        </Typography>
+                                        <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                            sx={{ mt: 0.5 }}
+                                        >
+                                            Board {i + 1}
+                                        </Typography>
+                                    </Box>
+                                    {gameId && analysisSessions.length > 0 && (
+                                        <>
+                                            <Tooltip
+                                                title="Past configurations"
+                                                arrow
+                                            >
+                                                <IconButton
+                                                    size="medium"
+                                                    onClick={(e) =>
+                                                        setHistoryMenuAnchor(
+                                                            e.currentTarget
+                                                        )
+                                                    }
+                                                >
+                                                    <HistoryIcon fontSize="medium" />
+                                                </IconButton>
+                                            </Tooltip>
+                                            <Menu
+                                                anchorEl={historyMenuAnchor}
+                                                open={Boolean(
+                                                    historyMenuAnchor
+                                                )}
+                                                onClose={() =>
+                                                    setHistoryMenuAnchor(null)
+                                                }
+                                                anchorOrigin={{
+                                                    vertical: "bottom",
+                                                    horizontal: "right",
+                                                }}
+                                                transformOrigin={{
+                                                    vertical: "top",
+                                                    horizontal: "right",
+                                                }}
+                                                slotProps={{
+                                                    list: {
+                                                        autoFocusItem: true,
+                                                    },
+                                                }}
+                                            >
+                                                {analysisSessions.map(
+                                                    (session) => {
+                                                        const algo =
+                                                            session
+                                                                .analysis_config
+                                                                ?.general
+                                                                ?.algorithm ??
+                                                            "Unknown";
+                                                        const date = new Date(
+                                                            session.created_at
+                                                        ).toLocaleDateString(
+                                                            undefined,
+                                                            {
+                                                                month: "short",
+                                                                day: "numeric",
+                                                                year: "numeric",
+                                                            }
+                                                        );
+                                                        return (
+                                                            <MenuItem
+                                                                key={session.id}
+                                                                onClick={() => {
+                                                                    void loadHistorySession(
+                                                                        session.id
+                                                                    );
+                                                                    setSelectedAnalysisSession(
+                                                                        session.id
+                                                                    );
+                                                                }}
+                                                            >
+                                                                <ListItemIcon>
+                                                                    {session.id ===
+                                                                        selectedAnalysisSession && (
+                                                                        <CheckIcon color="primary" />
+                                                                    )}
+                                                                </ListItemIcon>
+                                                                <ListItemText>
+                                                                    {algo}{" "}
+                                                                    &mdash;{" "}
+                                                                    {date}
+                                                                </ListItemText>
+                                                            </MenuItem>
+                                                        );
+                                                    }
+                                                )}
+                                            </Menu>
+                                        </>
+                                    )}
                                 </Box>
                                 <Box
                                     sx={{

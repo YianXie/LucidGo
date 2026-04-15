@@ -35,6 +35,12 @@ class AnalysisSessionListSerializer(serializers.ModelSerializer):  # type: ignor
         fields = ["id", "analysis_config", "created_at"]
 
 
+class AnalysisSessionDetailSerializer(serializers.ModelSerializer):  # type: ignore
+    class Meta:
+        model = AnalysisSession
+        fields = ["id", "analysis_config", "results", "created_at"]
+
+
 class GameListSerializer(serializers.ModelSerializer):  # type: ignore
     analysis_count = serializers.IntegerField(read_only=True)
     last_analyzed_at = serializers.DateTimeField(read_only=True, allow_null=True)

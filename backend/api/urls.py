@@ -13,4 +13,9 @@ urlpatterns = [
         views.AnalysisSessionCreateView.as_view(),
         name="analysis-session-create",
     ),
+    path(
+        "games/<uuid:game_id>/analyses/<uuid:session_id>/",
+        views.AnalysisSessionDetailView.as_view(),
+        name="analysis-session-detail",
+    ),
 ]

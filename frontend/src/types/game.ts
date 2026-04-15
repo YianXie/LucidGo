@@ -11,8 +11,15 @@ export function isValidMove(
     return move[1] !== null;
 }
 
+export interface HistoryAnalysisSession {
+    id: string;
+    analysis_config: AnalysisConfig;
+    results: AnalysisResult[];
+    created_at: string;
+}
+
 export interface HistoryEntry {
-    analysis_session: [];
+    analysis_sessions: HistoryAnalysisSession[];
     black_player: string;
     board_size: number;
     created_at: string;

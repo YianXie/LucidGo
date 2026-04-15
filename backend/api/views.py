@@ -10,8 +10,9 @@ from rest_framework.response import Response  # type: ignore
 from rest_framework.views import APIView  # type: ignore
 from sgfmill import sgf  # type: ignore
 
-from .models import Game
+from .models import AnalysisSession, Game
 from .serializers import (AnalysisSessionCreateSerializer,
+                          AnalysisSessionDetailSerializer,
                           GameCreateSerializer, GameDetailSerializer,
                           GameListSerializer)
 
@@ -160,3 +161,14 @@ class AnalysisSessionCreateView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save(game=game)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class AnalysisSessionDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request, game_id: str, session_id: str) -> Response:
+        session = get_object_or_404(
+            AnalysisSession, id=session_id, game__id=game_id, game__user=request.user
+        )
+        serializer = AnalysisSessionDetailSerializer(session)
+        return Response(serializer.data, status=status.HTTP_200_OK)
