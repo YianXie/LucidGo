@@ -78,7 +78,7 @@ jobs:
 
             - name: Check Prettier formatting
               working-directory: ./frontend
-              run: npx prettier --check "src/**/*.{js,jsx,css,md}"
+              run: npx prettier --check "src/**/*.{ts, tsx, js,jsx,css,md}"
 
             - name: Build frontend
               working-directory: ./frontend
