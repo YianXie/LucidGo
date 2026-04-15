@@ -15,6 +15,7 @@ import {
     type AnalysisResult,
     type BoardState,
     type GameData,
+    HistoryEntry,
     isValidMove,
 } from "@/types/game";
 import { toGTPFormat } from "@/utils";
@@ -29,6 +30,7 @@ import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const defaultBoard = (analysisConfig: AnalysisConfig): BoardState => ({
@@ -51,6 +53,8 @@ function Demo() {
     usePageTitle("Demo");
 
     const { defaultAnalysisConfig } = useAuth();
+    const [searchParams] = useSearchParams();
+    const gameId = searchParams.get("gameId");
 
     const [boards, setBoards] = useState<BoardState[]>([
         defaultBoard(defaultAnalysisConfig),
@@ -76,6 +80,40 @@ function Demo() {
             }
         };
     }, []);
+
+    useEffect(() => {
+        if (gameId) {
+            void api
+                .get<HistoryEntry>(`${GAMES_URL}${gameId}`)
+                .then(({ data }) => {
+                    setBoards((prev) => {
+                        if (prev.length !== 1) return prev;
+                        const newBoard = defaultBoard(defaultAnalysisConfig);
+                        newBoard.gameData = {
+                            size: data.board_size,
+                            moves: data.moves,
+                            komi: data.komi ?? undefined,
+                            players: {
+                                black: data.black_player,
+                                white: data.white_player,
+                            },
+                            winner: data.winner ?? undefined,
+                        };
+                        newBoard.name = data.name;
+                        newBoard.gameId = data.id;
+                        newBoard.currentMove = 0;
+                        newBoard.loading = false;
+                        newBoard.useSample = false;
+                        newBoard.useAI = false;
+                        newBoard.loadedValue = 0;
+                        newBoard.analysisConfig = defaultAnalysisConfig;
+                        return [newBoard];
+                    });
+                });
+        } else {
+            setBoards([defaultBoard(defaultAnalysisConfig)]);
+        }
+    }, [defaultAnalysisConfig, gameId, setBoards]);
 
     useEffect(() => {
         setBoards((prev) => {

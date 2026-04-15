@@ -11,19 +11,19 @@ class Game(models.Model):
         UPLOAD = "upload", "Upload"
         LIVE = "live", "Live"
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="games")
-    name = models.CharField(max_length=255, blank=True, default="")
-    source = models.CharField(max_length=10, choices=Source.choices)
-    board_size = models.IntegerField()
-    komi = models.FloatField(null=True, blank=True)
-    black_player = models.CharField(max_length=255, blank=True, default="Unknown")
-    white_player = models.CharField(max_length=255, blank=True, default="Unknown")
-    winner = models.CharField(max_length=50, blank=True, default="Unknown")
-    moves = models.JSONField(default=list)
-    sgf_data = models.TextField(blank=True, default="")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # type: ignore
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="games")  # type: ignore
+    name = models.CharField(max_length=255, blank=True, default="")  # type: ignore
+    source = models.CharField(max_length=10, choices=Source.choices)  # type: ignore
+    board_size = models.IntegerField()  # type: ignore
+    komi = models.FloatField(null=True, blank=True)  # type: ignore
+    black_player = models.CharField(max_length=255, blank=True, default="Unknown")  # type: ignore
+    white_player = models.CharField(max_length=255, blank=True, default="Unknown")  # type: ignore
+    winner = models.CharField(max_length=50, blank=True, default="Unknown")  # type: ignore
+    moves = models.JSONField(default=list)  # type: ignore
+    sgf_data = models.TextField(blank=True, default="")  # type: ignore
+    created_at = models.DateTimeField(auto_now_add=True)  # type: ignore
+    updated_at = models.DateTimeField(auto_now=True)  # type: ignore
 
     class Meta:
         ordering = ["-updated_at"]
@@ -33,13 +33,13 @@ class Game(models.Model):
 
 
 class AnalysisSession(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # type: ignore
     game = models.ForeignKey(
         Game, on_delete=models.CASCADE, related_name="analysis_sessions"
-    )
-    analysis_config = models.JSONField()
-    results = models.JSONField(default=list)
-    created_at = models.DateTimeField(auto_now_add=True)
+    )  # type: ignore
+    analysis_config = models.JSONField()  # type: ignore
+    results = models.JSONField(default=list)  # type: ignore
+    created_at = models.DateTimeField(auto_now_add=True)  # type: ignore
 
     class Meta:
         ordering = ["-created_at"]

@@ -11,6 +11,22 @@ export function isValidMove(
     return move[1] !== null;
 }
 
+export interface HistoryEntry {
+    analysis_session: [];
+    black_player: string;
+    board_size: number;
+    created_at: string;
+    id: string;
+    komi: number | null;
+    moves: GameMove[];
+    name: string;
+    sgf_data: string;
+    source: "upload" | "live";
+    updated_at: string;
+    winner: string;
+    white_player: string;
+}
+
 export interface GameData {
     size: number | null;
     moves: GameMove[];
