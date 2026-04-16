@@ -56,7 +56,7 @@ export const DEFAULT_ANALYSIS_CONFIG: AnalysisConfig = {
         komi: 6.5,
         max_time_ms: 0, // 0 means no time limit
         temperature: 0,
-        seed: 0,
+        seed: "",
     },
     nn: {
         model: "checkpoint_19x19",

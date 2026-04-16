@@ -4,7 +4,9 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import Slider from "@mui/material/Slider";
 import Stack from "@mui/material/Stack";
-import TextField from "@mui/material/TextField";
+import TextField, {
+    TextFieldInputSlotPropsOverrides,
+} from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 
@@ -51,7 +53,9 @@ export function ConfigTextField({
                 variant="standard"
                 type={type}
                 value={value}
-                inputProps={inputProps}
+                slotProps={{
+                    htmlInput: inputProps ? { ...inputProps } : undefined,
+                }}
                 onChange={(e) => onChange(e.target.value)}
             />
         </Box>

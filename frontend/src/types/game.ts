@@ -66,7 +66,7 @@ export interface AnalysisConfig {
         komi: number;
         max_time_ms: number;
         temperature: number;
-        seed: number;
+        seed: string;
     };
     nn: {
         model: string;

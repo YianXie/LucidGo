@@ -10,7 +10,7 @@ DEFAULT_ANALYSIS_CONFIG = {
         "komi": 6.5,
         "max_time_ms": 0,
         "temperature": 0,
-        "seed": 0,
+        "seed": "",
     },
     "nn": {
         "model": "checkpoint_19x19",

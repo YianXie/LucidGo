@@ -22,7 +22,6 @@ function Settings() {
     const { user, login, logout, defaultAnalysisConfig } = useAuth();
     const { id } = useParams();
     const location = useLocation();
-    const [username, setUsername] = useState<string>(user?.username as string);
     const [email, setEmail] = useState<string>(user?.email as string);
     const [oldPassword, setOldPassword] = useState<string>("");
     const [password, setPassword] = useState<string>("");
@@ -38,28 +37,6 @@ function Settings() {
 
     const accountContent = (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Box
-                sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                }}
-            >
-                <TextField
-                    variant="standard"
-                    label="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                />
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleUpdateUsername}
-                    disabled={loading !== null}
-                >
-                    Update
-                </Button>
-            </Box>
             <Box
                 sx={{
                     display: "flex",
@@ -182,21 +159,6 @@ function Settings() {
     );
 
     const selectedContent = pages.find((page) => page.id === id)?.content;
-
-    async function handleUpdateUsername() {
-        setLoading("username");
-        try {
-            const { data } = await api.patch("/auth/user/username/", {
-                username,
-            });
-            await login(data);
-            toast.success("Username updated successfully.");
-        } catch (err) {
-            toast.error(getErrorMessage(err));
-        } finally {
-            setLoading(null);
-        }
-    }
 
     async function handleUpdateEmail() {
         setLoading("email");

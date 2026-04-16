@@ -173,7 +173,7 @@ function AnalysisConfigFields({
                     tooltip="Note: 0 means no time limit"
                     value={analysisConfig.general.max_time_ms}
                     min={0}
-                    max={1000}
+                    max={5000}
                     step={100}
                     ariaLabel="max-time-ms"
                     onChange={(v) => patch("general", { max_time_ms: v })}
@@ -189,9 +189,9 @@ function AnalysisConfigFields({
                 />
                 <ConfigTextField
                     label="Seed:"
-                    type="number"
+                    type="text"
                     value={analysisConfig.general.seed}
-                    onChange={(v) => patch("general", { seed: Number(v) })}
+                    onChange={(v) => patch("general", { seed: v as string })}
                 />
             </ConfigSection>
             {algorithmContent[analysisConfig.general.algorithm]}
