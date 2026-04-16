@@ -16,20 +16,23 @@ function AnalysisConfigFields({
     analysisConfig: AnalysisConfig;
     onChange: (config: AnalysisConfig) => void;
 }) {
+    /** Merge `fields` into one section of `analysisConfig` and call `onChange`. */
+    function patch<K extends keyof AnalysisConfig>(
+        section: K,
+        fields: Partial<AnalysisConfig[K]>
+    ) {
+        onChange({
+            ...analysisConfig,
+            [section]: { ...analysisConfig[section], ...fields },
+        });
+    }
+
     const nnConfigContent = (
         <ConfigSection title="Neural Network">
             <ConfigTextField
                 label="Model:"
                 value={analysisConfig.nn.model}
-                onChange={(v) =>
-                    onChange({
-                        ...analysisConfig,
-                        nn: {
-                            ...analysisConfig.nn,
-                            model: v,
-                        },
-                    })
-                }
+                onChange={(v) => patch("nn", { model: v })}
             />
             <ConfigTextField
                 label="Policy Softmax Temperature:"
@@ -37,13 +40,7 @@ function AnalysisConfigFields({
                 value={analysisConfig.nn.policy_softmax_temperature}
                 inputProps={{ min: 0, max: 1, step: 0.1 }}
                 onChange={(v) =>
-                    onChange({
-                        ...analysisConfig,
-                        nn: {
-                            ...analysisConfig.nn,
-                            policy_softmax_temperature: Number(v),
-                        },
-                    })
+                    patch("nn", { policy_softmax_temperature: Number(v) })
                 }
             />
         </ConfigSection>
@@ -58,42 +55,21 @@ function AnalysisConfigFields({
                 max={5000}
                 step={100}
                 ariaLabel="num-simulations"
-                onChange={(v) =>
-                    onChange({
-                        ...analysisConfig,
-                        mcts: {
-                            ...analysisConfig.mcts,
-                            num_simulations: v,
-                        },
-                    })
-                }
+                onChange={(v) => patch("mcts", { num_simulations: v })}
             />
             <ConfigTextField
                 label="C-PUCT:"
                 type="number"
                 value={analysisConfig.mcts.c_puct}
                 inputProps={{ min: 0.1, max: 5, step: 0.1 }}
-                onChange={(v) =>
-                    onChange({
-                        ...analysisConfig,
-                        mcts: { ...analysisConfig.mcts, c_puct: Number(v) },
-                    })
-                }
+                onChange={(v) => patch("mcts", { c_puct: Number(v) })}
             />
             <ConfigTextField
                 label="Dirichlet Alpha:"
                 type="number"
                 value={analysisConfig.mcts.dirichlet_alpha}
                 inputProps={{ min: 0, max: 0.5, step: 0.01 }}
-                onChange={(v) =>
-                    onChange({
-                        ...analysisConfig,
-                        mcts: {
-                            ...analysisConfig.mcts,
-                            dirichlet_alpha: Number(v),
-                        },
-                    })
-                }
+                onChange={(v) => patch("mcts", { dirichlet_alpha: Number(v) })}
             />
             <ConfigTextField
                 label="Dirichlet Epsilon:"
@@ -101,13 +77,7 @@ function AnalysisConfigFields({
                 value={analysisConfig.mcts.dirichlet_epsilon}
                 inputProps={{ min: 0, max: 1, step: 0.1 }}
                 onChange={(v) =>
-                    onChange({
-                        ...analysisConfig,
-                        mcts: {
-                            ...analysisConfig.mcts,
-                            dirichlet_epsilon: Number(v),
-                        },
-                    })
+                    patch("mcts", { dirichlet_epsilon: Number(v) })
                 }
             />
             <ConfigTextField
@@ -115,30 +85,14 @@ function AnalysisConfigFields({
                 type="number"
                 value={analysisConfig.mcts.value_weight}
                 inputProps={{ min: 0, max: 1, step: 0.1 }}
-                onChange={(v) =>
-                    onChange({
-                        ...analysisConfig,
-                        mcts: {
-                            ...analysisConfig.mcts,
-                            value_weight: Number(v),
-                        },
-                    })
-                }
+                onChange={(v) => patch("mcts", { value_weight: Number(v) })}
             />
             <ConfigTextField
                 label="Policy Weight:"
                 type="number"
                 value={analysisConfig.mcts.policy_weight}
                 inputProps={{ min: 0, max: 1, step: 0.1 }}
-                onChange={(v) =>
-                    onChange({
-                        ...analysisConfig,
-                        mcts: {
-                            ...analysisConfig.mcts,
-                            policy_weight: Number(v),
-                        },
-                    })
-                }
+                onChange={(v) => patch("mcts", { policy_weight: Number(v) })}
             />
             <ConfigSelect
                 label="Select By:"
@@ -148,12 +102,8 @@ function AnalysisConfigFields({
                     { value: "value", label: "Value" },
                 ]}
                 onChange={(v) =>
-                    onChange({
-                        ...analysisConfig,
-                        mcts: {
-                            ...analysisConfig.mcts,
-                            select_by: v as "visit_count" | "value",
-                        },
+                    patch("mcts", {
+                        select_by: v as AnalysisConfig["mcts"]["select_by"],
                     })
                 }
             />
@@ -167,33 +117,19 @@ function AnalysisConfigFields({
                 type="number"
                 value={analysisConfig.minimax.depth}
                 inputProps={{ min: 1, max: 5, step: 1 }}
-                onChange={(v) =>
-                    onChange({
-                        ...analysisConfig,
-                        minimax: {
-                            ...analysisConfig.minimax,
-                            depth: Number(v),
-                        },
-                    })
-                }
+                onChange={(v) => patch("minimax", { depth: Number(v) })}
             />
             <ConfigCheckbox
                 label="Use Alpha Beta"
                 checked={analysisConfig.minimax.use_alpha_beta}
-                onChange={(v) =>
-                    onChange({
-                        ...analysisConfig,
-                        minimax: {
-                            ...analysisConfig.minimax,
-                            use_alpha_beta: v,
-                        },
-                    })
-                }
+                onChange={(v) => patch("minimax", { use_alpha_beta: v })}
             />
         </ConfigSection>
     );
 
-    const content = {
+    const algorithmContent: Partial<
+        Record<AnalysisConfig["general"]["algorithm"], JSX.Element>
+    > = {
         nn: nnConfigContent,
         mcts: mctsConfigContent,
         minimax: minimaxConfigContent,
@@ -212,15 +148,7 @@ function AnalysisConfigFields({
                         { value: "mcts", label: "Monte Carlo Tree Search" },
                         { value: "minimax", label: "MiniMax" },
                     ]}
-                    onChange={(v) =>
-                        onChange({
-                            ...analysisConfig,
-                            general: {
-                                ...analysisConfig.general,
-                                algorithm: v,
-                            },
-                        })
-                    }
+                    onChange={(v) => patch("general", { algorithm: v })}
                 />
                 <ConfigSelect
                     label="Rules:"
@@ -231,30 +159,14 @@ function AnalysisConfigFields({
                         { value: "japanese", label: "Japanese" },
                         { value: "chinese", label: "Chinese" },
                     ]}
-                    onChange={(v) =>
-                        onChange({
-                            ...analysisConfig,
-                            general: {
-                                ...analysisConfig.general,
-                                rules: v,
-                            },
-                        })
-                    }
+                    onChange={(v) => patch("general", { rules: v })}
                 />
                 <ConfigTextField
                     label="Komi:"
                     type="number"
                     value={analysisConfig.general.komi}
                     inputProps={{ min: 0.5, max: 10.5, step: 1.0 }}
-                    onChange={(v) =>
-                        onChange({
-                            ...analysisConfig,
-                            general: {
-                                ...analysisConfig.general,
-                                komi: Number(v),
-                            },
-                        })
-                    }
+                    onChange={(v) => patch("general", { komi: Number(v) })}
                 />
                 <ConfigSlider
                     label="Max Time (ms):"
@@ -264,15 +176,7 @@ function AnalysisConfigFields({
                     max={1000}
                     step={100}
                     ariaLabel="max-time-ms"
-                    onChange={(v) =>
-                        onChange({
-                            ...analysisConfig,
-                            general: {
-                                ...analysisConfig.general,
-                                max_time_ms: v,
-                            },
-                        })
-                    }
+                    onChange={(v) => patch("general", { max_time_ms: v })}
                 />
                 <ConfigTextField
                     label="Temperature:"
@@ -280,31 +184,17 @@ function AnalysisConfigFields({
                     value={analysisConfig.general.temperature}
                     inputProps={{ min: 0, max: 1, step: 0.1 }}
                     onChange={(v) =>
-                        onChange({
-                            ...analysisConfig,
-                            general: {
-                                ...analysisConfig.general,
-                                temperature: Number(v),
-                            },
-                        })
+                        patch("general", { temperature: Number(v) })
                     }
                 />
                 <ConfigTextField
                     label="Seed:"
                     type="number"
                     value={analysisConfig.general.seed}
-                    onChange={(v) =>
-                        onChange({
-                            ...analysisConfig,
-                            general: {
-                                ...analysisConfig.general,
-                                seed: Number(v),
-                            },
-                        })
-                    }
+                    onChange={(v) => patch("general", { seed: Number(v) })}
                 />
             </ConfigSection>
-            {content[analysisConfig.general.algorithm as keyof typeof content]}
+            {algorithmContent[analysisConfig.general.algorithm]}
             <ConfigSection title="Output">
                 <ConfigTextField
                     label="Include Top Moves:"
@@ -312,53 +202,23 @@ function AnalysisConfigFields({
                     value={analysisConfig.output.include_top_moves}
                     inputProps={{ min: 0, max: 10, step: 1 }}
                     onChange={(v) =>
-                        onChange({
-                            ...analysisConfig,
-                            output: {
-                                ...analysisConfig.output,
-                                include_top_moves: Number(v),
-                            },
-                        })
+                        patch("output", { include_top_moves: Number(v) })
                     }
                 />
                 <ConfigCheckbox
                     label="Include Policy"
                     checked={analysisConfig.output.include_policy}
-                    onChange={(v) =>
-                        onChange({
-                            ...analysisConfig,
-                            output: {
-                                ...analysisConfig.output,
-                                include_policy: v,
-                            },
-                        })
-                    }
+                    onChange={(v) => patch("output", { include_policy: v })}
                 />
                 <ConfigCheckbox
                     label="Include Win Rate"
                     checked={analysisConfig.output.include_winrate}
-                    onChange={(v) =>
-                        onChange({
-                            ...analysisConfig,
-                            output: {
-                                ...analysisConfig.output,
-                                include_winrate: v,
-                            },
-                        })
-                    }
+                    onChange={(v) => patch("output", { include_winrate: v })}
                 />
                 <ConfigCheckbox
                     label="Include Visits"
                     checked={analysisConfig.output.include_visits}
-                    onChange={(v) =>
-                        onChange({
-                            ...analysisConfig,
-                            output: {
-                                ...analysisConfig.output,
-                                include_visits: v,
-                            },
-                        })
-                    }
+                    onChange={(v) => patch("output", { include_visits: v })}
                 />
             </ConfigSection>
         </Box>

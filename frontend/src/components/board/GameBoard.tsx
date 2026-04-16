@@ -1,6 +1,6 @@
 import api from "@/api";
 import board_bg from "@/assets/images/board/board-bg.png";
-import placeStoneSound from "@/assets/sounds/board/place-stone.wav";
+import placeStoneSoundInstance from "@/assets/sounds/placeStoneSoundInstance";
 import Controls from "@/components/board/Controls";
 import Upload from "@/components/common/Upload";
 import { BOARD_SIZE, GET_ANALYSIS_URL, GTP_LETTERS } from "@/constants";
@@ -9,6 +9,7 @@ import {
     type AnalysisResult,
     type GameData,
     type GameMove,
+    type GameSource,
     isValidMove,
 } from "@/types/game";
 import { parseGtpBoardPoint, toGTPFormat, toRowColFormat } from "@/utils";
@@ -28,18 +29,16 @@ function formatAnalysisWinrate(winrate: number): string {
     return `${(((-winrate + 1) / 2) * 100).toFixed(1)}%`;
 }
 
-const placeStoneSoundInstance = new Audio(placeStoneSound);
-
 function GameBoard({
     gameData,
     analysisData,
     isLoading,
     loadedValue,
     useAI,
-    currentMove,
+    currentMoveIndex,
     onCurrentMoveChange,
-    useSample,
-    onUseSampleChange,
+    gameSource,
+    onGameSourceChange,
     analysisConfig,
     allowPass,
     onAnalyzeWithAI,
@@ -53,9 +52,9 @@ function GameBoard({
     loadedValue: number;
     useAI: boolean;
     onViewSample: () => void;
-    useSample: boolean | null;
-    onUseSampleChange: (useSample: boolean) => void;
-    currentMove: number | null;
+    gameSource: GameSource;
+    onGameSourceChange: (source: GameSource) => void;
+    currentMoveIndex: number | null;
     analysisConfig: AnalysisConfig;
     allowPass: boolean;
     onAnalyzeWithAI: () => void;
@@ -143,7 +142,7 @@ function GameBoard({
     }, []);
 
     useEffect(() => {
-        const cm = currentMove ?? 0;
+        const cm = currentMoveIndex ?? 0;
         let g = Board.fromDimensions(boardSize);
         for (let i = 0; i < Math.min(cm, replayMoves.length); i++) {
             const move = replayMoves[i];
@@ -171,7 +170,13 @@ function GameBoard({
         const canvasContext = canvasRef.current.getContext("2d");
         redrawBoardAndStones(canvasContext);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentMove, replayMoves, boardSize, boardImageData, analysisData]);
+    }, [
+        currentMoveIndex,
+        replayMoves,
+        boardSize,
+        boardImageData,
+        analysisData,
+    ]);
 
     useEffect(() => {
         if (!useAI) return;
@@ -338,7 +343,7 @@ function GameBoard({
         canvasContext.putImageData(boardImageData, 0, 0);
         drawStones(canvasContext);
 
-        const analysisIndex = currentMove ?? 0;
+        const analysisIndex = currentMoveIndex ?? 0;
         const slice = analysisData?.[analysisIndex];
         if (slice?.top_moves?.length) {
             const ordered = slice.top_moves
@@ -381,7 +386,7 @@ function GameBoard({
     };
 
     const drawStones = (canvasContext: CanvasRenderingContext2D) => {
-        const cm = currentMove ?? 0;
+        const cm = currentMoveIndex ?? 0;
         const lastMove = cm !== 0 ? replayMoves[cm - 1] : null;
         let lastMoveCoords: [number, number] | null = null;
 
@@ -621,7 +626,7 @@ function GameBoard({
                     </Box>
                 </Box>
             )}
-            {useSample === null && useAI === false && (
+            {gameSource === "none" && !useAI && (
                 <Box
                     sx={{
                         position: "absolute",
@@ -640,7 +645,7 @@ function GameBoard({
                     <Upload
                         setFile={(file) => {
                             onFileChange(file);
-                            onUseSampleChange(false);
+                            onGameSourceChange("file");
                         }}
                         accept={".sgf"}
                     />
@@ -690,7 +695,7 @@ function GameBoard({
             />
             <Controls
                 maxMove={moves.length}
-                currentMove={currentMove}
+                currentMoveIndex={currentMoveIndex}
                 allowMoveChange={!useAI && moves.length > 0}
                 onMoveChange={onCurrentMoveChange}
                 allowAnalyzeWithAI={!useAI && moves.length > 0}

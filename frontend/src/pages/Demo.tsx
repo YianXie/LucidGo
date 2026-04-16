@@ -15,6 +15,7 @@ import {
     type AnalysisResult,
     type BoardState,
     type GameData,
+    type GameSource,
     type HistoryAnalysisSession,
     type HistoryEntry,
     isValidMove,
@@ -46,9 +47,9 @@ const defaultBoard = (analysisConfig: AnalysisConfig): BoardState => ({
     gameId: null,
     gameData: null,
     analysisData: null,
-    currentMove: null,
+    currentMoveIndex: null,
     loading: false,
-    useSample: null,
+    gameSource: "none",
     useAI: false,
     loadedValue: 0,
     analysisConfig: analysisConfig,
@@ -128,9 +129,9 @@ function Demo() {
                             };
                             newBoard.name = data.name;
                             newBoard.gameId = data.id;
-                            newBoard.currentMove = 0;
+                            newBoard.currentMoveIndex = 0;
                             newBoard.loading = false;
-                            newBoard.useSample = false;
+                            newBoard.gameSource = "file";
                             newBoard.useAI = false;
                             newBoard.loadedValue = 0;
                             newBoard.analysisConfig = defaultAnalysisConfig;
@@ -153,7 +154,7 @@ function Demo() {
             const pristine =
                 only.gameData === null &&
                 only.file === null &&
-                only.useSample === null &&
+                only.gameSource === "none" &&
                 only.analysisData === null &&
                 !only.loading;
             if (!pristine) return prev;
@@ -178,17 +179,17 @@ function Demo() {
 
     // Read file / sample content when a board's source changes.
     const fileSignature = boards
-        .map((b) => `${b.file?.name ?? ""}:${String(b.useSample ?? "")}`)
+        .map((b) => `${b.file?.name ?? ""}:${b.gameSource}`)
         .join("|");
 
     useEffect(() => {
         boards.forEach((board, i) => {
-            if (!board.file && board.useSample === null) return;
+            if (board.gameSource === "none") return;
             if (board.gameData && board.gameData.moves.length > 0) return;
 
-            if (board.useSample) {
+            if (board.gameSource === "sample") {
                 getGameData(SGF_SAMPLE, i);
-            } else if (board.file) {
+            } else if (board.gameSource === "file" && board.file) {
                 const reader = new FileReader();
                 reader.onload = (e) =>
                     getGameData(e.target?.result as string, i);
@@ -262,14 +263,8 @@ function Demo() {
                 throw new Error("Invalid board size");
             }
 
-            for (let i = 0; i < data.moves.length; i++) {
-                if (!isValidMove(data.moves[i])) {
-                    data.moves.splice(i, 1);
-                    i--;
-                    continue;
-                }
-            }
-            updateBoard(boardIndex, { gameData: data, currentMove: 0 });
+            data.moves = data.moves.filter((m) => isValidMove(m));
+            updateBoard(boardIndex, { gameData: data, currentMoveIndex: 0 });
             void saveGame(
                 boardIndex,
                 source,
@@ -407,8 +402,11 @@ function Demo() {
         }
     };
 
+    const isAnimating =
+        deletingBoardIndex !== null || creatingBoardIndex !== null;
+
     const requestDeleteBoard = (boardIndex: number) => {
-        if (deletingBoardIndex !== null || creatingBoardIndex !== null) return;
+        if (isAnimating) return;
         if (animationTimerRef.current) clearTimeout(animationTimerRef.current);
 
         setDeletingBoardIndex(boardIndex);
@@ -420,7 +418,7 @@ function Demo() {
     };
 
     const requestCreateBoard = () => {
-        if (deletingBoardIndex !== null || creatingBoardIndex !== null) return;
+        if (isAnimating) return;
         if (animationTimerRef.current) clearTimeout(animationTimerRef.current);
 
         const newIndex = boards.length;
@@ -555,9 +553,7 @@ function Demo() {
                                                 }}
                                                 disabled={
                                                     boards.length === 1 ||
-                                                    deletingBoardIndex !==
-                                                        null ||
-                                                    creatingBoardIndex !== null
+                                                    isAnimating
                                                 }
                                             >
                                                 <DeleteIcon color="inherit" />
@@ -572,20 +568,22 @@ function Demo() {
                                     loadedValue={board.loadedValue}
                                     useAI={board.useAI}
                                     gameData={board.gameData}
-                                    currentMove={board.currentMove}
+                                    currentMoveIndex={board.currentMoveIndex}
                                     onCurrentMoveChange={(move) =>
                                         updateBoard(i, {
-                                            currentMove: move,
+                                            currentMoveIndex: move,
                                         })
                                     }
-                                    useSample={board.useSample}
-                                    onUseSampleChange={(useSample) =>
-                                        updateBoard(i, { useSample })
+                                    gameSource={board.gameSource}
+                                    onGameSourceChange={(source: GameSource) =>
+                                        updateBoard(i, { gameSource: source })
                                     }
                                     analysisConfig={board.analysisConfig}
                                     allowPass={true}
                                     onViewSample={() =>
-                                        updateBoard(i, { useSample: true })
+                                        updateBoard(i, {
+                                            gameSource: "sample",
+                                        })
                                     }
                                     onPlayWithAI={() => {
                                         const liveGameData: GameData = {
@@ -600,7 +598,7 @@ function Demo() {
                                         };
                                         updateBoard(i, {
                                             gameData: liveGameData,
-                                            currentMove: 0,
+                                            currentMoveIndex: 0,
                                             useAI: true,
                                         });
                                         void saveGame(
@@ -788,10 +786,7 @@ function Demo() {
                         borderColor: "divider",
                     }}
                     onClick={requestCreateBoard}
-                    disabled={
-                        deletingBoardIndex !== null ||
-                        creatingBoardIndex !== null
-                    }
+                    disabled={isAnimating}
                 >
                     Add Board
                 </Button>

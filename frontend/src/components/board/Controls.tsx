@@ -17,7 +17,7 @@ import ControlMoveButton from "./ControlMoveButton";
 
 function Controls({
     maxMove,
-    currentMove,
+    currentMoveIndex,
     allowMoveChange,
     onMoveChange,
     allowAnalyzeWithAI,
@@ -26,7 +26,7 @@ function Controls({
     onPassMove,
 }: {
     maxMove: number;
-    currentMove: number | null;
+    currentMoveIndex: number | null;
     allowMoveChange: boolean;
     onMoveChange: (move: number) => void;
     allowAnalyzeWithAI: boolean;
@@ -35,10 +35,10 @@ function Controls({
     onPassMove: () => void;
 }) {
     const handleMove = (amount: number) => {
-        const next = (currentMove ?? 0) + amount;
+        const next = (currentMoveIndex ?? 0) + amount;
         onMoveChange(Math.max(0, Math.min(next, maxMove)));
     };
-    const moveIndex = currentMove ?? 0;
+    const moveIndex = currentMoveIndex ?? 0;
 
     return (
         <Paper

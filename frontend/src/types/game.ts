@@ -4,6 +4,9 @@ export type MoveCoords = [number, number] | null;
 /** A single move: [color, coords]. Coords is null for pass/unknown moves. */
 export type GameMove = [string, MoveCoords];
 
+/** How a board got its game: loaded from a file, the built-in sample, or not yet chosen. */
+export type GameSource = "file" | "sample" | "none";
+
 /** Type guard: returns true when the move has valid (non-null) coordinates. */
 export function isValidMove(
     move: GameMove
@@ -48,9 +51,9 @@ export interface BoardState {
     gameId: string | null;
     gameData: GameData | null;
     analysisData: AnalysisResult[] | null;
-    currentMove: number | null;
+    currentMoveIndex: number | null;
     loading: boolean;
-    useSample: boolean | null;
+    gameSource: GameSource;
     useAI: boolean;
     loadedValue: number;
     analysisConfig: AnalysisConfig;

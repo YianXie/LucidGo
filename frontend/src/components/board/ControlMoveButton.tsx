@@ -1,9 +1,6 @@
+import placeStoneSoundInstance from "@/assets/sounds/placeStoneSoundInstance";
 import IconButton from "@mui/material/IconButton";
 import type { ReactNode } from "react";
-
-import placeStoneSound from "../../assets/sounds/board/place-stone.wav";
-
-const placeStoneSoundInstance = new Audio(placeStoneSound);
 
 function ControlMoveButton({
     icon,
