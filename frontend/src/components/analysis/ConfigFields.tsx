@@ -68,12 +68,29 @@ export function ConfigTextField({
 export function ConfigCheckbox({
     label,
     checked,
+    tooltip,
     onChange,
 }: {
     label: string;
     checked: boolean;
+    tooltip?: string;
     onChange: (checked: boolean) => void;
 }) {
+    const labelElement = tooltip ? (
+        <Tooltip title={tooltip} placement="top" arrow>
+            <Typography
+                variant="body1"
+                sx={{
+                    textDecoration: "underline",
+                    textDecorationStyle: "dotted",
+                }}
+            >
+                {label}
+            </Typography>
+        </Tooltip>
+    ) : (
+        <Typography variant="body1">{label}</Typography>
+    );
     return (
         <Box sx={{ ...fieldRowSx, gap: 1 }}>
             <Checkbox
@@ -81,7 +98,7 @@ export function ConfigCheckbox({
                 onChange={(e) => onChange(e.target.checked)}
                 sx={{ width: 16, p: 0 }}
             />
-            <Typography variant="body1">{label}</Typography>
+            {labelElement}
         </Box>
     );
 }
@@ -157,6 +174,7 @@ export function ConfigSelect({
     onChange,
     options,
     id,
+    tooltip,
     labelId,
 }: {
     label: string;
@@ -164,11 +182,28 @@ export function ConfigSelect({
     onChange: (value: string) => void;
     options: { value: string; label: string }[];
     id?: string;
+    tooltip?: string;
     labelId?: string;
 }) {
+    const labelElement = tooltip ? (
+        <Tooltip title={tooltip} placement="top" arrow>
+            <Typography
+                variant="body1"
+                sx={{
+                    textDecoration: "underline",
+                    textDecorationStyle: "dotted",
+                }}
+            >
+                {label}
+            </Typography>
+        </Tooltip>
+    ) : (
+        <Typography variant="body1">{label}</Typography>
+    );
+
     return (
         <Box sx={fieldRowSx}>
-            <Typography variant="body1">{label}</Typography>
+            {labelElement}
             <Select
                 variant="standard"
                 value={value}

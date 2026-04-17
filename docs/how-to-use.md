@@ -69,16 +69,13 @@ Sets a time limit (in milliseconds) on how long the engine can spend per analysi
 Controls how much randomness is applied when selecting moves. `0` means the AI always picks the highest-scoring option deterministically. Values above 0 introduce stochasticity — useful if you want to see varied candidate moves rather than always the same top choice.
 
 **Seed**
-Random seed for the analysis. `0` means a different result each run. Set a fixed integer to make results reproducible.
+Random seed for the analysis. Leave it empty to get a different result each run. Set a fixed integer to make results reproducible.
 
 ---
 
 ### Neural Network
 
 These settings appear when **Algorithm** is set to Neural Network.
-
-**Model**
-The name of the LucidTree checkpoint to load. This should match a `.pt` file available on the server. The default (`checkpoint_19x19`) is the 19×19 model trained on professional game data.
 
 **Policy Softmax Temperature**
 Adjusts the sharpness of the policy output before it's returned. Lower values (closer to 0) concentrate probability on the top moves; higher values spread it more evenly. `0.2` is the default — it makes the displayed policy easier to read without completely flattening it.
