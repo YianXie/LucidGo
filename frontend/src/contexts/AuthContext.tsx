@@ -50,6 +50,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setDefaultAnalysisConfig(DEFAULT_ANALYSIS_CONFIG);
     }, []);
 
+    const fetchDefaultAnalysisConfig =
+        useCallback(async (): Promise<AnalysisConfig> => {
+            try {
+                const response = await api.get<{
+                    analysis_config: AnalysisConfig;
+                }>("/auth/user/analysis-config/");
+                if (!response.data || !response.data.analysis_config) {
+                    throw new Error("Invalid response from server");
+                }
+                return response.data.analysis_config;
+            } catch (error) {
+                console.error(error);
+                throw error;
+            }
+        }, []);
+
+    const refreshAccessToken = useCallback(
+        async (rt: string) => {
+            try {
+                const response = await api.post<{ access: string }>(
+                    "/auth/token/refresh/",
+                    {
+                        refresh: rt,
+                    }
+                );
+                const newAccess = response.data.access;
+                localStorage.setItem("access", newAccess);
+                setAccessToken(newAccess);
+                try {
+                    const payload = jwtDecode<AccessTokenPayload>(newAccess);
+                    setUser((payload.user as Record<string, unknown>) ?? null);
+                } catch {
+                    setUser(null);
+                }
+                setIsAuthenticated(true);
+
+                try {
+                    const config = await fetchDefaultAnalysisConfig();
+                    setDefaultAnalysisConfig(config);
+                } catch (error) {
+                    console.error(error);
+                    toast.error(
+                        "Failed to fetch analysis configuration, using default settings."
+                    );
+                    setDefaultAnalysisConfig(DEFAULT_ANALYSIS_CONFIG);
+                }
+            } catch (error) {
+                console.error(error);
+                setIsAuthenticated(false);
+                logout();
+            }
+        },
+        [fetchDefaultAnalysisConfig, logout]
+    );
+
     useEffect(() => {
         async function initializeAuth() {
             const storedAccess = localStorage.getItem("access");
@@ -80,52 +135,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setIsAuthenticated(false);
             }
         }
-        initializeAuth();
+        void initializeAuth();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    const refreshAccessToken = useCallback(
-        async (rt: string) => {
-            try {
-                const response = await api.post<{ access: string }>(
-                    "/auth/token/refresh/",
-                    {
-                        refresh: rt,
-                    }
-                );
-                const newAccess = response.data.access;
-                setAccessToken(newAccess);
-                try {
-                    const payload = jwtDecode<AccessTokenPayload>(newAccess);
-                    setUser((payload.user as Record<string, unknown>) ?? null);
-                } catch {
-                    setUser(null);
-                }
-                setIsAuthenticated(true);
-            } catch (error) {
-                console.error(error);
-                setIsAuthenticated(false);
-                logout();
-            }
-        },
-        [logout]
-    );
-
-    const fetchDefaultAnalysisConfig =
-        useCallback(async (): Promise<AnalysisConfig> => {
-            try {
-                const response = await api.get<{
-                    analysis_config: AnalysisConfig;
-                }>("/auth/user/analysis-config/");
-                if (!response.data || !response.data.analysis_config) {
-                    throw new Error("Invalid response from server");
-                }
-                return response.data.analysis_config;
-            } catch (error) {
-                console.error(error);
-                throw error;
-            }
-        }, []);
 
     const login = useCallback(
         async (token: TokenPair) => {

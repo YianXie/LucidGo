@@ -12,8 +12,12 @@ import {
     type GameSource,
     isValidMove,
 } from "@/types/game";
-import { parseGtpBoardPoint, toGTPFormat, toRowColFormat } from "@/utils";
 import { buildAnalysisRequest } from "@/utils/buildAnalysisRequest";
+import {
+    parseGtpBoardPoint,
+    toGTPFormat,
+    toRowColFormat,
+} from "@/utils/coordinates";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import Link from "@mui/material/Link";
@@ -23,7 +27,6 @@ import { useEffect, useRef, useState } from "react";
 
 type TopMoveEntry = AnalysisResult["top_moves"][number];
 
-/** Display API winrate: values in [0, 1] are shown as percent; otherwise as-is. */
 function formatAnalysisWinrate(winrate: number): string {
     // NOTE: the winrate for each top moves refers to the winrate of the opponent after the next player has played the move
     return `${(((-winrate + 1) / 2) * 100).toFixed(1)}%`;

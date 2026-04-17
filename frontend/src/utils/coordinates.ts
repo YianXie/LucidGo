@@ -1,4 +1,4 @@
-import { GTP_LETTERS, PASS_MOVE_ROW_COL } from "./constants";
+import { GTP_LETTERS, PASS_MOVE_ROW_COL } from "@/constants";
 
 /**
  * Convert a [row, col] (0-based) formatted  coords to a GTP-formatted coords (e.g. B14)
@@ -34,12 +34,4 @@ export function parseGtpBoardPoint(move: string): [number, number] | null {
     const col = GTP_LETTERS.indexOf(m[0]);
     const row = Number(m.substring(1)) - 1;
     return [row, col];
-}
-
-/**
- * Capitalize the first letter of a string
- */
-export function capitalize(str: string): string {
-    if (!str) return "";
-    return str.charAt(0).toUpperCase() + str.slice(1);
 }

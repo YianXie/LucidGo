@@ -20,8 +20,8 @@ import {
     type HistoryEntry,
     isValidMove,
 } from "@/types/game";
-import { toGTPFormat } from "@/utils";
 import { buildAnalysisRequest } from "@/utils/buildAnalysisRequest";
+import { toGTPFormat } from "@/utils/coordinates";
 import CheckIcon from "@mui/icons-material/Check";
 import DeleteIcon from "@mui/icons-material/Delete";
 import HistoryIcon from "@mui/icons-material/History";
@@ -169,13 +169,13 @@ function Demo() {
         });
     }, [boards.length]);
 
+    const settingsBoardAnalysisConfig =
+        boards[settingsBoardIndex]?.analysisConfig;
+
     useEffect(() => {
-        const board = boards[settingsBoardIndex];
-        if (board) {
-            setDraftAnalysisConfig(structuredClone(board.analysisConfig));
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [settingsBoardIndex, defaultAnalysisConfig]);
+        if (settingsBoardAnalysisConfig === undefined) return;
+        setDraftAnalysisConfig(structuredClone(settingsBoardAnalysisConfig));
+    }, [settingsBoardIndex, settingsBoardAnalysisConfig]);
 
     // Read file / sample content when a board's source changes.
     const fileSignature = boards
