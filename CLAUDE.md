@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-LucidGo is a Go game analysis web app. Users upload SGF files, navigate moves on an interactive board, and request AI-powered position analysis (win rates, top moves, policy heatmaps) backed by a KataGo API.
+LucidGo is a Go game analysis web app. Users upload SGF files, navigate moves on an interactive board, and request AI-powered position analysis (win rates, top moves, policy heatmaps) backed by a LucidTree API.
 
 ## Common Commands
 
@@ -51,7 +51,7 @@ npm run test         # Jest
 
 ### Stack
 
-- **Backend**: Python 3.12, Django 5.2, Django REST Framework, `sgfmill` (SGF parsing), `httpx` (KataGo proxy), JWT auth via `simplejwt`
+- **Backend**: Python 3.12, Django 5.2, Django REST Framework, `sgfmill` (SGF parsing), JWT auth via `simplejwt`
 - **Frontend**: React 18, TypeScript, Vite 7, MUI v7, Tailwind v4, `@sabaki/go-board`
 - **Package managers**: `uv` (backend), `npm` (frontend)
 
@@ -61,19 +61,19 @@ npm run test         # Jest
 
 2. **SGF Upload** → `POST /api/get-game-data/` → Django parses with `sgfmill` → returns `GameData` (moves, board size, komi, players, winner).
 
-3. **Analysis** → `POST /api/analyze/` → Django proxies the request to the external KataGo API via `httpx` → returns top moves with win rates, visit counts, policy values.
+3. **Analysis** → `POST /api/analyze/` → Django proxies the request to the external LucidTree API via `httpx` → returns top moves with win rates, visit counts, policy values.
 
 ### Key API Endpoints
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| POST | `/auth/register/` | Create account |
-| POST | `/auth/token/` | Login (returns JWT pair) |
-| POST | `/auth/token/refresh/` | Refresh access token |
+| Method  | Path                          | Purpose                        |
+| ------- | ----------------------------- | ------------------------------ |
+| POST    | `/auth/register/`             | Create account                 |
+| POST    | `/auth/token/`                | Login (returns JWT pair)       |
+| POST    | `/auth/token/refresh/`        | Refresh access token           |
 | GET/PUT | `/auth/user/analysis-config/` | User's default analysis config |
-| GET | `/api/health/` | Health check |
-| POST | `/api/get-game-data/` | Parse SGF file |
-| POST | `/api/analyze/` | Proxy analysis to KataGo |
+| GET     | `/api/health/`                | Health check                   |
+| POST    | `/api/get-game-data/`         | Parse SGF file                 |
+| POST    | `/api/analyze/`               | Proxy analysis to LucidTree    |
 
 ### Frontend Routes
 
@@ -90,20 +90,22 @@ npm run test         # Jest
 
 ### Analysis Config
 
-`AnalysisConfig` (defined in `frontend/src/types/game.ts`) has four sections: `general` (algorithm, rules, komi), `nn` (neural net params), `mcts` (simulations, c_puct, dirichlet), `output` (top_moves count, include_policy/winrate/visits). `frontend/src/utils/buildAnalysisRequest.ts` constructs the KataGo request from this config and the current board state.
+`AnalysisConfig` (defined in `frontend/src/types/game.ts`) has four sections: `general` (algorithm, rules, komi), `nn` (neural net params), `mcts` (simulations, c_puct, dirichlet), `output` (top_moves count, include_policy/winrate/visits). `frontend/src/utils/buildAnalysisRequest.ts` constructs the LucidTree request from this config and the current board state.
 
 ### GTP Coordinate System
 
-Go moves are stored internally as `[row, col]` pairs but the KataGo API uses GTP notation (e.g., `"D4"`). Conversion utilities are in `frontend/src/utils/utils.ts`: `toGTPFormat`, `toRowColFormat`, `parseGtpBoardPoint`.
+Go moves are stored internally as `[row, col]` pairs but the LucidTree API uses GTP notation (e.g., `"D4"`). Conversion utilities are in `frontend/src/utils/utils.ts`: `toGTPFormat`, `toRowColFormat`, `parseGtpBoardPoint`.
 
 ## Environment Variables
 
 **Backend** (copy `.env.example` → `.env`):
+
 - `SECRET_KEY` — Django secret key
-- `API_ENDPOINT` — KataGo API base URL
+- `API_ENDPOINT` — LucidTree API base URL
 - `API_TIMEOUT` — HTTP timeout in seconds
 - `ENVIRONMENT` — `development` | `production`
 
 **Frontend** (copy `.env.example` → `.env`):
+
 - `VITE_API_URL` — Backend base URL (e.g., `http://localhost:8000`)
 - `VITE_ENVIRONMENT` — `development` | `production`

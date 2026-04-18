@@ -4,7 +4,7 @@ LucidGo is a visual Go analysis tool that allows you to see AI-powered move anal
 
 ## Overview
 
-Using Go AI such as KataGo is simple, but understanding the factors that affect its performance can be abstract. LucidGo aims to solve this issue by allowing users to adjust their own analysis configurations, such as the number of simulations in Monte Carlo Tree Search and the depth in MiniMax.
+Using Go AI is simple, but understanding the factors that affect its performance can be abstract. LucidGo aims to solve this issue by allowing users to adjust their own analysis configurations, such as the number of simulations in Monte Carlo Tree Search and the depth in MiniMax.
 
 **Key Features:**
 
@@ -19,7 +19,6 @@ Using Go AI such as KataGo is simple, but understanding the factors that affect 
 ### Backend
 
 - Python 3.12, Django 5.2+, Django REST Framework 3.16+
-- HTTP client via `httpx` for KataGo API communication
 - SGF parsing with `sgfmill` library
 - JWT authentication with `djangorestframework-simplejwt`
 
@@ -100,7 +99,7 @@ ENVIRONMENT=""          # the environment where your backend is running, use 'de
 SECRET_KEY=""           # your Django secret_key, can be regenerated if needed
 
 # LucidTree API Configuration
-API_ENDPOINT=""        # URL of your KataGo API server (e.g., http://your-ec2-instance:8080)
+API_ENDPOINT=""        # URL of your LucidTree process
 API_TIMEOUT=300        # Timeout in seconds for API requests (default: 300)
 ```
 
@@ -130,7 +129,7 @@ VITE_API_URL=""        # the URL where your backend (Django REST Framework) runs
 
 ### Analysis
 
-- `POST /api/analyze/` – submit a move analysis request to KataGo (public)
+- `POST /api/analyze/` – submit a move analysis request to LucidTree
 
     <details>
     <summary>Sample Request</summary>
@@ -390,7 +389,7 @@ VITE_API_URL=""        # the URL where your backend (Django REST Framework) runs
     }
     ```
 
-    </details>
+      </details>
 
 ### Game Data
 
@@ -436,7 +435,7 @@ VITE_API_URL=""        # the URL where your backend (Django REST Framework) runs
     }
     ```
 
-    </details>
+      </details>
 
 ## Support
 
