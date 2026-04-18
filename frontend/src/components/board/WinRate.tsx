@@ -31,22 +31,23 @@ ChartJS.register(
 
 function WinRate({
     data,
-    maxMove,
     setMove,
     currentMove,
 }: {
     data: number[] | null | undefined;
-    maxMove: number;
     setMove: (n: number) => void;
     currentMove: number;
 }) {
     const [hoverX, setHoverX] = useState<number | null>(null);
     const chartRef = useRef<Chart<"line"> | null>(null);
 
+    const dataLength = data?.length ?? 0;
+
     const options = useMemo(
         () => ({
             responsive: true,
             maintainAspectRatio: false,
+            animation: false as const,
             plugins: {
                 legend: {
                     position: "top" as const,
@@ -55,11 +56,9 @@ function WinRate({
                     display: true,
                     text: "Win Rate",
                 },
-                customCanvasBackgroundColor: {
-                    color: "rgb(160, 160, 160)",
-                },
                 verticalLine: {
                     hoverX: hoverX,
+                    currentMove: currentMove,
                 },
             },
             scales: {
@@ -84,7 +83,6 @@ function WinRate({
                 chart: Chart
             ) => {
                 const chartArea = chart.chartArea;
-                const chartWidth = chartArea.right - chartArea.left;
                 const xScale = chart.scales.x;
 
                 const { x: mouseX, y: mouseY } = getRelativePosition(
@@ -100,11 +98,12 @@ function WinRate({
                 ) {
                     setHoverX(null);
                 } else {
-                    const xValue = xScale.getValueForPixel(mouseX);
-                    setHoverX(
-                        (xValue ?? 0) * (chartWidth / (xScale.max ?? 1)) +
-                            chartArea.left
+                    const xValue = xScale.getValueForPixel(mouseX) ?? 0;
+                    const snappedIndex = Math.max(
+                        0,
+                        Math.min(dataLength - 1, Math.round(xValue))
                     );
+                    setHoverX(xScale.getPixelForValue(snappedIndex));
                 }
             },
             onClick: (
@@ -112,63 +111,82 @@ function WinRate({
                 _elements: ActiveElement[],
                 chart: Chart
             ) => {
-                const { x: mouseX } = getRelativePosition(
+                const chartArea = chart.chartArea;
+                const xScale = chart.scales.x;
+                const { x: mouseX, y: mouseY } = getRelativePosition(
                     event as unknown as MouseEvent,
                     chart
                 );
-                const xScale = chart.scales.x;
-                const xValue = Math.min(
-                    (xScale.getValueForPixel(mouseX) ?? 0) + 1,
-                    maxMove - 1
+                if (
+                    mouseX < chartArea.left ||
+                    mouseX > chartArea.right ||
+                    mouseY < chartArea.top ||
+                    mouseY > chartArea.bottom
+                ) {
+                    return;
+                }
+                const xValue = xScale.getValueForPixel(mouseX) ?? 0;
+                const snappedIndex = Math.max(
+                    0,
+                    Math.min(dataLength - 1, Math.round(xValue))
                 );
-                setMove(xValue);
+                setMove(snappedIndex);
             },
         }),
-        [hoverX, maxMove, setMove]
+        [hoverX, currentMove, dataLength, setMove]
     );
 
     const plugins = useMemo(
         () => [
             {
-                id: "customCanvasBackgroundColor",
-                beforeDraw: (
-                    chart: Chart,
-                    _args: unknown,
-                    options: { color?: string }
-                ) => {
-                    const { ctx: canvasContext } = chart;
-                    canvasContext.save();
-                    canvasContext.globalCompositeOperation = "destination-over";
-                    canvasContext.fillStyle = options.color || "#99ffff";
-                    canvasContext.fillRect(0, 0, chart.width, chart.height);
-                    canvasContext.restore();
-                },
-            },
-            {
                 id: "verticalLine",
                 afterDraw: (chart: Chart) => {
-                    const hoverXValue = (
+                    const pluginOpts = (
                         chart.options.plugins as {
-                            verticalLine?: { hoverX?: number | null };
+                            verticalLine?: {
+                                hoverX?: number | null;
+                                currentMove?: number;
+                            };
                         }
-                    ).verticalLine?.hoverX;
+                    ).verticalLine;
 
-                    if (!hoverXValue) {
-                        return;
+                    const { ctx: canvasContext, chartArea, scales } = chart;
+                    const xScale = scales.x;
+
+                    // Draw current-move indicator (teal dashed line)
+                    const currentMoveValue = pluginOpts?.currentMove;
+                    if (
+                        currentMoveValue != null &&
+                        dataLength > 0 &&
+                        currentMoveValue >= 0 &&
+                        currentMoveValue < dataLength
+                    ) {
+                        const currentX =
+                            xScale.getPixelForValue(currentMoveValue);
+                        canvasContext.save();
+                        canvasContext.beginPath();
+                        canvasContext.moveTo(currentX, chartArea.top);
+                        canvasContext.lineTo(currentX, chartArea.bottom);
+                        canvasContext.lineWidth = 2;
+                        canvasContext.strokeStyle = "rgba(0, 150, 136, 0.8)";
+                        canvasContext.setLineDash([4, 4]);
+                        canvasContext.stroke();
+                        canvasContext.restore();
                     }
 
-                    const { ctx: canvasContext } = chart;
-                    const { chartArea } = chart;
-
-                    canvasContext.save();
-                    canvasContext.beginPath();
-                    canvasContext.moveTo(hoverXValue, chartArea.top);
-                    canvasContext.lineTo(hoverXValue, chartArea.bottom);
-                    canvasContext.lineWidth = 2;
-                    canvasContext.strokeStyle = "rgba(255, 0, 0, 0.8)";
-                    canvasContext.setLineDash([5, 5]);
-                    canvasContext.stroke();
-                    canvasContext.restore();
+                    // Draw hover line (red solid line)
+                    const hoverXValue = pluginOpts?.hoverX;
+                    if (hoverXValue != null) {
+                        canvasContext.save();
+                        canvasContext.beginPath();
+                        canvasContext.moveTo(hoverXValue, chartArea.top);
+                        canvasContext.lineTo(hoverXValue, chartArea.bottom);
+                        canvasContext.lineWidth = 2;
+                        canvasContext.strokeStyle = "rgba(255, 0, 0, 0.8)";
+                        canvasContext.setLineDash([]);
+                        canvasContext.stroke();
+                        canvasContext.restore();
+                    }
                 },
             },
             {
@@ -184,6 +202,7 @@ function WinRate({
                 },
             },
         ],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         []
     );
 
@@ -204,7 +223,7 @@ function WinRate({
                         label: "White",
                         data: [] as number[],
                         fill: false,
-                        borderColor: "white",
+                        borderColor: "rgb(180, 180, 180)",
                         tension: 0.2,
                         pointRadius: 0,
                     },
@@ -216,7 +235,7 @@ function WinRate({
         const whiteWinRate = data.map((rate) => 100 - rate);
 
         return {
-            labels: Array.from({ length: maxMove }, (_, i) => i + 1),
+            labels: Array.from({ length: data.length }, (_, i) => i),
             datasets: [
                 {
                     label: "Black",
@@ -227,11 +246,10 @@ function WinRate({
                     pointRadius: 0,
                     segment: {
                         borderColor: (ctx: ScriptableLineSegmentContext) => {
-                            const moveIndex = (ctx.p0.parsed.x ?? 0) + 1;
-                            if (moveIndex < currentMove) {
-                                return "black";
-                            }
-                            return "rgba(0, 0, 0, 0.2)";
+                            const moveIndex = ctx.p0.parsed.x ?? 0;
+                            return moveIndex < currentMove
+                                ? "black"
+                                : "rgba(0, 0, 0, 0.2)";
                         },
                     },
                 },
@@ -239,22 +257,21 @@ function WinRate({
                     label: "White",
                     data: whiteWinRate,
                     fill: false,
-                    borderColor: "white",
+                    borderColor: "rgb(180, 180, 180)",
                     tension: 0.2,
                     pointRadius: 0,
                     segment: {
                         borderColor: (ctx: ScriptableLineSegmentContext) => {
-                            const moveIndex = (ctx.p0.parsed.x ?? 0) + 1;
-                            if (moveIndex < currentMove) {
-                                return "white";
-                            }
-                            return "rgba(255, 255, 255, 0.2)";
+                            const moveIndex = ctx.p0.parsed.x ?? 0;
+                            return moveIndex < currentMove
+                                ? "rgb(180, 180, 180)"
+                                : "rgba(180, 180, 180, 0.2)";
                         },
                     },
                 },
             ],
         };
-    }, [data, maxMove, currentMove]);
+    }, [data, currentMove]);
 
     return (
         <>
@@ -262,9 +279,9 @@ function WinRate({
                 <Box
                     sx={{
                         position: "relative",
-                        my: 3,
-                        height: 300,
-                        width: { xs: "100%", sm: 600 },
+                        my: 1,
+                        height: 220,
+                        width: "100%",
                         cursor: "pointer",
                     }}
                 >
@@ -278,14 +295,16 @@ function WinRate({
             ) : (
                 <Box
                     sx={{
-                        my: 3,
+                        my: 1,
                         width: "100%",
                         px: 2,
-                        py: 3,
+                        py: 2,
                         textAlign: "center",
                     }}
                 >
-                    <Typography variant="body1">No win rate data</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Run AI analysis to see win rate graph
+                    </Typography>
                 </Box>
             )}
         </>

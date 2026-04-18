@@ -1,6 +1,7 @@
 import api from "@/api";
 import AnalysisConfigFields from "@/components/analysis/AnalysisConfigFields";
 import GameBoard from "@/components/board/GameBoard";
+import WinRate from "@/components/board/WinRate";
 import {
     BOARD_SIZE,
     GAMES_URL,
@@ -491,7 +492,7 @@ function Demo() {
                     {boards.map((board, i) => (
                         <Stack
                             key={i}
-                            gap={1}
+                            gap={2}
                             direction="row"
                             alignItems="center"
                             justifyContent="center"
@@ -622,6 +623,35 @@ function Demo() {
                                     onFileChange={(file) =>
                                         updateBoard(i, { file })
                                     }
+                                />
+                                <WinRate
+                                    data={(() => {
+                                        const raw =
+                                            board.analysisData?.map(
+                                                (result, idx) => {
+                                                    const w =
+                                                        result.top_moves[0]
+                                                            ?.winrate;
+                                                    if (w == null) return null;
+                                                    const currentPlayerPct =
+                                                        ((w + 1) / 2) * 100;
+                                                    return idx % 2 === 0
+                                                        ? currentPlayerPct
+                                                        : 100 -
+                                                              currentPlayerPct;
+                                                }
+                                            ) ?? null;
+                                        if (!raw) return null;
+                                        return raw.some((v) => v == null)
+                                            ? null
+                                            : (raw as number[]);
+                                    })()}
+                                    setMove={(move) =>
+                                        updateBoard(i, {
+                                            currentMoveIndex: move,
+                                        })
+                                    }
+                                    currentMove={board.currentMoveIndex ?? 0}
                                 />
                             </Box>
                             <Paper
