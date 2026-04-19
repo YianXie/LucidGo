@@ -160,12 +160,15 @@ function Header() {
             disableScrollLock
         >
             {accountMenuItems.map((item) => (
-                <Link key={item.label} to={item.path} onClick={handleClose}>
-                    <MenuItem>
-                        <ListItemIcon>{item.icon}</ListItemIcon>
-                        {item.label}
-                    </MenuItem>
-                </Link>
+                <MenuItem
+                    key={item.label}
+                    component={Link}
+                    to={item.path}
+                    onClick={handleClose}
+                >
+                    <ListItemIcon>{item.icon}</ListItemIcon>
+                    {item.label}
+                </MenuItem>
             ))}
         </Menu>
     );
