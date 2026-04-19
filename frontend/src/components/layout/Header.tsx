@@ -22,6 +22,7 @@ import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import useScrollTrigger from "@mui/material/useScrollTrigger";
 import { type ReactElement, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../contexts/AuthContext";
@@ -74,32 +75,26 @@ function Header() {
     const navItems = [
         { label: "Docs", path: "/docs" },
         { label: "Demo", path: "/demo" },
+        { label: "Profile", path: "/profile", mobileOnly: true },
+        { label: "Settings", path: "/settings", mobileOnly: true },
+        { label: "Logout", path: "/logout", mobileOnly: true },
     ];
 
     const accountMenuItems = [
         {
             label: "Profile",
             icon: <PersonIcon />,
-            onClick: () => {
-                handleClose();
-                navigate("/profile");
-            },
+            path: "/profile",
         },
         {
             label: "Settings",
             icon: <SettingsIcon />,
-            onClick: () => {
-                handleClose();
-                navigate("/settings");
-            },
+            path: "/settings",
         },
         {
             label: "Logout",
             icon: <LogoutIcon />,
-            onClick: () => {
-                handleClose();
-                navigate("/logout");
-            },
+            path: "/logout",
         },
     ];
 
@@ -165,10 +160,12 @@ function Header() {
             disableScrollLock
         >
             {accountMenuItems.map((item) => (
-                <MenuItem key={item.label} onClick={item.onClick}>
-                    <ListItemIcon>{item.icon}</ListItemIcon>
-                    {item.label}
-                </MenuItem>
+                <Link key={item.label} to={item.path} onClick={handleClose}>
+                    <MenuItem>
+                        <ListItemIcon>{item.icon}</ListItemIcon>
+                        {item.label}
+                    </MenuItem>
+                </Link>
             ))}
         </Menu>
     );
@@ -232,15 +229,17 @@ function Header() {
                                     gap: 4,
                                 }}
                             >
-                                {navItems.map((item) => (
-                                    <NavLink
-                                        key={item.path}
-                                        to={item.path}
-                                        className="no-underline transition-all hover:opacity-80 hover:underline"
-                                    >
-                                        {item.label}
-                                    </NavLink>
-                                ))}
+                                {navItems
+                                    .filter((item) => !item.mobileOnly)
+                                    .map((item) => (
+                                        <NavLink
+                                            key={item.path}
+                                            to={item.path}
+                                            className="no-underline transition-all hover:opacity-80 hover:underline"
+                                        >
+                                            {item.label}
+                                        </NavLink>
+                                    ))}
                                 {isAuthenticated ? (
                                     <Tooltip title="Account">
                                         <IconButton
