@@ -1,7 +1,7 @@
-import AnalysisConfigFields from "@/components/analysis/AnalysisConfigFields";
 import Sidebar from "@/components/common/Sidebar";
 import SidebarLink from "@/components/common/SidebarLink";
 import SidebarLayout from "@/components/layout/SidebarLayout";
+import AnalysisConfigFields from "@/components/settings/AnalysisConfigFields";
 import { DEFAULT_ANALYSIS_CONFIG } from "@/constants";
 import type { AnalysisConfig } from "@/types/game";
 import { getErrorMessage } from "@/utils/errorFormatting";

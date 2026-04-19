@@ -1,7 +1,7 @@
 import api from "@/api";
-import AnalysisConfigFields from "@/components/analysis/AnalysisConfigFields";
 import GameBoard from "@/components/board/GameBoard";
 import WinRate from "@/components/board/WinRate";
+import AnalysisConfigFields from "@/components/settings/AnalysisConfigFields";
 import {
     BOARD_SIZE,
     GAMES_URL,
