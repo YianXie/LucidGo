@@ -96,6 +96,12 @@ export interface AnalysisConfig {
 /** One analyze API response entry (shape may grow with the backend). */
 export interface AnalysisResult {
     algo: string;
+    stats: {
+        elapsed_ms: number;
+        winrate: number;
+        policy: number[];
+        [key: string]: unknown;
+    };
     top_moves: {
         move: string;
         policy?: number;

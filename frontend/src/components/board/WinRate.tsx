@@ -1,5 +1,6 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import { alpha, useTheme } from "@mui/material/styles";
 import {
     type ActiveElement,
     CategoryScale,
@@ -38,10 +39,28 @@ function WinRate({
     setMove: (n: number) => void;
     currentMove: number;
 }) {
+    const theme = useTheme();
     const [hoverX, setHoverX] = useState<number | null>(null);
     const chartRef = useRef<Chart<"line"> | null>(null);
 
     const dataLength = data?.length ?? 0;
+
+    /** Theme-aware line colors: black/gray on light UI, light/mid gray on dark UI */
+    const linePalette = useMemo(() => {
+        const isDark = theme.palette.mode === "dark";
+        const black = isDark
+            ? theme.palette.grey[300]!
+            : theme.palette.grey[900]!;
+        const white = isDark
+            ? theme.palette.grey[500]!
+            : theme.palette.grey[700]!;
+        return {
+            black,
+            blackMuted: alpha(black, 0.22),
+            white,
+            whiteMuted: alpha(white, 0.22),
+        };
+    }, [theme]);
 
     const options = useMemo(
         () => ({
@@ -207,6 +226,8 @@ function WinRate({
     );
 
     const lineData = useMemo((): ChartData<"line"> => {
+        const { black, blackMuted, white, whiteMuted } = linePalette;
+
         if (!data || data.length === 0) {
             return {
                 labels: [] as number[],
@@ -215,7 +236,8 @@ function WinRate({
                         label: "Black",
                         data: [] as number[],
                         fill: false,
-                        borderColor: "black",
+                        borderColor: black,
+                        borderWidth: 2,
                         tension: 0.2,
                         pointRadius: 0,
                     },
@@ -223,7 +245,8 @@ function WinRate({
                         label: "White",
                         data: [] as number[],
                         fill: false,
-                        borderColor: "rgb(180, 180, 180)",
+                        borderColor: white,
+                        borderWidth: 2,
                         tension: 0.2,
                         pointRadius: 0,
                     },
@@ -241,15 +264,14 @@ function WinRate({
                     label: "Black",
                     data: blackWinRate,
                     fill: false,
-                    borderColor: "black",
+                    borderColor: black,
+                    borderWidth: 2,
                     tension: 0.2,
                     pointRadius: 0,
                     segment: {
                         borderColor: (ctx: ScriptableLineSegmentContext) => {
                             const moveIndex = ctx.p0.parsed.x ?? 0;
-                            return moveIndex < currentMove
-                                ? "black"
-                                : "rgba(0, 0, 0, 0.2)";
+                            return moveIndex < currentMove ? black : blackMuted;
                         },
                     },
                 },
@@ -257,21 +279,20 @@ function WinRate({
                     label: "White",
                     data: whiteWinRate,
                     fill: false,
-                    borderColor: "rgb(180, 180, 180)",
+                    borderColor: white,
+                    borderWidth: 2,
                     tension: 0.2,
                     pointRadius: 0,
                     segment: {
                         borderColor: (ctx: ScriptableLineSegmentContext) => {
                             const moveIndex = ctx.p0.parsed.x ?? 0;
-                            return moveIndex < currentMove
-                                ? "rgb(180, 180, 180)"
-                                : "rgba(180, 180, 180, 0.2)";
+                            return moveIndex < currentMove ? white : whiteMuted;
                         },
                     },
                 },
             ],
         };
-    }, [data, currentMove]);
+    }, [data, currentMove, linePalette]);
 
     return (
         <>

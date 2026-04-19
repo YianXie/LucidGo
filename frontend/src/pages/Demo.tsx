@@ -630,9 +630,7 @@ function Demo() {
                                             board.analysisData?.map(
                                                 (result, idx) => {
                                                     const w =
-                                                        result.top_moves[0]
-                                                            ?.winrate;
-                                                    if (w == null) return null;
+                                                        result.stats.winrate;
                                                     const currentPlayerPct =
                                                         ((w + 1) / 2) * 100;
                                                     return idx % 2 === 0
