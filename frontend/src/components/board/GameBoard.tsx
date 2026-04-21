@@ -200,8 +200,10 @@ function GameBoard({
         if (!canvasRef.current) return [null, null] as const;
 
         const bounds = canvasRef.current.getBoundingClientRect();
-        const canvasX = x - bounds.left;
-        const canvasY = y - bounds.top;
+        // Scale from rendered CSS pixels back to logical canvas pixels
+        const scale = canvasSize / bounds.width;
+        const canvasX = (x - bounds.left) * scale;
+        const canvasY = (y - bounds.top) * scale;
 
         return [canvasX, canvasY] as const;
     };
@@ -692,9 +694,14 @@ function GameBoard({
             )}
             <canvas
                 ref={canvasRef}
-                className="size-200"
                 width={canvasSize}
                 height={canvasSize}
+                style={{
+                    width: "100%",
+                    height: "auto",
+                    display: "block",
+                    maxWidth: `${canvasSize}px`,
+                }}
             />
             <Controls
                 maxMove={moves.length}

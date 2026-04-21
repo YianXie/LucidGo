@@ -40,7 +40,8 @@ function Settings() {
             <Box
                 sx={{
                     display: "flex",
-                    alignItems: "center",
+                    alignItems: { xs: "stretch", sm: "center" },
+                    flexDirection: { xs: "column", sm: "row" },
                     gap: 2,
                 }}
             >
@@ -50,12 +51,17 @@ function Settings() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    sx={{ flexGrow: 1 }}
                 />
                 <Button
                     variant="contained"
                     color="primary"
                     onClick={handleUpdateEmail}
                     disabled={loading !== null}
+                    sx={{
+                        flexShrink: 0,
+                        alignSelf: { xs: "flex-start", sm: "center" },
+                    }}
                 >
                     Update
                 </Button>
@@ -63,7 +69,8 @@ function Settings() {
             <Box
                 sx={{
                     display: "flex",
-                    alignItems: "center",
+                    alignItems: { xs: "stretch", sm: "center" },
+                    flexDirection: { xs: "column", sm: "row" },
                     gap: 2,
                 }}
             >
@@ -73,6 +80,7 @@ function Settings() {
                     type="password"
                     value={oldPassword}
                     onChange={(e) => setOldPassword(e.target.value)}
+                    sx={{ flexGrow: 1 }}
                 />
                 <TextField
                     variant="standard"
@@ -80,12 +88,17 @@ function Settings() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    sx={{ flexGrow: 1 }}
                 />
                 <Button
                     variant="contained"
                     color="primary"
                     onClick={handleUpdatePassword}
                     disabled={loading !== null}
+                    sx={{
+                        flexShrink: 0,
+                        alignSelf: { xs: "flex-start", sm: "center" },
+                    }}
                 >
                     Update
                 </Button>

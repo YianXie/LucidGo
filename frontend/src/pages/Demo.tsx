@@ -26,6 +26,7 @@ import { toGTPFormat } from "@/utils/coordinates";
 import CheckIcon from "@mui/icons-material/Check";
 import DeleteIcon from "@mui/icons-material/Delete";
 import HistoryIcon from "@mui/icons-material/History";
+import TuneIcon from "@mui/icons-material/Tune";
 import { ListItemIcon } from "@mui/material";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -35,9 +36,12 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
+import SwipeableDrawer from "@mui/material/SwipeableDrawer";
 import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -64,6 +68,10 @@ function Demo() {
     const { defaultAnalysisConfig } = useAuth();
     const [searchParams] = useSearchParams();
     const gameId = searchParams.get("gameId");
+
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const [settingsDrawerOpen, setSettingsDrawerOpen] = useState(false);
 
     const [boards, setBoards] = useState<BoardState[]>([
         defaultBoard(defaultAnalysisConfig),
@@ -493,12 +501,12 @@ function Demo() {
                         <Stack
                             key={i}
                             gap={2}
-                            direction="row"
-                            alignItems="center"
+                            direction={{ xs: "column", md: "row" }}
+                            alignItems={{ xs: "stretch", md: "center" }}
                             justifyContent="center"
                             sx={{
                                 position: "relative",
-                                width: "max-content",
+                                width: { xs: "100%", md: "max-content" },
                                 maxWidth: "none",
                                 mx: "auto",
                                 flexShrink: 0,
@@ -539,28 +547,50 @@ function Demo() {
                                                 },
                                         }}
                                     />
-                                    <Tooltip title="Delete board" arrow>
-                                        <span>
-                                            <IconButton
-                                                onClick={() =>
-                                                    requestDeleteBoard(i)
-                                                }
-                                                sx={{
-                                                    color: "error.main",
-                                                    "&:hover": {
-                                                        backgroundColor:
-                                                            "#ff000010",
-                                                    },
-                                                }}
-                                                disabled={
-                                                    boards.length === 1 ||
-                                                    isAnimating
-                                                }
+                                    <Stack direction="row" alignItems="center">
+                                        {isMobile && (
+                                            <Tooltip
+                                                title="Analysis settings"
+                                                arrow
                                             >
-                                                <DeleteIcon color="inherit" />
-                                            </IconButton>
-                                        </span>
-                                    </Tooltip>
+                                                <IconButton
+                                                    onClick={() => {
+                                                        setSettingsBoardIndex(
+                                                            i
+                                                        );
+                                                        setSettingsDrawerOpen(
+                                                            true
+                                                        );
+                                                    }}
+                                                    size="small"
+                                                >
+                                                    <TuneIcon fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                        )}
+                                        <Tooltip title="Delete board" arrow>
+                                            <span>
+                                                <IconButton
+                                                    onClick={() =>
+                                                        requestDeleteBoard(i)
+                                                    }
+                                                    sx={{
+                                                        color: "error.main",
+                                                        "&:hover": {
+                                                            backgroundColor:
+                                                                "#ff000010",
+                                                        },
+                                                    }}
+                                                    disabled={
+                                                        boards.length === 1 ||
+                                                        isAnimating
+                                                    }
+                                                >
+                                                    <DeleteIcon color="inherit" />
+                                                </IconButton>
+                                            </span>
+                                        </Tooltip>
+                                    </Stack>
                                 </Stack>
                                 <GameBoard
                                     key={i}
@@ -659,7 +689,7 @@ function Demo() {
                                     width: { xs: "100%", md: 400 },
                                     maxWidth: { xs: "100%", md: 400 },
                                     flexShrink: 0,
-                                    display: "flex",
+                                    display: { xs: "none", md: "flex" },
                                     flexDirection: "column",
                                     maxHeight: {
                                         xs: "none",
@@ -819,6 +849,155 @@ function Demo() {
                     Add Board
                 </Button>
             </Box>
+
+            {/* Mobile-only: analysis settings bottom drawer */}
+            <SwipeableDrawer
+                anchor="bottom"
+                open={settingsDrawerOpen}
+                onOpen={() => setSettingsDrawerOpen(true)}
+                onClose={() => setSettingsDrawerOpen(false)}
+                disableSwipeToOpen
+                sx={{ display: { xs: "block", md: "none" } }}
+                slotProps={{
+                    paper: {
+                        sx: {
+                            maxHeight: "80vh",
+                            borderRadius: "16px 16px 0 0",
+                            display: "flex",
+                            flexDirection: "column",
+                        },
+                    },
+                }}
+            >
+                <Box
+                    sx={{
+                        width: 40,
+                        height: 4,
+                        bgcolor: "divider",
+                        borderRadius: 2,
+                        mx: "auto",
+                        mt: 1.5,
+                        mb: 1,
+                        flexShrink: 0,
+                    }}
+                />
+                <Box
+                    sx={{
+                        px: 2,
+                        pt: 1,
+                        pb: 1,
+                        borderBottom: 1,
+                        borderColor: "divider",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        flexShrink: 0,
+                    }}
+                >
+                    <Box>
+                        <Typography variant="h6" component="h2">
+                            Analysis settings
+                        </Typography>
+                        <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ mt: 0.5 }}
+                        >
+                            Board {settingsBoardIndex + 1}
+                        </Typography>
+                    </Box>
+                    {gameId && analysisSessions.length > 0 && (
+                        <>
+                            <Tooltip title="Past configurations" arrow>
+                                <IconButton
+                                    size="medium"
+                                    onClick={(e) =>
+                                        setHistoryMenuAnchor(e.currentTarget)
+                                    }
+                                >
+                                    <HistoryIcon fontSize="medium" />
+                                </IconButton>
+                            </Tooltip>
+                            <Menu
+                                anchorEl={historyMenuAnchor}
+                                open={Boolean(historyMenuAnchor)}
+                                onClose={() => setHistoryMenuAnchor(null)}
+                                anchorOrigin={{
+                                    vertical: "bottom",
+                                    horizontal: "right",
+                                }}
+                                transformOrigin={{
+                                    vertical: "top",
+                                    horizontal: "right",
+                                }}
+                                slotProps={{
+                                    list: { autoFocusItem: true },
+                                }}
+                            >
+                                {analysisSessions.map((session) => {
+                                    const algo =
+                                        session.analysis_config?.general
+                                            ?.algorithm ?? "Unknown";
+                                    const date = new Date(
+                                        session.created_at
+                                    ).toLocaleDateString(undefined, {
+                                        month: "short",
+                                        day: "numeric",
+                                        year: "numeric",
+                                    });
+                                    return (
+                                        <MenuItem
+                                            key={session.id}
+                                            onClick={() => {
+                                                void loadHistorySession(
+                                                    session.id
+                                                );
+                                                setSelectedAnalysisSession(
+                                                    session.id
+                                                );
+                                            }}
+                                        >
+                                            <ListItemIcon>
+                                                {session.id ===
+                                                    selectedAnalysisSession && (
+                                                    <CheckIcon color="primary" />
+                                                )}
+                                            </ListItemIcon>
+                                            <ListItemText>
+                                                {algo} &mdash; {date}
+                                            </ListItemText>
+                                        </MenuItem>
+                                    );
+                                })}
+                            </Menu>
+                        </>
+                    )}
+                </Box>
+                <Box
+                    sx={{
+                        flex: 1,
+                        overflow: "auto",
+                        px: 2,
+                        py: 2,
+                        scrollbarWidth: "thin",
+                    }}
+                >
+                    <AnalysisConfigFields
+                        analysisConfig={draftAnalysisConfig}
+                        onChange={setDraftAnalysisConfig}
+                    />
+                </Box>
+                <Button
+                    variant="contained"
+                    onClick={() => {
+                        applyAnalysisSettings();
+                        setSettingsDrawerOpen(false);
+                    }}
+                    sx={{ m: 2, flexShrink: 0 }}
+                >
+                    Apply
+                </Button>
+            </SwipeableDrawer>
         </Box>
     );
 }
