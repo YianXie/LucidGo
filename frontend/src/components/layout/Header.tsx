@@ -1,3 +1,4 @@
+import { Feedback } from "@mui/icons-material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
 import PersonIcon from "@mui/icons-material/Person";
@@ -75,9 +76,6 @@ function Header() {
     const navItems = [
         { label: "Docs", path: "/docs" },
         { label: "Demo", path: "/demo" },
-        { label: "Profile", path: "/profile", mobileOnly: true },
-        { label: "Settings", path: "/settings", mobileOnly: true },
-        { label: "Logout", path: "/logout", mobileOnly: true },
     ];
 
     const accountMenuItems = [
@@ -92,6 +90,11 @@ function Header() {
             path: "/settings",
         },
         {
+            label: "Feedback Form",
+            icons: <Feedback />,
+            path: "https://forms.gle/UUfoY7uhRBXSqvux8",
+        },
+        {
             label: "Logout",
             icon: <LogoutIcon />,
             path: "/logout",
@@ -101,7 +104,7 @@ function Header() {
     const drawer = (
         <Box onClick={handleDrawerToggle} sx={{ textAlign: "center" }}>
             <List>
-                {navItems.map((item) => (
+                {[...navItems, ...accountMenuItems].map((item) => (
                     <ListItem key={item.path} disablePadding>
                         <ListItemButton
                             onClick={() => navigate(item.path)}
@@ -232,17 +235,15 @@ function Header() {
                                     gap: 4,
                                 }}
                             >
-                                {navItems
-                                    .filter((item) => !item.mobileOnly)
-                                    .map((item) => (
-                                        <NavLink
-                                            key={item.path}
-                                            to={item.path}
-                                            className="no-underline transition-all hover:opacity-80 hover:underline"
-                                        >
-                                            {item.label}
-                                        </NavLink>
-                                    ))}
+                                {navItems.map((item) => (
+                                    <NavLink
+                                        key={item.path}
+                                        to={item.path}
+                                        className="no-underline transition-all hover:opacity-80 hover:underline"
+                                    >
+                                        {item.label}
+                                    </NavLink>
+                                ))}
                                 {isAuthenticated ? (
                                     <Tooltip title="Account">
                                         <IconButton
