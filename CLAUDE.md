@@ -18,6 +18,7 @@ make format      # ruff format + isort + prettier
 make security    # pip-audit + bandit + npm audit
 make ci-local    # Full CI pipeline locally
 make clean       # Remove caches and build artifacts
+make run-all     # Launch backend + frontend + LucidTree in separate iTerm2 windows (macOS only)
 ```
 
 ### Backend (Django)
@@ -29,10 +30,11 @@ source .venv/bin/activate            # Activate venv
 python manage.py migrate             # Apply migrations
 python manage.py runserver           # Dev server at http://localhost:8000
 
-uv run python manage.py test         # Run all tests
-uv run python manage.py test auth    # Run tests for a specific app
-uv run ruff check .                  # Lint
-uv run ruff format .                 # Format
+uv run python manage.py test                        # Run all tests
+uv run python manage.py test auth                   # Run tests for a specific app
+uv run python manage.py test api.tests.HealthTest   # Run a single test class
+uv run ruff check .                                 # Lint
+uv run ruff format .                                # Format
 ```
 
 ### Frontend (React + Vite)
@@ -44,7 +46,7 @@ npm run dev          # Dev server at http://localhost:5173
 npm run build        # Type-check + production build
 npm run lint         # ESLint
 npm run typecheck    # tsc --noEmit
-npm run test         # Jest
+npm run test         # Jest (no test files exist yet — Jest is configured but unused)
 ```
 
 ## Architecture
@@ -84,9 +86,11 @@ npm run test         # Jest
 
 ### State Architecture
 
-- **`AuthContext.tsx`** — Global auth state (user info, tokens, login/logout)
+- **`AuthContext.tsx`** — Global auth state (user info, tokens, login/logout); also fetches and holds the user's default `AnalysisConfig` on login
 - **`Demo.tsx`** — Owns the `BoardState[]` array; each entry has its own game data, analysis results per move, and current move index
 - **`UserSettings` model** — Persists `analysis_config` JSON per user on the backend
+- **`Game` model** — UUID PK; stores parsed SGF data (moves, board size, komi, players, winner) per user
+- **`AnalysisSession` model** — UUID PK linked to a `Game`; stores `analysis_config` and per-move results JSON
 
 ### Analysis Config
 
@@ -102,10 +106,9 @@ Go moves are stored internally as `[row, col]` pairs but the LucidTree API uses 
 
 - `SECRET_KEY` — Django secret key
 - `API_ENDPOINT` — LucidTree API base URL
-- `API_TIMEOUT` — HTTP timeout in seconds
+- `API_TIME_OUT` — HTTP timeout in seconds
 - `ENVIRONMENT` — `development` | `production`
 
 **Frontend** (copy `.env.example` → `.env`):
 
-- `VITE_API_URL` — Backend base URL (e.g., `http://localhost:8000`)
-- `VITE_ENVIRONMENT` — `development` | `production`
+- `VITE_API_URL` — Backend base URL, no trailing slash (e.g., `http://localhost:8000`)
