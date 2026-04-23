@@ -37,13 +37,12 @@ function GameBoard({
     analysisData,
     isLoading,
     loadedValue,
-    useAI,
+    live,
     currentMoveIndex,
     onCurrentMoveChange,
     gameSource,
     onGameSourceChange,
     analysisConfig,
-    allowPass,
     onAnalyzeWithAI,
     onViewSample,
     onPlayWithAI,
@@ -53,7 +52,7 @@ function GameBoard({
     analysisData: AnalysisResult[] | null;
     isLoading: boolean;
     loadedValue: number;
-    useAI: boolean;
+    live: boolean;
     onViewSample: () => void;
     gameSource: GameSource;
     onGameSourceChange: (source: GameSource) => void;
@@ -93,7 +92,7 @@ function GameBoard({
         setMoves(gameData.moves ?? []);
     }, [gameData]);
 
-    const replayMoves = useAI ? moves : (gameData?.moves ?? []);
+    const replayMoves = live ? moves : (gameData?.moves ?? []);
 
     const userColor = "B" as const;
     const AIColor = "W" as const;
@@ -182,7 +181,7 @@ function GameBoard({
     ]);
 
     useEffect(() => {
-        if (!useAI) return;
+        if (!live) return;
         const canvas = canvasRef.current;
         if (!canvas) return;
         const onMove = (e: MouseEvent) => hoverRef.current(e);
@@ -194,7 +193,7 @@ function GameBoard({
             canvas.removeEventListener("mousemove", onMove);
             canvas.removeEventListener("click", onClick);
         };
-    }, [useAI]);
+    }, [live]);
 
     const clientToCanvasCoords = (x: number, y: number) => {
         if (!canvasRef.current) return [null, null] as const;
@@ -631,7 +630,7 @@ function GameBoard({
                     </Box>
                 </Box>
             )}
-            {gameSource === "none" && !useAI && (
+            {gameSource === "none" && !live && (
                 <Box
                     sx={{
                         position: "absolute",
@@ -706,11 +705,9 @@ function GameBoard({
             <Controls
                 maxMove={moves.length}
                 currentMoveIndex={currentMoveIndex}
-                allowMoveChange={!useAI && moves.length > 0}
+                live={live}
                 onMoveChange={onCurrentMoveChange}
-                allowAnalyzeWithAI={!useAI && moves.length > 0}
                 onAnalyzeWithAI={onAnalyzeWithAI}
-                allowPass={allowPass && useAI && toPlay === userColor}
                 onPassMove={handlePassMove}
             />
         </Box>

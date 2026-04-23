@@ -54,7 +54,7 @@ export interface BoardState {
     currentMoveIndex: number | null;
     loading: boolean;
     gameSource: GameSource;
-    useAI: boolean;
+    live: boolean;
     loadedValue: number;
     analysisConfig: AnalysisConfig;
 }

@@ -202,7 +202,7 @@ function Profile() {
     }, [fetchGames]);
 
     const uploadedGames = games.filter((g) => g.source === "upload");
-    const liveGames = games.filter((g) => g.source === "live");
+    const lives = games.filter((g) => g.source === "live");
 
     if (loading) {
         return <ProfileSkeleton />;
@@ -240,7 +240,7 @@ function Profile() {
                 />
                 <GameSection
                     title="Live Games"
-                    games={liveGames}
+                    games={lives}
                     defaultExpanded={true}
                 />
             </Stack>

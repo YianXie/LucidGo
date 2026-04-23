@@ -18,20 +18,16 @@ import ControlMoveButton from "./ControlMoveButton";
 function Controls({
     maxMove,
     currentMoveIndex,
-    allowMoveChange,
+    live,
     onMoveChange,
-    allowAnalyzeWithAI,
     onAnalyzeWithAI,
-    allowPass,
     onPassMove,
 }: {
     maxMove: number;
     currentMoveIndex: number | null;
-    allowMoveChange: boolean;
+    live: boolean;
     onMoveChange: (move: number) => void;
-    allowAnalyzeWithAI: boolean;
     onAnalyzeWithAI: () => void;
-    allowPass: boolean;
     onPassMove: () => void;
 }) {
     const handleMove = (amount: number) => {
@@ -52,12 +48,16 @@ function Controls({
                 flexWrap: "wrap",
             }}
         >
-            <Tooltip title="Analyze with AI" arrow placement="top">
+            <Tooltip
+                title={!live ? "Analyze with AI" : ""}
+                arrow
+                placement="top"
+            >
                 <span>
                     <IconButton
                         aria-label="Analyze with AI"
                         size="small"
-                        disabled={!allowAnalyzeWithAI}
+                        disabled={live}
                         onClick={onAnalyzeWithAI}
                     >
                         <SmartToyIcon />
@@ -71,21 +71,21 @@ function Controls({
                     icon={<SkipPreviousIcon />}
                     label="Move to the beginning"
                     handleMove={handleMove}
-                    disabled={moveIndex <= 0 || !allowMoveChange}
+                    disabled={moveIndex <= 0 || live}
                 />
                 <ControlMoveButton
                     amount={-FAST_FORWARD_AMOUNT}
                     icon={<FastRewindIcon />}
                     label={`Rewind ${FAST_FORWARD_AMOUNT} moves`}
                     handleMove={handleMove}
-                    disabled={moveIndex <= 0 || !allowMoveChange}
+                    disabled={moveIndex <= 0 || live}
                 />
                 <ControlMoveButton
                     amount={-1}
                     icon={<ArrowBackIosIcon />}
                     label="Move backward 1 move"
                     handleMove={handleMove}
-                    disabled={moveIndex <= 0 || !allowMoveChange}
+                    disabled={moveIndex <= 0 || live}
                 />
             </Stack>
 
@@ -106,30 +106,30 @@ function Controls({
                     icon={<ArrowForwardIosIcon fontSize="small" />}
                     label="Move forward 1 move"
                     handleMove={handleMove}
-                    disabled={moveIndex >= maxMove || !allowMoveChange}
+                    disabled={moveIndex >= maxMove || live}
                 />
                 <ControlMoveButton
                     amount={FAST_FORWARD_AMOUNT}
                     icon={<FastForwardIcon />}
                     label={`Fast forward ${FAST_FORWARD_AMOUNT} moves`}
                     handleMove={handleMove}
-                    disabled={moveIndex >= maxMove || !allowMoveChange}
+                    disabled={moveIndex >= maxMove || live}
                 />
                 <ControlMoveButton
                     amount={maxMove}
                     icon={<SkipNextIcon />}
                     label="Move to the end"
                     handleMove={handleMove}
-                    disabled={moveIndex >= maxMove || !allowMoveChange}
+                    disabled={moveIndex >= maxMove || live}
                 />
             </Stack>
 
-            <Tooltip title="Pass the move" arrow placement="top">
+            <Tooltip title={live ? "Pass the move" : ""} arrow placement="top">
                 <span>
                     <IconButton
                         aria-label="Pass the move"
                         size="small"
-                        disabled={!allowPass}
+                        disabled={!live}
                         onClick={onPassMove}
                     >
                         <BackHandIcon />

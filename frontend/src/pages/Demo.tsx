@@ -55,7 +55,7 @@ const defaultBoard = (analysisConfig: AnalysisConfig): BoardState => ({
     currentMoveIndex: null,
     loading: false,
     gameSource: "none",
-    useAI: false,
+    live: false,
     loadedValue: 0,
     analysisConfig: analysisConfig,
 });
@@ -141,7 +141,7 @@ function Demo() {
                             newBoard.currentMoveIndex = 0;
                             newBoard.loading = false;
                             newBoard.gameSource = "file";
-                            newBoard.useAI = false;
+                            newBoard.live = false;
                             newBoard.loadedValue = 0;
                             newBoard.analysisConfig = defaultAnalysisConfig;
                             return [newBoard];
@@ -384,9 +384,9 @@ function Demo() {
         );
 
         // Do not analyze if the board is using AI (live game).
-        if (gameData && !board.useAI) {
+        if (gameData && !board.live) {
             void analyzeAllMoves(idx, gameData, next, gameId);
-        } else if (board.useAI) {
+        } else if (board.live) {
             toast.success("Configuration updated");
         }
     };
@@ -605,7 +605,7 @@ function Demo() {
                                     analysisData={game.analysisData}
                                     isLoading={game.loading}
                                     loadedValue={game.loadedValue}
-                                    useAI={game.useAI}
+                                    live={game.live}
                                     gameData={game.gameData}
                                     currentMoveIndex={game.currentMoveIndex}
                                     onCurrentMoveChange={(move) =>
@@ -625,7 +625,7 @@ function Demo() {
                                         })
                                     }
                                     onPlayWithAI={() => {
-                                        const liveGameData: GameData = {
+                                        const liveData: GameData = {
                                             komi: 6.5,
                                             moves: [],
                                             size: 19,
@@ -636,14 +636,14 @@ function Demo() {
                                             winner: "Unknown",
                                         };
                                         updateBoard(i, {
-                                            gameData: liveGameData,
+                                            gameData: liveData,
                                             currentMoveIndex: 0,
-                                            useAI: true,
+                                            live: true,
                                         });
                                         void saveGame(
                                             i,
                                             "live",
-                                            liveGameData,
+                                            liveData,
                                             game.name
                                         );
                                     }}
