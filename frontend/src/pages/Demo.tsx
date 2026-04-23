@@ -27,10 +27,10 @@ import CheckIcon from "@mui/icons-material/Check";
 import DeleteIcon from "@mui/icons-material/Delete";
 import HistoryIcon from "@mui/icons-material/History";
 import TuneIcon from "@mui/icons-material/Tune";
-import { ListItemIcon } from "@mui/material";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
@@ -68,14 +68,14 @@ function Demo() {
     const { defaultAnalysisConfig } = useAuth();
     const [searchParams] = useSearchParams();
     const gameId = searchParams.get("gameId");
+    const [games, setGames] = useState<BoardState[]>([
+        defaultBoard(defaultAnalysisConfig),
+    ]);
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const [settingsDrawerOpen, setSettingsDrawerOpen] = useState(false);
 
-    const [boards, setBoards] = useState<BoardState[]>([
-        defaultBoard(defaultAnalysisConfig),
-    ]);
     const [deletingBoardIndex, setDeletingBoardIndex] = useState<number | null>(
         null
     );
@@ -121,7 +121,7 @@ function Demo() {
                     .get<HistoryEntry>(`${GAMES_URL}${gameId}`)
                     .then(({ data }) => {
                         setAnalysisSessions(data.analysis_sessions ?? []);
-                        setBoards((prev) => {
+                        setGames((prev) => {
                             if (prev.length !== 1) return prev;
                             const newBoard = defaultBoard(
                                 defaultAnalysisConfig
@@ -152,12 +152,12 @@ function Demo() {
             }
         } else {
             setAnalysisSessions([]);
-            setBoards([defaultBoard(defaultAnalysisConfig)]);
+            setGames([defaultBoard(defaultAnalysisConfig)]);
         }
-    }, [defaultAnalysisConfig, gameId, setBoards]);
+    }, [defaultAnalysisConfig, gameId, setGames]);
 
     useEffect(() => {
-        setBoards((prev) => {
+        setGames((prev) => {
             if (prev.length !== 1) return prev;
             const only = prev[0];
             const pristine =
@@ -173,13 +173,13 @@ function Demo() {
 
     useEffect(() => {
         setSettingsBoardIndex((idx) => {
-            if (boards.length === 0) return 0;
-            return Math.min(idx, boards.length - 1);
+            if (games.length === 0) return 0;
+            return Math.min(idx, games.length - 1);
         });
-    }, [boards.length]);
+    }, [games.length]);
 
     const settingsBoardAnalysisConfig =
-        boards[settingsBoardIndex]?.analysisConfig;
+        games[settingsBoardIndex]?.analysisConfig;
 
     useEffect(() => {
         if (settingsBoardAnalysisConfig === undefined) return;
@@ -187,12 +187,12 @@ function Demo() {
     }, [settingsBoardIndex, settingsBoardAnalysisConfig]);
 
     // Read file / sample content when a board's source changes.
-    const fileSignature = boards
+    const fileSignature = games
         .map((b) => `${b.file?.name ?? ""}:${b.gameSource}`)
         .join("|");
 
     useEffect(() => {
-        boards.forEach((board, i) => {
+        games.forEach((board, i) => {
             if (board.gameSource === "none") return;
             if (board.gameData && board.gameData.moves.length > 0) return;
 
@@ -209,7 +209,7 @@ function Demo() {
     }, [fileSignature]);
 
     const updateBoard = (index: number, updates: Partial<BoardState>) => {
-        setBoards((prev) =>
+        setGames((prev) =>
             prev.map((board, i) =>
                 i === index ? { ...board, ...updates } : board
             )
@@ -278,7 +278,7 @@ function Demo() {
                 boardIndex,
                 source,
                 data,
-                boards[boardIndex]?.name ?? null,
+                games[boardIndex]?.name ?? null,
                 SGFContent
             );
         } catch (error) {
@@ -341,6 +341,8 @@ function Demo() {
             if (!boardData) return;
 
             updateBoard(boardIndex, { loading: true });
+            // console.log(boardIndex, boards[boardIndex]);
+            console.log(boardData);
 
             const denom = Math.max(boardData.moves.length, 1);
             const analysisResults: AnalysisResult[] = [];
@@ -368,26 +370,25 @@ function Demo() {
         [analyzeMove]
     );
 
-    const applyAnalysisSettings = () => {
+    const onApplyAnalysisSettings = () => {
         const idx = settingsBoardIndex;
-        const board = boards[idx];
+        const board = games[idx];
+
         if (!board) return;
         const next = structuredClone(draftAnalysisConfig);
+        const gameData = board.gameData;
+        const gameId = board.gameId ?? null;
 
-        setBoards((prev) => {
-            const target = prev[idx];
-            const gameData = target?.gameData;
-            const gameId = target?.gameId ?? null;
-            const updated = prev.map((b, j) =>
-                j === idx ? { ...b, analysisConfig: next } : b
-            );
-            if (gameData) {
-                queueMicrotask(() => {
-                    void analyzeAllMoves(idx, gameData, next, gameId);
-                });
-            }
-            return updated;
-        });
+        setGames((prev) =>
+            prev.map((b, j) => (j === idx ? { ...b, analysisConfig: next } : b))
+        );
+
+        // Do not analyze if the board is using AI (live game).
+        if (gameData && !board.useAI) {
+            void analyzeAllMoves(idx, gameData, next, gameId);
+        } else if (board.useAI) {
+            toast.success("Configuration updated");
+        }
     };
 
     const loadHistorySession = async (sessionId: string) => {
@@ -422,7 +423,7 @@ function Demo() {
         animationTimerRef.current = setTimeout(() => {
             animationTimerRef.current = null;
             setDeletingBoardIndex(null);
-            setBoards((prev) => prev.filter((_, i) => i !== boardIndex));
+            setGames((prev) => prev.filter((_, i) => i !== boardIndex));
         }, ANIMATION_MS);
     };
 
@@ -430,8 +431,8 @@ function Demo() {
         if (isAnimating) return;
         if (animationTimerRef.current) clearTimeout(animationTimerRef.current);
 
-        const newIndex = boards.length;
-        setBoards((prev) => [...prev, defaultBoard(defaultAnalysisConfig)]);
+        const newIndex = games.length;
+        setGames((prev) => [...prev, defaultBoard(defaultAnalysisConfig)]);
         setCreatingBoardIndex(newIndex);
         animationTimerRef.current = setTimeout(() => {
             animationTimerRef.current = null;
@@ -497,7 +498,7 @@ function Demo() {
                         },
                     }}
                 >
-                    {boards.map((board, i) => (
+                    {games.map((game, i) => (
                         <Stack
                             key={i}
                             gap={2}
@@ -530,7 +531,7 @@ function Demo() {
                                 >
                                     <TextField
                                         variant="standard"
-                                        value={board.name ?? `Board ${i + 1}`}
+                                        value={game.name ?? `Board ${i + 1}`}
                                         onChange={(event) =>
                                             updateBoard(i, {
                                                 name: event.target.value,
@@ -568,7 +569,14 @@ function Demo() {
                                                 </IconButton>
                                             </Tooltip>
                                         )}
-                                        <Tooltip title="Delete board" arrow>
+                                        <Tooltip
+                                            title={
+                                                games.length > 1 && !isAnimating
+                                                    ? "Delete board"
+                                                    : ""
+                                            }
+                                            arrow
+                                        >
                                             <span>
                                                 <IconButton
                                                     onClick={() =>
@@ -582,7 +590,7 @@ function Demo() {
                                                         },
                                                     }}
                                                     disabled={
-                                                        boards.length === 1 ||
+                                                        games.length === 1 ||
                                                         isAnimating
                                                     }
                                                 >
@@ -594,22 +602,22 @@ function Demo() {
                                 </Stack>
                                 <GameBoard
                                     key={i}
-                                    analysisData={board.analysisData}
-                                    isLoading={board.loading}
-                                    loadedValue={board.loadedValue}
-                                    useAI={board.useAI}
-                                    gameData={board.gameData}
-                                    currentMoveIndex={board.currentMoveIndex}
+                                    analysisData={game.analysisData}
+                                    isLoading={game.loading}
+                                    loadedValue={game.loadedValue}
+                                    useAI={game.useAI}
+                                    gameData={game.gameData}
+                                    currentMoveIndex={game.currentMoveIndex}
                                     onCurrentMoveChange={(move) =>
                                         updateBoard(i, {
                                             currentMoveIndex: move,
                                         })
                                     }
-                                    gameSource={board.gameSource}
+                                    gameSource={game.gameSource}
                                     onGameSourceChange={(source: GameSource) =>
                                         updateBoard(i, { gameSource: source })
                                     }
-                                    analysisConfig={board.analysisConfig}
+                                    analysisConfig={game.analysisConfig}
                                     allowPass={true}
                                     onViewSample={() =>
                                         updateBoard(i, {
@@ -636,17 +644,17 @@ function Demo() {
                                             i,
                                             "live",
                                             liveGameData,
-                                            board.name
+                                            game.name
                                         );
                                     }}
                                     onAnalyzeWithAI={() => {
-                                        const gd = board.gameData;
+                                        const gd = game.gameData;
                                         if (gd) {
                                             void analyzeAllMoves(
                                                 i,
                                                 gd,
-                                                board.analysisConfig,
-                                                board.gameId
+                                                game.analysisConfig,
+                                                game.gameId
                                             );
                                         }
                                     }}
@@ -657,7 +665,7 @@ function Demo() {
                                 <WinRate
                                     data={(() => {
                                         const raw =
-                                            board.analysisData?.map(
+                                            game.analysisData?.map(
                                                 (result, idx) => {
                                                     const w =
                                                         result.stats.winrate;
@@ -679,7 +687,7 @@ function Demo() {
                                             currentMoveIndex: move,
                                         })
                                     }
-                                    currentMove={board.currentMoveIndex ?? 0}
+                                    currentMove={game.currentMoveIndex ?? 0}
                                 />
                             </Box>
                             <Paper
@@ -695,6 +703,16 @@ function Demo() {
                                         xs: "none",
                                         md: "calc(100vh - 100px)",
                                     },
+                                    pointerEvents: game.loading
+                                        ? "none"
+                                        : "auto",
+                                    opacity: game.loading ? 0.5 : 1,
+                                    filter: game.loading
+                                        ? "brightness(0.5)"
+                                        : "none",
+                                    cursor: game.loading
+                                        ? "not-allowed"
+                                        : "auto",
                                 }}
                             >
                                 <Box
@@ -823,15 +841,34 @@ function Demo() {
                                         onChange={setDraftAnalysisConfig}
                                     />
                                 </Box>
-                                <Button
-                                    variant="contained"
-                                    onClick={applyAnalysisSettings}
-                                    sx={{
-                                        m: 2,
-                                    }}
+                                <Tooltip
+                                    title={
+                                        game.gameData === null
+                                            ? "No game data"
+                                            : ""
+                                    }
+                                    arrow
                                 >
-                                    Apply
-                                </Button>
+                                    <span
+                                        style={{
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <Button
+                                            variant="contained"
+                                            onClick={onApplyAnalysisSettings}
+                                            disabled={game.gameData === null}
+                                            sx={{
+                                                m: 2,
+                                                width: "100%",
+                                            }}
+                                        >
+                                            Apply
+                                        </Button>
+                                    </span>
+                                </Tooltip>
                             </Paper>
                         </Stack>
                     ))}
@@ -990,7 +1027,7 @@ function Demo() {
                 <Button
                     variant="contained"
                     onClick={() => {
-                        applyAnalysisSettings();
+                        onApplyAnalysisSettings();
                         setSettingsDrawerOpen(false);
                     }}
                     sx={{ m: 2, flexShrink: 0 }}
