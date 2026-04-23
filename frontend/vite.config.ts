@@ -1,4 +1,3 @@
-import mdx from "@mdx-js/rollup";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
@@ -7,21 +6,12 @@ import { defineConfig } from "vite";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// https://vite.dev/config/
 export default defineConfig({
     plugins: [
         react({
             jsxRuntime: "automatic",
         }),
         tailwindcss(),
-        mdx({
-            include: [
-                "**/*.{mdx,md}",
-                path.resolve(__dirname, "../docs/**/*.{mdx,md}"),
-                path.resolve(__dirname, "../articles/**/*.{mdx,md}"),
-            ],
-            jsxImportSource: "react",
-        }),
     ],
     resolve: {
         alias: {
@@ -44,4 +34,5 @@ export default defineConfig({
     optimizeDeps: {
         include: ["react", "react-dom", "react/jsx-runtime"],
     },
+    assetsInclude: ["**/*.md"],
 });

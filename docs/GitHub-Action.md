@@ -4,12 +4,12 @@ This page describes the automated workflows configured for LucidGo. They live in
 
 ## Table of Contents
 
-- [CI Workflow](#ci-workflow)
-- [Deployment Workflow](#deployment-workflow)
-- [Required Secrets](#required-secrets)
-- [Troubleshooting](#troubleshooting)
+* [CI Workflow](#ci-workflow)
+* [Deployment Workflow](#deployment-workflow)
+* [Required Secrets](#required-secrets)
+* [Troubleshooting](#troubleshooting)
 
----
+***
 
 ## CI Workflow
 
@@ -19,10 +19,10 @@ Runs on every push and pull request targeting `main`. It consists of four parall
 
 ### Triggers
 
-- Push to `main`
-- Pull request targeting `main`
+* Push to `main`
+* Pull request targeting `main`
 
----
+***
 
 ### 1. Backend Tests (`backend-tests`)
 
@@ -30,9 +30,9 @@ Runs the Django test suite against a real PostgreSQL database.
 
 **Environment:**
 
-- Runner: `ubuntu-latest`
-- Python: 3.12+ (resolved from `pyproject.toml` via `uv`)
-- Database: PostgreSQL 15 (containerized, port 5432)
+* Runner: `ubuntu-latest`
+* Python: 3.12+ (resolved from `pyproject.toml` via `uv`)
+* Database: PostgreSQL 15 (containerized, port 5432)
 
 **Steps:**
 
@@ -40,22 +40,33 @@ Runs the Django test suite against a real PostgreSQL database.
 2. Install `uv` (`astral-sh/setup-uv@v6`)
 3. Install backend dependencies: `uv sync --dev`
 4. Run migrations and tests:
-    ```bash
-    uv run python manage.py makemigrations && uv run python manage.py migrate
-    uv run python manage.py test
-    ```
+   ```bash
+   uv run python manage.py makemigrations && uv run python manage.py migrate
+   uv run python manage.py test
+   ```
 
 **Environment variables:**
 
-| Variable        | Value                      |
-| --------------- | -------------------------- |
-| `SECRET_KEY`    | Test secret key            |
-| `ENVIRONMENT`   | `development`              |
-| `ALLOWED_HOSTS` | `localhost,127.0.0.1`      |
-| `API_ENDPOINT`  | From `API_ENDPOINT` secret |
-| `API_TIMEOUT`   | `30`                       |
+<table>
+    <tr>
+        <th align="center" style="padding: 0.5rem;">Variable</th>
+        <th align="center" style="padding: 0.5rem;">Value</th>
+    </tr>
+    <tr>
+        <td align="center" style="padding: 0.5rem;"><code>SECRET_KEY</code></td>
+        <td align="center" style="padding: 0.5rem;">Test secret key</td>
+    </tr>
+    <tr>
+        <td align="center" style="padding: 0.5rem;"><code>ENVIRONMENT</code></td>
+        <td align="center" style="padding: 0.5rem;"><code>development</code></td>
+    </tr>
+    <tr>
+        <td align="center" style="padding: 0.5rem;"><code>API_ENDPOINT</code></td>
+        <td align="center" style="padding: 0.5rem;">From <code>API_ENDPOINT</code> secret</td>
+    </tr>
+</table>
 
----
+***
 
 ### 2. Frontend Checks (`frontend-checks`)
 
@@ -63,9 +74,9 @@ Validates code quality and confirms the frontend builds successfully.
 
 **Environment:**
 
-- Runner: `ubuntu-latest`
-- Node.js: 22.12+
-- npm cache enabled
+* Runner: `ubuntu-latest`
+* Node.js: 22.12+
+* npm cache enabled
 
 **Steps:**
 
@@ -76,7 +87,7 @@ Validates code quality and confirms the frontend builds successfully.
 5. Check Prettier formatting: `npx prettier --check "src/**/*.{ts, tsx, js,jsx,css,md}"`
 6. Build: `npm run build`
 
----
+***
 
 ### 3. Backend Code Quality (`backend-linting`)
 
@@ -84,8 +95,8 @@ Checks Python formatting and import ordering.
 
 **Environment:**
 
-- Runner: `ubuntu-latest`
-- Python: 3.12+ (via `uv`)
+* Runner: `ubuntu-latest`
+* Python: 3.12+ (via `uv`)
 
 **Steps:**
 
@@ -102,7 +113,7 @@ uv run ruff format .
 uv run isort .
 ```
 
----
+***
 
 ### 4. Security Checks (`security-checks`)
 
@@ -110,9 +121,9 @@ Scans for known vulnerabilities in both backend and frontend dependencies.
 
 **Environment:**
 
-- Runner: `ubuntu-latest`
-- Python: 3.12+ (via `uv`)
-- Node.js: 22.12+
+* Runner: `ubuntu-latest`
+* Python: 3.12+ (via `uv`)
+* Node.js: 22.12+
 
 **Backend security steps:**
 
@@ -127,9 +138,9 @@ Scans for known vulnerabilities in both backend and frontend dependencies.
 
 **Tools:**
 
-- **pip-audit** — checks Python packages against vulnerability databases
-- **Bandit** — flags common Python security issues (SQL injection, shell injection, etc.)
-- **npm audit** — checks npm packages for known vulnerabilities
+* **pip-audit** — checks Python packages against vulnerability databases
+* **Bandit** — flags common Python security issues (SQL injection, shell injection, etc.)
+* **npm audit** — checks npm packages for known vulnerabilities
 
 ## Required Secrets
 
@@ -147,32 +158,32 @@ Scans for known vulnerabilities in both backend and frontend dependencies.
 
 ### Backend tests failing
 
-- **Database connection errors**: The PostgreSQL container uses health checks — check the Actions log to see if it started cleanly.
-- **Migration errors**: If `makemigrations` fails, there may be a model inconsistency. Run it locally first.
-- **Test failures**: Check the test output in the job log for the specific assertion that failed.
+* **Database connection errors**: The PostgreSQL container uses health checks — check the Actions log to see if it started cleanly.
+* **Migration errors**: If `makemigrations` fails, there may be a model inconsistency. Run it locally first.
+* **Test failures**: Check the test output in the job log for the specific assertion that failed.
 
 ### Frontend checks failing
 
-- **ESLint errors**: Run `npm run lint` locally and fix the flagged issues.
-- **Prettier errors**: Run `npx prettier --write "src/**/*.{js,jsx,css,md}"` to auto-fix.
-- **Build failures**: Run `npm run build` locally to see the TypeScript or bundler error.
+* **ESLint errors**: Run `npm run lint` locally and fix the flagged issues.
+* **Prettier errors**: Run `npx prettier --write "src/**/*.{js,jsx,css,md}"` to auto-fix.
+* **Build failures**: Run `npm run build` locally to see the TypeScript or bundler error.
 
 ### Backend linting failing
 
-- **Ruff errors**: Run `uv run ruff format .` locally.
-- **isort errors**: Run `uv run isort .` locally.
+* **Ruff errors**: Run `uv run ruff format .` locally.
+* **isort errors**: Run `uv run isort .` locally.
 
 ### Security check failures
 
-- **pip-audit**: Update the vulnerable package or add a `--ignore-vuln` flag with justification if it's a false positive.
-- **Bandit**: Review the flagged line. If it's a legitimate issue, fix it. If it's a known false positive, add the appropriate `# nosec` comment with a reason.
-- **npm audit**: Run `npm audit fix` locally and review the changes before committing.
+* **pip-audit**: Update the vulnerable package or add a `--ignore-vuln` flag with justification if it's a false positive.
+* **Bandit**: Review the flagged line. If it's a legitimate issue, fix it. If it's a known false positive, add the appropriate `# nosec` comment with a reason.
+* **npm audit**: Run `npm audit fix` locally and review the changes before committing.
 
----
+***
 
 ## Best practices
 
-- Never commit secrets directly. Use GitHub Secrets for anything sensitive.
-- Address security findings promptly rather than ignoring them.
-- Run `make ci-local` before pushing to catch lint, formatting, and test failures early.
-- After a deployment, verify the app is healthy by hitting the `/api/health/` endpoint.
+* Never commit secrets directly. Use GitHub Secrets for anything sensitive.
+* Address security findings promptly rather than ignoring them.
+* Run `make ci-local` before pushing to catch lint, formatting, and test failures early.
+* After a deployment, verify the app is healthy by hitting the `/api/health/` endpoint.
