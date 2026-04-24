@@ -6,13 +6,13 @@ function ControlMoveButton({
     icon,
     label,
     amount,
-    handleMove,
+    onMoveChange,
     disabled,
 }: {
     icon: ReactNode;
     label: string;
     amount: number;
-    handleMove: (amount: number) => void;
+    onMoveChange: (amount: number) => void;
     disabled: boolean;
 }) {
     return (
@@ -23,7 +23,7 @@ function ControlMoveButton({
                 onClick={() => {
                     placeStoneSoundInstance.currentTime = 0;
                     void placeStoneSoundInstance.play();
-                    handleMove(amount);
+                    onMoveChange(amount);
                 }}
             >
                 {icon}

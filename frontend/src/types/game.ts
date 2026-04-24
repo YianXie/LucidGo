@@ -50,12 +50,13 @@ export interface BoardState {
     file: File | null;
     gameId: string | null;
     gameData: GameData | null;
-    analysisData: AnalysisResult[] | null;
+    analysisData: (AnalysisResult | null)[] | null;
+    winrate: { black: number; white: number }[];
     currentMoveIndex: number | null;
     loading: boolean;
     gameSource: GameSource;
     live: boolean;
-    loadedValue: number;
+    loadedValue: number | null;
     analysisConfig: AnalysisConfig;
 }
 
@@ -93,22 +94,25 @@ export interface AnalysisConfig {
     };
 }
 
-/** One analyze API response entry (shape may grow with the backend). */
 export interface AnalysisResult {
     algo: string;
     stats: {
         elapsed_ms: number;
-        winrate: number;
+        winrate: { black: number; white: number };
         policy: number[];
         [key: string]: unknown;
     };
     top_moves: {
         move: string;
         policy?: number;
-        winrate?: number;
+        winrate?: { black: number; white: number };
         visits?: number;
     }[];
     [key: string]: unknown;
+}
+
+export interface WinrateResult {
+    winrate: { black: number; white: number }[];
 }
 
 export interface GameSummary {

@@ -3,38 +3,55 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import BackHandIcon from "@mui/icons-material/BackHand";
 import FastForwardIcon from "@mui/icons-material/FastForward";
 import FastRewindIcon from "@mui/icons-material/FastRewind";
+import HandymanIcon from "@mui/icons-material/Handyman";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
 import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
-import SmartToyIcon from "@mui/icons-material/SmartToy";
+import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import { MouseEvent, useState } from "react";
 
 import { FAST_FORWARD_AMOUNT } from "../../constants";
 import ControlMoveButton from "./ControlMoveButton";
 
 function Controls({
     maxMove,
-    currentMoveIndex,
     live,
-    onMoveChange,
-    onAnalyzeWithAI,
+    currentMoveIndex,
+    setCurrentMoveIndex,
+    onGenerateWinrate,
+    onAnalyzeCurrentMove,
+    onAnalyzeAllMoves,
     onPassMove,
 }: {
     maxMove: number;
-    currentMoveIndex: number | null;
     live: boolean;
-    onMoveChange: (move: number) => void;
-    onAnalyzeWithAI: () => void;
+    currentMoveIndex: number | null;
+    setCurrentMoveIndex: (move: number) => void;
+    onGenerateWinrate: () => void;
+    onAnalyzeCurrentMove: () => void;
+    onAnalyzeAllMoves: () => void;
     onPassMove: () => void;
 }) {
-    const handleMove = (amount: number) => {
-        const next = (currentMoveIndex ?? 0) + amount;
-        onMoveChange(Math.max(0, Math.min(next, maxMove)));
-    };
+    const [analysisMenuAnchor, setAnalysisMenuAnchor] =
+        useState<null | HTMLElement>(null);
+    const analysisMenuOpen = Boolean(analysisMenuAnchor);
+
     const moveIndex = currentMoveIndex ?? 0;
+
+    const handleAnalysisMenuClose = () => {
+        setAnalysisMenuAnchor(null);
+    };
+
+    const onMoveChange = (amount: number) => {
+        const next = (currentMoveIndex ?? 0) + amount;
+        setCurrentMoveIndex(Math.max(0, Math.min(next, maxMove)));
+    };
 
     return (
         <Paper
@@ -48,43 +65,82 @@ function Controls({
                 flexWrap: "wrap",
             }}
         >
-            <Tooltip
-                title={!live ? "Analyze with AI" : ""}
-                arrow
-                placement="top"
-            >
-                <span>
-                    <IconButton
-                        aria-label="Analyze with AI"
-                        size="small"
-                        disabled={live}
-                        onClick={onAnalyzeWithAI}
+            <Box>
+                <Tooltip
+                    title={!live ? "AI Analysis Tools" : ""}
+                    arrow
+                    placement="top"
+                >
+                    <span>
+                        <IconButton
+                            aria-label="Analyze with AI"
+                            size="small"
+                            disabled={live}
+                            onClick={(event: MouseEvent<HTMLButtonElement>) => {
+                                setAnalysisMenuAnchor(event.currentTarget);
+                            }}
+                        >
+                            <HandymanIcon />
+                        </IconButton>
+                    </span>
+                </Tooltip>
+                <Menu
+                    open={analysisMenuOpen}
+                    anchorEl={analysisMenuAnchor}
+                    onClose={handleAnalysisMenuClose}
+                    slotProps={{
+                        list: {
+                            "aria-labelledby": "basic-button",
+                        },
+                    }}
+                >
+                    <MenuItem
+                        onClick={() => {
+                            handleAnalysisMenuClose();
+                            onGenerateWinrate();
+                        }}
                     >
-                        <SmartToyIcon />
-                    </IconButton>
-                </span>
-            </Tooltip>
+                        Generate win rate
+                    </MenuItem>
+                    <MenuItem
+                        onClick={() => {
+                            handleAnalysisMenuClose();
+                            onAnalyzeCurrentMove();
+                        }}
+                    >
+                        Analyze current move
+                    </MenuItem>
+                    <MenuItem
+                        onClick={() => {
+                            handleAnalysisMenuClose();
+                            onAnalyzeAllMoves();
+                        }}
+                    >
+                        Analyze all moves (slow)
+                    </MenuItem>
+                </Menu>
+            </Box>
 
             <Stack direction="row" spacing={0.5} sx={{ ml: "auto" }}>
                 <ControlMoveButton
                     amount={-maxMove}
                     icon={<SkipPreviousIcon />}
                     label="Move to the beginning"
-                    handleMove={handleMove}
+                    onMoveChange={onMoveChange}
                     disabled={moveIndex <= 0 || live}
                 />
                 <ControlMoveButton
                     amount={-FAST_FORWARD_AMOUNT}
                     icon={<FastRewindIcon />}
                     label={`Rewind ${FAST_FORWARD_AMOUNT} moves`}
-                    handleMove={handleMove}
+                    onMoveChange={onMoveChange}
                     disabled={moveIndex <= 0 || live}
                 />
                 <ControlMoveButton
                     amount={-1}
                     icon={<ArrowBackIosIcon />}
                     label="Move backward 1 move"
-                    handleMove={handleMove}
+                    onMoveChange={onMoveChange}
                     disabled={moveIndex <= 0 || live}
                 />
             </Stack>
@@ -105,21 +161,21 @@ function Controls({
                     amount={1}
                     icon={<ArrowForwardIosIcon fontSize="small" />}
                     label="Move forward 1 move"
-                    handleMove={handleMove}
+                    onMoveChange={onMoveChange}
                     disabled={moveIndex >= maxMove || live}
                 />
                 <ControlMoveButton
                     amount={FAST_FORWARD_AMOUNT}
                     icon={<FastForwardIcon />}
                     label={`Fast forward ${FAST_FORWARD_AMOUNT} moves`}
-                    handleMove={handleMove}
+                    onMoveChange={onMoveChange}
                     disabled={moveIndex >= maxMove || live}
                 />
                 <ControlMoveButton
                     amount={maxMove}
                     icon={<SkipNextIcon />}
                     label="Move to the end"
-                    handleMove={handleMove}
+                    onMoveChange={onMoveChange}
                     disabled={moveIndex >= maxMove || live}
                 />
             </Stack>

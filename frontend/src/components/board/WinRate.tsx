@@ -35,7 +35,7 @@ function WinRate({
     setMove,
     currentMove,
 }: {
-    data: number[] | null | undefined;
+    data: { black: number; white: number }[] | null | undefined;
     setMove: (n: number) => void;
     currentMove: number;
 }) {
@@ -254,8 +254,8 @@ function WinRate({
             };
         }
 
-        const blackWinRate = data;
-        const whiteWinRate = data.map((rate) => 100 - rate);
+        const blackWinRate = data.map((rate) => rate.black);
+        const whiteWinRate = data.map((rate) => rate.white);
 
         return {
             labels: Array.from({ length: data.length }, (_, i) => i),

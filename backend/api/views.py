@@ -73,6 +73,29 @@ class AnalyzeView(APIView):
         )
 
 
+class WinrateView(APIView):
+    def post(self, request: Request) -> Response:
+        if not request.data:
+            return Response(
+                {"error": "No data provided"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            client = get_http_client()
+            http_response = client.post(
+                f"{settings.API_ENDPOINT}/api/winrate/", json=request.data
+            )
+            http_response.raise_for_status()
+            response = http_response.json()
+        except httpx.HTTPError as e:
+            return Response({"error": str(e)}, status=status.HTTP_502_BAD_GATEWAY)
+
+        return Response(
+            response,
+            status=status.HTTP_200_OK,
+        )
+
+
 class GetGameDataView(APIView):
     permission_classes = [IsAuthenticated]
 

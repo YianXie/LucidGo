@@ -32,6 +32,11 @@ export const SGF_SAMPLE =
 export const GET_ANALYSIS_URL = "/api/analyze/";
 
 /**
+ * The URL to get the winrate of a game
+ */
+export const GET_WINRATE_URL = "/api/winrate/";
+
+/**
  * The URL to the get game data endpoint
  */
 export const GET_GAME_DATA_URL = "/api/get-game-data/";

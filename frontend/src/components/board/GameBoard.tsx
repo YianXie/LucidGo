@@ -27,9 +27,24 @@ import { useEffect, useRef, useState } from "react";
 
 type TopMoveEntry = AnalysisResult["top_moves"][number];
 
-function formatAnalysisWinrate(winrate: number): string {
-    // NOTE: the winrate for each top moves refers to the winrate of the opponent after the next player has played the move
-    return `${(((-winrate + 1) / 2) * 100).toFixed(1)}%`;
+/** Side to play at board position `moveIndex` (0 = empty board, Black moves first). */
+function sideToMoveAtMoveIndex(
+    moveIndex: number,
+    moves: GameMove[]
+): "B" | "W" {
+    if (moveIndex <= 0) return "B";
+    const prev = moves[moveIndex - 1];
+    const c = prev?.[0];
+    if (!c) return "B";
+    return c.toUpperCase() === "B" ? "W" : "B";
+}
+
+function formatSuggestedMoveWinrate(
+    winrate: { black: number; white: number },
+    sideToMove: "B" | "W"
+): string {
+    const pct = sideToMove === "B" ? winrate.black : winrate.white;
+    return `${pct.toFixed(1)}%`;
 }
 
 function GameBoard({
@@ -38,30 +53,33 @@ function GameBoard({
     isLoading,
     loadedValue,
     live,
-    currentMoveIndex,
-    onCurrentMoveChange,
-    gameSource,
-    onGameSourceChange,
     analysisConfig,
-    onAnalyzeWithAI,
+    gameSource,
+    currentMoveIndex,
+    setCurrentMoveIndex,
+    onGameSourceChange,
+    onGenerateWinrate,
+    onAnalyzeCurrentMove,
+    onAnalyzeAllMoves,
     onViewSample,
-    onPlayWithAI,
+    onLive,
     onFileChange,
 }: {
     gameData: GameData | null;
-    analysisData: AnalysisResult[] | null;
+    analysisData: (AnalysisResult | null)[] | null;
     isLoading: boolean;
-    loadedValue: number;
+    loadedValue: number | null;
     live: boolean;
-    onViewSample: () => void;
-    gameSource: GameSource;
-    onGameSourceChange: (source: GameSource) => void;
-    currentMoveIndex: number | null;
     analysisConfig: AnalysisConfig;
-    allowPass: boolean;
-    onAnalyzeWithAI: () => void;
-    onCurrentMoveChange: (move: number) => void;
-    onPlayWithAI: () => void;
+    gameSource: GameSource;
+    currentMoveIndex: number | null;
+    setCurrentMoveIndex: (move: number) => void;
+    onGameSourceChange: (source: GameSource) => void;
+    onGenerateWinrate: () => void;
+    onAnalyzeCurrentMove: () => void;
+    onAnalyzeAllMoves: () => void;
+    onViewSample: () => void;
+    onLive: () => void;
     onFileChange: (file: File) => void;
 }) {
     const boardSize = BOARD_SIZE;
@@ -318,7 +336,7 @@ function GameBoard({
             const nextMoves = [...movesRef.current, move];
             movesRef.current = nextMoves;
             setMoves(nextMoves);
-            onCurrentMoveChange(nextMoves.length);
+            setCurrentMoveIndex(nextMoves.length);
 
             placeStoneSoundInstance.currentTime = 0;
             void placeStoneSoundInstance.play();
@@ -348,6 +366,7 @@ function GameBoard({
         drawStones(canvasContext);
 
         const analysisIndex = currentMoveIndex ?? 0;
+        const sideToMove = sideToMoveAtMoveIndex(analysisIndex, replayMoves);
         const slice = analysisData?.[analysisIndex];
         if (slice?.top_moves?.length) {
             const ordered = slice.top_moves
@@ -375,7 +394,10 @@ function GameBoard({
                 canvasContext.fill();
 
                 if (entry.winrate != null) {
-                    const label = formatAnalysisWinrate(entry.winrate);
+                    const label = formatSuggestedMoveWinrate(
+                        entry.winrate,
+                        sideToMove
+                    );
                     canvasContext.font = "bold 11px Arial";
                     canvasContext.textBaseline = "middle";
                     canvasContext.textAlign = "center";
@@ -545,7 +567,7 @@ function GameBoard({
         const nextMoves = [...movesRef.current, passMove];
         movesRef.current = nextMoves;
         setMoves(nextMoves);
-        onCurrentMoveChange(nextMoves.length);
+        setCurrentMoveIndex(nextMoves.length);
 
         getAIMove(nextMoves)
             .then((aiMove) => {
@@ -593,41 +615,45 @@ function GameBoard({
                     >
                         Loading...
                     </Typography>
-                    <Box
-                        sx={{
-                            position: "relative",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                        }}
-                    >
-                        <CircularProgress
-                            size={120}
-                            variant="determinate"
-                            value={loadedValue}
-                        />
+                    {loadedValue == null ? (
+                        <CircularProgress size={120} />
+                    ) : (
                         <Box
                             sx={{
-                                top: 0,
-                                left: 0,
-                                bottom: 0,
-                                right: 0,
-                                position: "absolute",
-                                display: "flex",
+                                position: "relative",
+                                display: "inline-flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                             }}
                         >
-                            <Typography
-                                variant="body1"
-                                component="div"
-                                fontWeight={600}
-                                sx={{ color: "primary.main" }}
+                            <CircularProgress
+                                size={120}
+                                variant="determinate"
+                                value={loadedValue}
+                            />
+                            <Box
+                                sx={{
+                                    top: 0,
+                                    left: 0,
+                                    bottom: 0,
+                                    right: 0,
+                                    position: "absolute",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
                             >
-                                {loadedValue.toFixed(1)}%
-                            </Typography>
+                                <Typography
+                                    variant="body1"
+                                    component="div"
+                                    fontWeight={600}
+                                    sx={{ color: "primary.main" }}
+                                >
+                                    {loadedValue.toFixed(1)}%
+                                </Typography>
+                            </Box>
                         </Box>
-                    </Box>
+                    )}
                 </Box>
             )}
             {gameSource === "none" && !live && (
@@ -673,7 +699,7 @@ function GameBoard({
                     </Link>
                     <Link
                         component="button"
-                        onClick={onPlayWithAI}
+                        onClick={onLive}
                         sx={{
                             color: "primary.light",
                             textDecoration: "underline",
@@ -704,10 +730,12 @@ function GameBoard({
             />
             <Controls
                 maxMove={moves.length}
-                currentMoveIndex={currentMoveIndex}
                 live={live}
-                onMoveChange={onCurrentMoveChange}
-                onAnalyzeWithAI={onAnalyzeWithAI}
+                currentMoveIndex={currentMoveIndex}
+                setCurrentMoveIndex={setCurrentMoveIndex}
+                onGenerateWinrate={onGenerateWinrate}
+                onAnalyzeCurrentMove={onAnalyzeCurrentMove}
+                onAnalyzeAllMoves={onAnalyzeAllMoves}
                 onPassMove={handlePassMove}
             />
         </Box>

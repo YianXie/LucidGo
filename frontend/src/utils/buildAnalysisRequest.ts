@@ -30,3 +30,16 @@ export const buildAnalysisRequest = (
     };
     return request;
 };
+
+export const buildWinrateRequest = (
+    moves: [string, string][],
+    analysisConfig: AnalysisConfig
+) => {
+    const request = {
+        moves: moves,
+        params: {
+            temperature: analysisConfig.general.temperature,
+        },
+    };
+    return request;
+};
