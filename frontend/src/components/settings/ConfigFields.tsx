@@ -173,7 +173,7 @@ export function ConfigSelect({
     options,
     id,
     tooltip,
-    labelId,
+    labelID,
 }: {
     label: string;
     value: string;
@@ -181,7 +181,7 @@ export function ConfigSelect({
     options: { value: string; label: string }[];
     id?: string;
     tooltip?: string;
-    labelId?: string;
+    labelID?: string;
 }) {
     const labelElement = tooltip ? (
         <Tooltip title={tooltip} placement="top" arrow>
@@ -207,7 +207,7 @@ export function ConfigSelect({
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 id={id}
-                labelId={labelId}
+                labelId={labelID}
             >
                 {options.map((opt) => (
                     <MenuItem key={opt.value} value={opt.value}>

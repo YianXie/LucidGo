@@ -48,7 +48,7 @@ export interface GameData {
 export interface BoardState {
     name: string | null;
     file: File | null;
-    gameId: string | null;
+    gameID: string | null;
     gameData: GameData | null;
     analysisData: (AnalysisResult | null)[] | null;
     winrate: { black: number; white: number }[];

@@ -146,7 +146,7 @@ function AnalysisConfigFields({
                 <ConfigSelect
                     label="Algorithm:"
                     value={analysisConfig.general.algorithm}
-                    labelId="algorithm-label"
+                    labelID="algorithm-label"
                     id="algorithm-select"
                     options={[
                         { value: "nn", label: "Neural Network" },
@@ -158,7 +158,7 @@ function AnalysisConfigFields({
                 <ConfigSelect
                     label="Rules:"
                     value={analysisConfig.general.rules}
-                    labelId="rules-label"
+                    labelID="rules-label"
                     id="rules-select"
                     tooltip="Determines how territory and scoring are calculated. Match this to the ruleset your game was actually played under."
                     options={[

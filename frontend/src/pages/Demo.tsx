@@ -54,7 +54,7 @@ import { toast } from "react-toastify";
 const defaultBoard = (analysisConfig: AnalysisConfig): BoardState => ({
     name: null,
     file: null,
-    gameId: null,
+    gameID: null,
     gameData: null,
     analysisData: null,
     winrate: [],
@@ -73,7 +73,7 @@ function Demo() {
 
     const { defaultAnalysisConfig } = useAuth();
     const [searchParams] = useSearchParams();
-    const gameId = searchParams.get("gameId");
+    const gameID = searchParams.get("gameID");
     const [games, setGames] = useState<BoardState[]>([
         defaultBoard(defaultAnalysisConfig),
     ]);
@@ -121,10 +121,10 @@ function Demo() {
     }, [analysisSessions]);
 
     useEffect(() => {
-        if (gameId) {
+        if (gameID) {
             try {
                 void api
-                    .get<HistoryEntry>(`${GAMES_URL}${gameId}`)
+                    .get<HistoryEntry>(`${GAMES_URL}${gameID}`)
                     .then(({ data }) => {
                         setAnalysisSessions(data.analysis_sessions ?? []);
                         setGames((prev) => {
@@ -143,7 +143,7 @@ function Demo() {
                                 winner: data.winner ?? undefined,
                             };
                             newBoard.name = data.name;
-                            newBoard.gameId = data.id;
+                            newBoard.gameID = data.id;
                             newBoard.currentMoveIndex = 0;
                             newBoard.loading = false;
                             newBoard.gameSource = "file";
@@ -160,7 +160,7 @@ function Demo() {
             setAnalysisSessions([]);
             setGames([defaultBoard(defaultAnalysisConfig)]);
         }
-    }, [defaultAnalysisConfig, gameId, setGames]);
+    }, [defaultAnalysisConfig, gameID, setGames]);
 
     useEffect(() => {
         setGames((prev) => {
@@ -241,7 +241,7 @@ function Demo() {
                 moves: gameData.moves,
                 sgf_data: sgfData,
             });
-            updateGame(gameIndex, { gameId: data.id });
+            updateGame(gameIndex, { gameID: data.id });
             return data.id;
         } catch (error) {
             console.error("Failed to save game:", error);
@@ -250,12 +250,12 @@ function Demo() {
     };
 
     // const saveAnalysisSession = async (
-    //     gameId: string,
+    //     gameID: string,
     //     config: AnalysisConfig,
     //     results: AnalysisResult[]
     // ) => {
     //     try {
-    //         await api.post(`${GAMES_URL}${gameId}/analyses/`, {
+    //         await api.post(`${GAMES_URL}${gameID}/analyses/`, {
     //             analysis_config: config,
     //             results,
     //         });
@@ -341,10 +341,7 @@ function Demo() {
     );
 
     const onGenerateWinrate = useCallback(
-        async (
-            gameIndex: number
-            // gameId: string | null
-        ) => {
+        async (gameIndex: number) => {
             const gameData = games[gameIndex].gameData;
             const config = games[gameIndex].analysisConfig;
             if (!gameData || !config) return;
@@ -376,10 +373,7 @@ function Demo() {
     );
 
     const onAnalyzeCurrentMove = useCallback(
-        async (
-            gameIndex: number
-            // gameId: string | null
-        ) => {
+        async (gameIndex: number) => {
             const gameData = games[gameIndex].gameData;
             const analysisConfig = games[gameIndex].analysisConfig;
             const currentMove = games[gameIndex].currentMoveIndex;
@@ -406,10 +400,7 @@ function Demo() {
     );
 
     const onAnalyzeAllMoves = useCallback(
-        async (
-            gameIndex: number
-            // gameId: string | null
-        ) => {
+        async (gameIndex: number) => {
             const gameData = games[gameIndex].gameData;
             const analysisConfig = games[gameIndex].analysisConfig;
             if (!gameData || !analysisConfig) return;
@@ -433,46 +424,29 @@ function Demo() {
                 winrate: analysisResults.map((result) => result.stats.winrate),
             });
             updateGame(gameIndex, { loading: false });
-
-            // if (gameId && analysisResults.length > 0) {
-            //     void saveAnalysisSession(
-            //         gameId,
-            //         analysisConfig,
-            //         analysisResults
-            //     );
-            // }
         },
         [analyzeMove, games]
     );
 
-    const onApplyAnalysisSettings = () => {
+    const onResetAnalysisSettings = () => {
         const idx = settingsGameIndex;
-        const board = games[idx];
-
-        if (!board) return;
-        const next = structuredClone(draftAnalysisConfig);
-        const gameData = board.gameData;
-        // const gameId = board.gameId ?? null;
-
-        setGames((prev) =>
-            prev.map((b, j) => (j === idx ? { ...b, analysisConfig: next } : b))
-        );
-
-        // Do not analyze if the board is using AI (live game).
-        if (gameData && !board.live) {
-            void onAnalyzeAllMoves(idx);
-        } else if (board.live) {
-            toast.success("Configuration updated");
-        }
+        setDraftAnalysisConfig(games[idx].analysisConfig);
     };
 
-    const loadHistorySession = async (sessionId: string) => {
-        if (!gameId) return;
+    const onSaveAnalysisSettings = () => {
+        const idx = settingsGameIndex;
+        const next = structuredClone(draftAnalysisConfig);
+        updateGame(idx, { analysisConfig: next });
+        toast.success("Configuration updated");
+    };
+
+    const loadHistorySession = async (sessionID: string) => {
+        if (!gameID) return;
         setHistoryMenuAnchor(null);
         const idx = settingsGameIndex;
         try {
             const { data } = await api.get<HistoryAnalysisSession>(
-                `${GAMES_URL}${gameId}/analyses/${sessionId}/`
+                `${GAMES_URL}${gameID}/analyses/${sessionID}/`
             );
             const config = structuredClone(data.analysis_config);
             setDraftAnalysisConfig(config);
@@ -791,7 +765,7 @@ function Demo() {
                                             Board {i + 1}
                                         </Typography>
                                     </Box>
-                                    {gameId && analysisSessions.length > 0 && (
+                                    {gameID && analysisSessions.length > 0 && (
                                         <>
                                             <Tooltip
                                                 title="Past configurations"
@@ -893,34 +867,89 @@ function Demo() {
                                         onChange={setDraftAnalysisConfig}
                                     />
                                 </Box>
-                                <Tooltip
-                                    title={
-                                        game.gameData === null
-                                            ? "No game data"
-                                            : ""
-                                    }
-                                    arrow
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        flexDirection: "row",
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                        gap: 2,
+                                        margin: 2,
+                                    }}
                                 >
-                                    <span
-                                        style={{
-                                            display: "flex",
-                                            justifyContent: "center",
-                                            alignItems: "center",
-                                        }}
+                                    <Tooltip
+                                        title={
+                                            game.gameData === null
+                                                ? "No game data"
+                                                : ""
+                                        }
+                                        arrow
                                     >
-                                        <Button
-                                            variant="contained"
-                                            onClick={onApplyAnalysisSettings}
-                                            disabled={game.gameData === null}
-                                            sx={{
-                                                m: 2,
+                                        <span
+                                            style={{
+                                                display: "flex",
+                                                justifyContent: "center",
+                                                alignItems: "center",
                                                 width: "100%",
+                                                padding: 0,
+                                                margin: 0,
                                             }}
                                         >
-                                            Apply
-                                        </Button>
-                                    </span>
-                                </Tooltip>
+                                            <Button
+                                                variant="outlined"
+                                                color="error"
+                                                onClick={
+                                                    onResetAnalysisSettings
+                                                }
+                                                disabled={
+                                                    game.gameData === null
+                                                }
+                                                sx={{
+                                                    width: "100%",
+                                                    "&:hover": {
+                                                        backgroundColor:
+                                                            "rgba(211, 47, 47, 0.08)",
+                                                        borderColor: "#d32f2f",
+                                                    },
+                                                }}
+                                            >
+                                                Reset
+                                            </Button>
+                                        </span>
+                                    </Tooltip>
+                                    <Tooltip
+                                        title={
+                                            game.gameData === null
+                                                ? "No game data"
+                                                : ""
+                                        }
+                                        arrow
+                                    >
+                                        <span
+                                            style={{
+                                                display: "flex",
+                                                justifyContent: "center",
+                                                alignItems: "center",
+                                                width: "100%",
+                                                padding: 0,
+                                                margin: 0,
+                                            }}
+                                        >
+                                            <Button
+                                                variant="contained"
+                                                onClick={onSaveAnalysisSettings}
+                                                disabled={
+                                                    game.gameData === null
+                                                }
+                                                sx={{
+                                                    width: "100%",
+                                                }}
+                                            >
+                                                Save
+                                            </Button>
+                                        </span>
+                                    </Tooltip>
+                                </Box>
                             </Paper>
                         </Stack>
                     ))}
@@ -995,7 +1024,7 @@ function Demo() {
                             Board {settingsGameIndex + 1}
                         </Typography>
                     </Box>
-                    {gameId && analysisSessions.length > 0 && (
+                    {gameID && analysisSessions.length > 0 && (
                         <>
                             <Tooltip title="Past configurations" arrow>
                                 <IconButton
@@ -1079,7 +1108,7 @@ function Demo() {
                 <Button
                     variant="contained"
                     onClick={() => {
-                        onApplyAnalysisSettings();
+                        onSaveAnalysisSettings();
                         setSettingsDrawerOpen(false);
                     }}
                     sx={{ m: 2, flexShrink: 0 }}

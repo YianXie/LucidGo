@@ -101,7 +101,7 @@ function GameCard({ game }: { game: GameSummary }) {
                 <Button
                     size="small"
                     startIcon={<OpenInNewIcon />}
-                    onClick={() => navigate(`/demo/?gameId=${game.id}`)}
+                    onClick={() => navigate(`/demo/?gameID=${game.id}`)}
                 >
                     Load in Demo
                 </Button>
