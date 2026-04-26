@@ -62,17 +62,19 @@ fi
 
 # Run pip audit (security checks)
 echo "Running pip audit..."
-if uv run pip-audit --ignore-vuln CVE-2026-4539; then
+if uv run pip-audit --ignore-vuln CVE-2026-3219; then
     print_status "pip audit passed"
 else
-    print_warning "pip audit found issues"
+    print_error "pip audit found issues"
+    exit 1;
 fi
 
 echo "Running bandit security check..."
 if uv run bandit -c pyproject.toml -r .; then
     print_status "Bandit security check passed"
 else
-    print_warning "Bandit security check found issues"
+    print_error "Bandit security check found issues"
+    exit 1;
 fi
 
 # Frontend checks

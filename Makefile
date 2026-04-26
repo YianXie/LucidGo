@@ -43,7 +43,7 @@ format:
 # Run security checks
 security:
 	@echo "Running backend security checks..."
-	cd backend && uv run pip-audit --ignore-vuln CVE-2026-4539 && uv run bandit -r . -x ./env,./__pycache__
+	cd backend && uv run pip-audit --ignore-vuln CVE-2026-3219 && uv run bandit -c pyproject.toml -r .
 	@echo "Running frontend security checks..."
 	cd frontend && npm audit
 
