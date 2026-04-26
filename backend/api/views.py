@@ -74,6 +74,8 @@ class AnalyzeView(APIView):
 
 
 class WinrateView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request: Request) -> Response:
         if not request.data:
             return Response(
@@ -174,6 +176,11 @@ class GameDetailView(APIView):
         serializer = GameDetailSerializer(game)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def delete(self, request: Request, game_id: str) -> Response:
+        game = get_object_or_404(Game, id=game_id, user=request.user)
+        game.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class AnalysisSessionCreateView(APIView):
     permission_classes = [IsAuthenticated]
@@ -182,8 +189,30 @@ class AnalysisSessionCreateView(APIView):
         game = get_object_or_404(Game, id=game_id, user=request.user)
         serializer = AnalysisSessionCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(game=game)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        config = serializer.validated_data["analysis_config"]
+        results = serializer.validated_data["results"]
+
+        # If the latest session for this game already uses the same config,
+        # overwrite it instead of creating a duplicate row.
+        latest = game.analysis_sessions.order_by("-created_at").first()
+        if latest is not None and latest.analysis_config == config:
+            latest.results = results
+            latest.save(update_fields=["results"])
+            return Response(
+                AnalysisSessionDetailSerializer(latest).data,
+                status=status.HTTP_200_OK,
+            )
+
+        session = AnalysisSession.objects.create(
+            game=game,
+            analysis_config=config,
+            results=results,
+        )
+        return Response(
+            AnalysisSessionDetailSerializer(session).data,
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class AnalysisSessionDetailView(APIView):
@@ -195,3 +224,10 @@ class AnalysisSessionDetailView(APIView):
         )
         serializer = AnalysisSessionDetailSerializer(session)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request: Request, game_id: str, session_id: str) -> Response:
+        session = get_object_or_404(
+            AnalysisSession, id=session_id, game__id=game_id, game__user=request.user
+        )
+        session.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

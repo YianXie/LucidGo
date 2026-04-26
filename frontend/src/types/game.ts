@@ -49,6 +49,9 @@ export interface BoardState {
     name: string | null;
     file: File | null;
     gameID: string | null;
+    /** Raw SGF text. Cached so the game can be saved to the backend later
+     * (e.g. when auto_save_games is off and the user clicks save manually). */
+    sgfContent: string;
     gameData: GameData | null;
     analysisData: (AnalysisResult | null)[] | null;
     winrate: { black: number; white: number }[];

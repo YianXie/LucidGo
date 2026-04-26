@@ -33,7 +33,9 @@ class Game(models.Model):
 
 
 class AnalysisSession(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # type: ignore
+    id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False, unique=True
+    )  # type: ignore
     game = models.ForeignKey(
         Game, on_delete=models.CASCADE, related_name="analysis_sessions"
     )  # type: ignore
