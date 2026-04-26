@@ -1,7 +1,8 @@
 import api from "@/api";
-import { DEFAULT_ANALYSIS_CONFIG } from "@/constants";
+import { DEFAULT_USER_SETTINGS, USER_SETTINGS_URL } from "@/constants";
 import type { AccessTokenPayload, TokenPair } from "@/types/auth";
-import type { AnalysisConfig } from "@/types/game";
+import type { UserSettings } from "@/types/game";
+import { getErrorMessage } from "@/utils/errorFormatting";
 import { jwtDecode } from "jwt-decode";
 import {
     type ReactNode,
@@ -18,7 +19,8 @@ interface AuthContextValue {
     refreshToken: string | null;
     user: Record<string, unknown> | null;
     isAuthenticated: boolean | null;
-    defaultAnalysisConfig: AnalysisConfig;
+    userSettings: UserSettings;
+    setUserSettings: (settings: UserSettings) => void;
     login: (token: TokenPair) => void;
     logout: () => void;
 }
@@ -37,8 +39,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(
         null
     );
-    const [defaultAnalysisConfig, setDefaultAnalysisConfig] =
-        useState<AnalysisConfig>(DEFAULT_ANALYSIS_CONFIG);
+    const [userSettings, setUserSettings] = useState<UserSettings>(
+        DEFAULT_USER_SETTINGS
+    );
 
     const logout = useCallback(() => {
         localStorage.removeItem("access");
@@ -47,24 +50,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRefreshToken(null);
         setUser(null);
         setIsAuthenticated(false);
-        setDefaultAnalysisConfig(DEFAULT_ANALYSIS_CONFIG);
+        setUserSettings(DEFAULT_USER_SETTINGS);
     }, []);
 
-    const fetchDefaultAnalysisConfig =
-        useCallback(async (): Promise<AnalysisConfig> => {
-            try {
-                const response = await api.get<{
-                    analysis_config: AnalysisConfig;
-                }>("/auth/user/analysis-config/");
-                if (!response.data || !response.data.analysis_config) {
-                    throw new Error("Invalid response from server");
-                }
-                return response.data.analysis_config;
-            } catch (error) {
-                console.error(error);
-                throw error;
-            }
-        }, []);
+    const fetchUserSettings = useCallback(async (): Promise<UserSettings> => {
+        try {
+            const { data } = await api.get<UserSettings>(USER_SETTINGS_URL);
+            if (!data) throw new Error("Invalid response from server");
+            return data;
+        } catch (error) {
+            console.error(error);
+            toast.error(getErrorMessage(error));
+            throw error;
+        }
+    }, []);
 
     const refreshAccessToken = useCallback(
         async (rt: string) => {
@@ -87,14 +86,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setIsAuthenticated(true);
 
                 try {
-                    const config = await fetchDefaultAnalysisConfig();
-                    setDefaultAnalysisConfig(config);
+                    const userSettings = await fetchUserSettings();
+                    setUserSettings(userSettings);
                 } catch (error) {
                     console.error(error);
                     toast.error(
-                        "Failed to fetch analysis configuration, using default settings."
+                        "Failed to fetch user settings, using default settings."
                     );
-                    setDefaultAnalysisConfig(DEFAULT_ANALYSIS_CONFIG);
+                    setUserSettings(DEFAULT_USER_SETTINGS);
                 }
             } catch (error) {
                 console.error(error);
@@ -102,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 logout();
             }
         },
-        [fetchDefaultAnalysisConfig, logout]
+        [fetchUserSettings, logout]
     );
 
     useEffect(() => {
@@ -114,15 +113,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     try {
                         const payload =
                             jwtDecode<AccessTokenPayload>(storedAccess);
+                        const userSettings = await fetchUserSettings();
                         setUser(
                             (payload.user as Record<string, unknown>) ?? null
                         );
                         setAccessToken(storedAccess);
                         setRefreshToken(storedRefresh);
                         setIsAuthenticated(true);
-
-                        const config = await fetchDefaultAnalysisConfig();
-                        setDefaultAnalysisConfig(config);
+                        setUserSettings(userSettings);
                     } catch (error) {
                         console.error(error);
                         setIsAuthenticated(false);
@@ -151,17 +149,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setIsAuthenticated(true);
 
             try {
-                const config = await fetchDefaultAnalysisConfig();
-                setDefaultAnalysisConfig(config);
+                const settings = await fetchUserSettings();
+                setUserSettings(settings);
             } catch (error) {
                 console.error(error);
                 toast.error(
                     "Failed to fetch analysis configuration, using default settings."
                 );
-                setDefaultAnalysisConfig(DEFAULT_ANALYSIS_CONFIG);
+                setUserSettings(DEFAULT_USER_SETTINGS);
             }
         },
-        [fetchDefaultAnalysisConfig]
+        [fetchUserSettings]
     );
 
     return (
@@ -171,7 +169,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 refreshToken,
                 user,
                 isAuthenticated,
-                defaultAnalysisConfig,
+                userSettings,
+                setUserSettings,
                 login,
                 logout,
             }}
@@ -184,8 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAuth(): AuthContextValue {
     const ctx = useContext(AuthContext);
-    if (ctx === undefined) {
+    if (ctx === undefined)
         throw new Error("useAuth must be used within an AuthProvider");
-    }
     return ctx;
 }

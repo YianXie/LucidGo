@@ -28,6 +28,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
+                    "general_settings",
+                    models.JSONField(default=auth.models.get_default_general_settings),
+                ),
+                (
                     "analysis_config",
                     models.JSONField(default=auth.models.get_default_analysis_config),
                 ),

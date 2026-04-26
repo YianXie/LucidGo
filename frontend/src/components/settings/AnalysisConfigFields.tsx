@@ -11,17 +11,16 @@ import {
 
 function AnalysisConfigFields({
     analysisConfig,
-    onChange,
+    setAnalysisConfig,
 }: {
     analysisConfig: AnalysisConfig;
-    onChange: (config: AnalysisConfig) => void;
+    setAnalysisConfig: (config: AnalysisConfig) => void;
 }) {
-    /** Merge `fields` into one section of `analysisConfig` and call `onChange`. */
     function patch<K extends keyof AnalysisConfig>(
         section: K,
         fields: Partial<AnalysisConfig[K]>
     ) {
-        onChange({
+        setAnalysisConfig({
             ...analysisConfig,
             [section]: { ...analysisConfig[section], ...fields },
         });

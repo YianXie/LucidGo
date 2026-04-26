@@ -102,19 +102,28 @@ class UpdatePasswordSerializer(serializers.Serializer):
         return value
 
 
-class AnalysisConfigSerializer(serializers.Serializer):
-    analysis_config = serializers.JSONField()
+def validate_analysis_config(value: dict) -> None:
+    required_sections = {"general", "nn", "mcts", "minimax", "output"}
+    missing = required_sections - set(value.keys())
+    if missing:
+        raise serializers.ValidationError(
+            _("Missing required sections: %(missing)s")
+            % {"missing": ", ".join(sorted(missing))}
+        )
+
+
+class UserSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserSettings
+        fields = ("general_settings", "analysis_config")
+
+    def validate_general_settings(self, value: Any) -> dict:
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("general_settings must be a JSON object.")
+        return value
 
     def validate_analysis_config(self, value: Any) -> dict:
         if not isinstance(value, dict):
-            raise serializers.ValidationError(
-                _("analysis_config must be a JSON object.")
-            )
-        required_sections = {"general", "nn", "mcts", "minimax", "output"}
-        missing = required_sections - set(value.keys())
-        if missing:
-            raise serializers.ValidationError(
-                _("Missing required sections: %(missing)s")
-                % {"missing": ", ".join(sorted(missing))}
-            )
+            raise serializers.ValidationError("analysis_config must be a JSON object.")
+        validate_analysis_config(value)
         return value

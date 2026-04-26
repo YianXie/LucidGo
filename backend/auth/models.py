@@ -1,7 +1,11 @@
+from copy import deepcopy
+
 from django.contrib.auth import get_user_model
 from django.db import models
 
 User = get_user_model()
+
+DEFAULT_GENERAL_SETTINGS = {"auto_save_games": False}
 
 DEFAULT_ANALYSIS_CONFIG = {
     "general": {
@@ -38,14 +42,17 @@ DEFAULT_ANALYSIS_CONFIG = {
 }
 
 
-def get_default_analysis_config() -> dict:
-    import copy
+def get_default_general_settings() -> dict:
+    return deepcopy(DEFAULT_GENERAL_SETTINGS)
 
-    return copy.deepcopy(DEFAULT_ANALYSIS_CONFIG)
+
+def get_default_analysis_config() -> dict:
+    return deepcopy(DEFAULT_ANALYSIS_CONFIG)
 
 
 class UserSettings(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="settings")  # type: ignore
+    general_settings = models.JSONField(default=get_default_general_settings)
     analysis_config = models.JSONField(default=get_default_analysis_config)
 
     class Meta:
@@ -53,4 +60,4 @@ class UserSettings(models.Model):
         verbose_name_plural = "user settings"
 
     def __str__(self) -> str:
-        return f"Settings for {self.user.get_username()}"
+        return f"User settings for {self.user.get_username()}"

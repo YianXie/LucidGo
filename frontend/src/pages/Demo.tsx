@@ -5,9 +5,9 @@ import AnalysisConfigFields from "@/components/settings/AnalysisConfigFields";
 import {
     BOARD_SIZE,
     GAMES_URL,
-    GET_ANALYSIS_URL,
     GET_GAME_DATA_URL,
-    GET_WINRATE_URL,
+    POST_ANALYSIS_URL,
+    POST_WINRATE_URL,
     SGF_SAMPLE,
 } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
@@ -71,11 +71,11 @@ const ANIMATION_MS = 250;
 function Demo() {
     usePageTitle("Demo");
 
-    const { defaultAnalysisConfig } = useAuth();
+    const { userSettings } = useAuth();
     const [searchParams] = useSearchParams();
     const gameID = searchParams.get("gameID");
     const [games, setGames] = useState<BoardState[]>([
-        defaultBoard(defaultAnalysisConfig),
+        defaultBoard(userSettings.analysis_config),
     ]);
 
     const theme = useTheme();
@@ -94,7 +94,7 @@ function Demo() {
 
     const [settingsGameIndex, setSettingsGameIndex] = useState(0);
     const [draftAnalysisConfig, setDraftAnalysisConfig] =
-        useState<AnalysisConfig>(defaultAnalysisConfig);
+        useState<AnalysisConfig>(userSettings.analysis_config);
     const [analysisSessions, setAnalysisSessions] = useState<
         HistoryAnalysisSession[]
     >([]);
@@ -130,7 +130,7 @@ function Demo() {
                         setGames((prev) => {
                             if (prev.length !== 1) return prev;
                             const newBoard = defaultBoard(
-                                defaultAnalysisConfig
+                                userSettings.analysis_config
                             );
                             newBoard.gameData = {
                                 size: data.board_size,
@@ -149,7 +149,8 @@ function Demo() {
                             newBoard.gameSource = "file";
                             newBoard.live = false;
                             newBoard.loadedValue = 0;
-                            newBoard.analysisConfig = defaultAnalysisConfig;
+                            newBoard.analysisConfig =
+                                userSettings.analysis_config;
                             return [newBoard];
                         });
                     });
@@ -158,9 +159,9 @@ function Demo() {
             }
         } else {
             setAnalysisSessions([]);
-            setGames([defaultBoard(defaultAnalysisConfig)]);
+            setGames([defaultBoard(userSettings.analysis_config)]);
         }
-    }, [defaultAnalysisConfig, gameID, setGames]);
+    }, [userSettings.analysis_config, gameID, setGames]);
 
     useEffect(() => {
         setGames((prev) => {
@@ -173,9 +174,9 @@ function Demo() {
                 only.analysisData === null &&
                 !only.loading;
             if (!pristine) return prev;
-            return [defaultBoard(defaultAnalysisConfig)];
+            return [defaultBoard(userSettings.analysis_config)];
         });
-    }, [defaultAnalysisConfig]);
+    }, [userSettings.analysis_config]);
 
     useEffect(() => {
         setSettingsGameIndex((idx) => {
@@ -322,7 +323,7 @@ function Demo() {
             );
             try {
                 const { data } = await api.post<AnalysisResult>(
-                    GET_ANALYSIS_URL,
+                    POST_ANALYSIS_URL,
                     request
                 );
                 return data;
@@ -358,7 +359,7 @@ function Demo() {
             const request = buildWinrateRequest(pastMoves, config);
             try {
                 const { data } = await api.post<WinrateResult>(
-                    GET_WINRATE_URL,
+                    POST_WINRATE_URL,
                     request
                 );
                 updateGame(gameIndex, { winrate: data.winrate });
@@ -481,7 +482,10 @@ function Demo() {
         if (animationTimerRef.current) clearTimeout(animationTimerRef.current);
 
         const newIndex = games.length;
-        setGames((prev) => [...prev, defaultBoard(defaultAnalysisConfig)]);
+        setGames((prev) => [
+            ...prev,
+            defaultBoard(userSettings.analysis_config),
+        ]);
         setCreatingGameIndex(newIndex);
         animationTimerRef.current = setTimeout(() => {
             animationTimerRef.current = null;

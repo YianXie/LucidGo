@@ -11,9 +11,9 @@ from rest_framework.views import APIView  # type: ignore
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import UserSettings
-from .serializers import (AnalysisConfigSerializer,
-                          CustomTokenObtainPairSerializer, RegisterSerializer,
-                          UpdateEmailSerializer, UpdatePasswordSerializer)
+from .serializers import (CustomTokenObtainPairSerializer, RegisterSerializer,
+                          UpdateEmailSerializer, UpdatePasswordSerializer,
+                          UserSettingsSerializer)
 
 # fmt: on
 
@@ -72,26 +72,20 @@ class UpdatePasswordView(APIView):
         return Response(_generate_token_pair(request.user), status=status.HTTP_200_OK)
 
 
-class AnalysisConfigView(APIView):
+class UserSettingsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request) -> Response:
         settings, _ = UserSettings.objects.get_or_create(user=request.user)
-        return Response(
-            {"analysis_config": settings.analysis_config},
-            status=status.HTTP_200_OK,
-        )
+        serializer = UserSettingsSerializer(settings)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request: Request) -> Response:
-        serializer = AnalysisConfigSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
         settings, _ = UserSettings.objects.get_or_create(user=request.user)
-        settings.analysis_config = serializer.validated_data["analysis_config"]
-        settings.save(update_fields=["analysis_config"])
-        return Response(
-            {"analysis_config": settings.analysis_config},
-            status=status.HTTP_200_OK,
-        )
+        serializer = UserSettingsSerializer(settings, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class DeleteAccountView(APIView):

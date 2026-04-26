@@ -30,7 +30,6 @@ function SidebarLayout({
 
     const mainContent = hasContent ? (
         <Box
-            component="main"
             sx={[
                 {
                     flexGrow: 1,

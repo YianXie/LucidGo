@@ -3,9 +3,8 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from .views import (AnalysisConfigView, CustomTokenObtainPairView,
-                    DeleteAccountView, RegisterView, UpdateEmailView,
-                    UpdatePasswordView)
+from .views import (CustomTokenObtainPairView, DeleteAccountView, RegisterView,
+                    UpdateEmailView, UpdatePasswordView, UserSettingsView)
 
 # fmt: on
 
@@ -15,6 +14,6 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     path("user/email/", UpdateEmailView.as_view(), name="update-email"),
     path("user/password/", UpdatePasswordView.as_view(), name="update-password"),
-    path("user/analysis-config/", AnalysisConfigView.as_view(), name="analysis-config"),
     path("user/delete/", DeleteAccountView.as_view(), name="delete-account"),
+    path("user/settings/", UserSettingsView.as_view(), name="user-settings"),
 ]

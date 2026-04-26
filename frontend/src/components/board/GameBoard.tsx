@@ -3,7 +3,7 @@ import board_bg from "@/assets/images/board/board-bg.png";
 import placeStoneSoundInstance from "@/assets/sounds/placeStoneSoundInstance";
 import Controls from "@/components/board/Controls";
 import Upload from "@/components/common/Upload";
-import { BOARD_SIZE, GET_ANALYSIS_URL, GTP_LETTERS } from "@/constants";
+import { BOARD_SIZE, GTP_LETTERS, POST_ANALYSIS_URL } from "@/constants";
 import {
     type AnalysisConfig,
     type AnalysisResult,
@@ -550,7 +550,7 @@ function GameBoard({
         const request = buildAnalysisRequest(analysisConfig, gtpMoves, AIColor);
         try {
             const { data } = await api.post<AnalysisResult>(
-                GET_ANALYSIS_URL,
+                POST_ANALYSIS_URL,
                 request
             );
             const [row, col] = toRowColFormat(data.top_moves[0].move);

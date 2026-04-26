@@ -60,6 +60,15 @@ export interface BoardState {
     analysisConfig: AnalysisConfig;
 }
 
+export interface UserSettings {
+    general_settings: GeneralSettings;
+    analysis_config: AnalysisConfig;
+}
+
+export interface GeneralSettings {
+    auto_save_games: boolean;
+}
+
 export interface AnalysisConfig {
     general: {
         algorithm: string;
