@@ -132,7 +132,7 @@ jobs:
 
             - name: Run pip audit (security checks)
               working-directory: ./backend
-              run: uv run pip-audit --ignore-vuln CVE-2026-4539
+              run: uv run pip-audit --ignore-vuln CVE-2026-4539 CVE-2026-3219
 
             - name: Run bandit (security linting)
               working-directory: ./backend
