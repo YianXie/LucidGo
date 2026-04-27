@@ -1,6 +1,6 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { alpha, useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
 import {
     type ActiveElement,
     CategoryScale,
@@ -39,28 +39,30 @@ function WinRate({
     setMove: (n: number) => void;
     currentMove: number;
 }) {
-    const theme = useTheme();
     const [hoverX, setHoverX] = useState<number | null>(null);
     const chartRef = useRef<Chart<"line"> | null>(null);
+    const leadersRef = useRef<("black" | "white")[]>([]);
 
     const dataLength = data?.length ?? 0;
 
-    /** Theme-aware line colors: black/gray on light UI, light/mid gray on dark UI */
     const linePalette = useMemo(() => {
-        const isDark = theme.palette.mode === "dark";
-        const black = isDark
-            ? theme.palette.grey[300]!
-            : theme.palette.grey[900]!;
-        const white = isDark
-            ? theme.palette.grey[500]!
-            : theme.palette.grey[700]!;
-        return {
-            black,
-            blackMuted: alpha(black, 0.22),
-            white,
-            whiteMuted: alpha(white, 0.22),
-        };
-    }, [theme]);
+        const black = "#000000";
+        const white = "#ffffff";
+        return { black, white };
+    }, []);
+
+    // Derive which player leads at each move; sync to ref for use in stable plugin closures
+    const leaders = useMemo(() => {
+        const result = data
+            ? data.map((rate) =>
+                  rate.black >= rate.white
+                      ? ("black" as const)
+                      : ("white" as const)
+              )
+            : [];
+        leadersRef.current = result;
+        return result;
+    }, [data]);
 
     const options = useMemo(
         () => ({
@@ -68,9 +70,7 @@ function WinRate({
             maintainAspectRatio: false,
             animation: false as const,
             plugins: {
-                legend: {
-                    position: "top" as const,
-                },
+                legend: { display: false },
                 title: {
                     display: true,
                     text: "Win Rate",
@@ -82,11 +82,17 @@ function WinRate({
             },
             scales: {
                 y: {
-                    suggestedMin: 0,
-                    suggestedMax: 100,
+                    min: 50,
+                    max: 100,
                     title: {
                         display: true,
                         text: "Win Rate (%)",
+                    },
+                    grid: {
+                        color: (ctx: { tick: { value: number } }) =>
+                            ctx.tick.value === 50
+                                ? "rgba(0,0,0,0.45)"
+                                : "rgba(0,0,0,0.08)",
                     },
                 },
                 x: {
@@ -158,6 +164,50 @@ function WinRate({
     const plugins = useMemo(
         () => [
             {
+                id: "chartBackground",
+                beforeDraw: (chart: Chart) => {
+                    const { ctx, width, height } = chart;
+                    ctx.save();
+                    ctx.fillStyle = "#A9A9A9";
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.restore();
+                },
+            },
+            {
+                id: "leadingFill",
+                beforeDatasetsDraw: (chart: Chart) => {
+                    const { ctx, scales } = chart;
+                    const yScale = scales.y;
+                    const meta = chart.getDatasetMeta(0);
+                    const points = meta.data;
+                    const leaders = leadersRef.current;
+
+                    if (!points || points.length < 2) return;
+
+                    const y50 = yScale.getPixelForValue(50);
+
+                    for (let i = 0; i < points.length - 1; i++) {
+                        const p0 = points[i]!;
+                        const p1 = points[i + 1]!;
+                        const leader = leaders[i] ?? "black";
+
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.moveTo(p0.x, y50);
+                        ctx.lineTo(p0.x, p0.y);
+                        ctx.lineTo(p1.x, p1.y);
+                        ctx.lineTo(p1.x, y50);
+                        ctx.closePath();
+                        ctx.fillStyle =
+                            leader === "black"
+                                ? "rgba(20, 20, 20, 0.8)"
+                                : "rgba(220, 220, 220, 0.8)";
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                },
+            },
+            {
                 id: "verticalLine",
                 afterDraw: (chart: Chart) => {
                     const pluginOpts = (
@@ -226,26 +276,17 @@ function WinRate({
     );
 
     const lineData = useMemo((): ChartData<"line"> => {
-        const { black, blackMuted, white, whiteMuted } = linePalette;
+        const { black, white } = linePalette;
 
         if (!data || data.length === 0) {
             return {
                 labels: [] as number[],
                 datasets: [
                     {
-                        label: "Black",
+                        label: "Win Rate",
                         data: [] as number[],
                         fill: false,
                         borderColor: black,
-                        borderWidth: 2,
-                        tension: 0.2,
-                        pointRadius: 0,
-                    },
-                    {
-                        label: "White",
-                        data: [] as number[],
-                        fill: false,
-                        borderColor: white,
                         borderWidth: 2,
                         tension: 0.2,
                         pointRadius: 0,
@@ -254,45 +295,34 @@ function WinRate({
             };
         }
 
-        const blackWinRate = data.map((rate) => rate.black);
-        const whiteWinRate = data.map((rate) => rate.white);
+        const leadingRates = data.map((rate) =>
+            Math.max(rate.black, rate.white)
+        );
 
         return {
             labels: Array.from({ length: data.length }, (_, i) => i),
             datasets: [
                 {
-                    label: "Black",
-                    data: blackWinRate,
+                    label: "Win Rate",
+                    data: leadingRates,
                     fill: false,
-                    borderColor: black,
                     borderWidth: 2,
                     tension: 0.2,
                     pointRadius: 0,
                     segment: {
                         borderColor: (ctx: ScriptableLineSegmentContext) => {
-                            const moveIndex = ctx.p0.parsed.x ?? 0;
-                            return moveIndex < currentMove ? black : blackMuted;
-                        },
-                    },
-                },
-                {
-                    label: "White",
-                    data: whiteWinRate,
-                    fill: false,
-                    borderColor: white,
-                    borderWidth: 2,
-                    tension: 0.2,
-                    pointRadius: 0,
-                    segment: {
-                        borderColor: (ctx: ScriptableLineSegmentContext) => {
-                            const moveIndex = ctx.p0.parsed.x ?? 0;
-                            return moveIndex < currentMove ? white : whiteMuted;
+                            const idx = ctx.p0DataIndex;
+                            const baseColor =
+                                leaders[idx] === "black" ? black : white;
+                            return idx < currentMove
+                                ? baseColor
+                                : alpha(baseColor, 0.22);
                         },
                     },
                 },
             ],
         };
-    }, [data, currentMove, linePalette]);
+    }, [data, currentMove, leaders, linePalette]);
 
     return (
         <>
