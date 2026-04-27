@@ -23,7 +23,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import Board from "@sabaki/go-board";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type TopMoveEntry = AnalysisResult["top_moves"][number];
 
@@ -111,6 +111,14 @@ function GameBoard({
     }, [gameData]);
 
     const replayMoves = live ? moves : (gameData?.moves ?? []);
+
+    const onMoveChange = useCallback(
+        (amount: number) => {
+            const next = (currentMoveIndex ?? 0) + amount;
+            setCurrentMoveIndex(Math.max(0, Math.min(next, moves.length)));
+        },
+        [currentMoveIndex, moves.length, setCurrentMoveIndex]
+    );
 
     const userColor = "B" as const;
     const AIColor = "W" as const;
@@ -212,6 +220,64 @@ function GameBoard({
             canvas.removeEventListener("click", onClick);
         };
     }, [live]);
+
+    useEffect(() => {
+        if (live) return;
+
+        const handleWheel = (event: WheelEvent) => {
+            event.preventDefault();
+            if (event.deltaY > 0) onMoveChange(1);
+            else if (event.deltaY < 0) onMoveChange(-1);
+        };
+
+        const canvas = canvasRef.current;
+        canvas?.addEventListener("wheel", handleWheel, { passive: false });
+
+        return () => {
+            canvas?.removeEventListener("wheel", handleWheel);
+        };
+    }, [live, onMoveChange]);
+
+    useEffect(() => {
+        if (live) return;
+
+        const handleClick = (event: MouseEvent) => {
+            event.preventDefault();
+            onMoveChange(1);
+        };
+        const handleContextMenu = (event: MouseEvent) => {
+            event.preventDefault();
+            onMoveChange(-1);
+        };
+
+        const canvas = canvasRef.current;
+        canvas?.addEventListener("click", handleClick, { passive: false });
+        canvas?.addEventListener("contextmenu", handleContextMenu, {
+            passive: false,
+        });
+
+        return () => {
+            canvas?.removeEventListener("click", handleClick);
+            canvas?.removeEventListener("contextmenu", handleContextMenu);
+        };
+    }, [live, onMoveChange]);
+
+    useEffect(() => {
+        if (live) return;
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            event.preventDefault();
+            console.log(event.key);
+            if (event.key === "ArrowRight") onMoveChange(1);
+            else if (event.key === "ArrowLeft") onMoveChange(-1);
+        };
+
+        window.addEventListener("keydown", handleKeyDown, { passive: false });
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [live, onMoveChange]);
 
     const clientToCanvasCoords = (x: number, y: number) => {
         if (!canvasRef.current) return [null, null] as const;
@@ -732,7 +798,7 @@ function GameBoard({
                 maxMove={moves.length}
                 live={live}
                 currentMoveIndex={currentMoveIndex}
-                setCurrentMoveIndex={setCurrentMoveIndex}
+                onMoveChange={onMoveChange}
                 onGenerateWinrate={onGenerateWinrate}
                 onAnalyzeCurrentMove={onAnalyzeCurrentMove}
                 onAnalyzeAllMoves={onAnalyzeAllMoves}

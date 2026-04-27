@@ -23,7 +23,7 @@ function Controls({
     maxMove,
     live,
     currentMoveIndex,
-    setCurrentMoveIndex,
+    onMoveChange,
     onGenerateWinrate,
     onAnalyzeCurrentMove,
     onAnalyzeAllMoves,
@@ -32,7 +32,7 @@ function Controls({
     maxMove: number;
     live: boolean;
     currentMoveIndex: number | null;
-    setCurrentMoveIndex: (move: number) => void;
+    onMoveChange: (amount: number) => void;
     onGenerateWinrate: () => void;
     onAnalyzeCurrentMove: () => void;
     onAnalyzeAllMoves: () => void;
@@ -46,11 +46,6 @@ function Controls({
 
     const handleAnalysisMenuClose = () => {
         setAnalysisMenuAnchor(null);
-    };
-
-    const onMoveChange = (amount: number) => {
-        const next = (currentMoveIndex ?? 0) + amount;
-        setCurrentMoveIndex(Math.max(0, Math.min(next, maxMove)));
     };
 
     return (
