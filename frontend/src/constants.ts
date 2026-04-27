@@ -336,3 +336,14 @@ export const FIELDS_TO_MERGE = ["seed", "max_time_ms", "temperature"];
  * The width of the drawer
  */
 export const DRAWER_WIDTH = 250;
+
+/**
+ * Right-hand analysis column (move controls, win rate, settings) on md+.
+ * Tuned so the control icon row does not need to wrap on typical desktop layouts.
+ */
+export const ANALYSIS_RIGHT_PANEL_WIDTH: Record<string, string | number> = {
+    xs: "100%",
+    md: 408,
+    lg: 432,
+    xl: 456,
+};

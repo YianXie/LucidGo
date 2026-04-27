@@ -1,32 +1,47 @@
-import Container from "@mui/material/Container";
+import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles";
 import { Outlet } from "react-router-dom";
 import { Bounce, ToastContainer } from "react-toastify";
 
 import Footer from "./Footer";
-import Header from "./Header";
+import NavSidebar from "./NavSidebar";
 
 function Layout() {
     const theme = useTheme();
     const isDark = theme.palette.mode === "dark";
 
     return (
-        <>
-            <Header />
-            <Container
-                maxWidth="xl"
-                component="main"
+        <Box
+            sx={{
+                display: "flex",
+                flexDirection: { xs: "column", md: "row" },
+                height: "100vh",
+                overflow: "hidden",
+            }}
+        >
+            <NavSidebar />
+            <Box
                 sx={{
                     flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
                     minWidth: 0,
-                    width: "100%",
-                    overflowX: "auto",
-                    overflowY: "auto",
+                    overflow: "hidden",
                 }}
             >
-                <Outlet />
-            </Container>
-            <Footer />
+                <Box
+                    component="main"
+                    sx={{
+                        flex: 1,
+                        minWidth: 0,
+                        overflowX: "auto",
+                        overflowY: "auto",
+                    }}
+                >
+                    <Outlet />
+                </Box>
+                <Footer />
+            </Box>
 
             <ToastContainer
                 position="bottom-left"
@@ -41,7 +56,7 @@ function Layout() {
                 theme={isDark ? "dark" : "light"}
                 transition={Bounce}
             />
-        </>
+        </Box>
     );
 }
 

@@ -1,7 +1,6 @@
 import api from "@/api";
 import board_bg from "@/assets/images/board/board-bg.png";
 import placeStoneSoundInstance from "@/assets/sounds/placeStoneSoundInstance";
-import Controls from "@/components/board/Controls";
 import Upload from "@/components/common/Upload";
 import { BOARD_SIZE, GTP_LETTERS, POST_ANALYSIS_URL } from "@/constants";
 import {
@@ -23,7 +22,18 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import Board from "@sabaki/go-board";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+    forwardRef,
+    useCallback,
+    useEffect,
+    useImperativeHandle,
+    useRef,
+    useState,
+} from "react";
+
+export interface GameBoardHandle {
+    handlePassMove: () => void;
+}
 
 type TopMoveEntry = AnalysisResult["top_moves"][number];
 
@@ -47,41 +57,43 @@ function formatSuggestedMoveWinrate(
     return `${pct.toFixed(1)}%`;
 }
 
-function GameBoard({
-    gameData,
-    analysisData,
-    isLoading,
-    loadedValue,
-    live,
-    analysisConfig,
-    gameSource,
-    currentMoveIndex,
-    setCurrentMoveIndex,
-    onGameSourceChange,
-    onGenerateWinrate,
-    onAnalyzeCurrentMove,
-    onAnalyzeAllMoves,
-    onViewSample,
-    onLive,
-    onFileChange,
-}: {
-    gameData: GameData | null;
-    analysisData: (AnalysisResult | null)[] | null;
-    isLoading: boolean;
-    loadedValue: number | null;
-    live: boolean;
-    analysisConfig: AnalysisConfig;
-    gameSource: GameSource;
-    currentMoveIndex: number | null;
-    setCurrentMoveIndex: (move: number) => void;
-    onGameSourceChange: (source: GameSource) => void;
-    onGenerateWinrate: () => void;
-    onAnalyzeCurrentMove: () => void;
-    onAnalyzeAllMoves: () => void;
-    onViewSample: () => void;
-    onLive: () => void;
-    onFileChange: (file: File) => void;
-}) {
+const GameBoard = forwardRef<
+    GameBoardHandle,
+    {
+        gameData: GameData | null;
+        analysisData: (AnalysisResult | null)[] | null;
+        isLoading: boolean;
+        loadedValue: number | null;
+        live: boolean;
+        analysisConfig: AnalysisConfig;
+        gameSource: GameSource;
+        currentMoveIndex: number | null;
+        setCurrentMoveIndex: (move: number) => void;
+        onGameSourceChange: (source: GameSource) => void;
+        onViewSample: () => void;
+        onLive: () => void;
+        onFileChange: (file: File) => void;
+        onMovesLengthChange?: (n: number) => void;
+    }
+>(function GameBoard(
+    {
+        gameData,
+        analysisData,
+        isLoading,
+        loadedValue,
+        live,
+        analysisConfig,
+        gameSource,
+        currentMoveIndex,
+        setCurrentMoveIndex,
+        onGameSourceChange,
+        onViewSample,
+        onLive,
+        onFileChange,
+        onMovesLengthChange,
+    },
+    ref
+) {
     const boardSize = BOARD_SIZE;
     const canvasSize = 800;
     const padding = 50;
@@ -102,6 +114,7 @@ function GameBoard({
 
     const hoverRef = useRef<(event: MouseEvent) => void>(() => {});
     const clickRef = useRef<(event: MouseEvent) => void>(() => {});
+    const passMoveHandlerRef = useRef<() => void>(() => {});
 
     toPlayRef.current = toPlay;
 
@@ -647,6 +660,17 @@ function GameBoard({
 
     hoverRef.current = handleHover;
     clickRef.current = handleClick;
+    passMoveHandlerRef.current = handlePassMove;
+
+    useImperativeHandle(
+        ref,
+        () => ({ handlePassMove: () => passMoveHandlerRef.current() }),
+        []
+    );
+
+    useEffect(() => {
+        if (live) onMovesLengthChange?.(moves.length);
+    }, [live, moves.length, onMovesLengthChange]);
 
     return (
         <Box
@@ -793,18 +817,8 @@ function GameBoard({
                     maxWidth: `${canvasSize}px`,
                 }}
             />
-            <Controls
-                maxMove={moves.length}
-                live={live}
-                currentMoveIndex={currentMoveIndex}
-                onMoveChange={onMoveChange}
-                onGenerateWinrate={onGenerateWinrate}
-                onAnalyzeCurrentMove={onAnalyzeCurrentMove}
-                onAnalyzeAllMoves={onAnalyzeAllMoves}
-                onPassMove={handlePassMove}
-            />
         </Box>
     );
-}
+});
 
 export default GameBoard;

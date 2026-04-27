@@ -140,7 +140,7 @@ function AnalysisConfigFields({
     };
 
     return (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+        <Box sx={{ display: "flex", flexDirection: "column" }}>
             <ConfigSection title="General">
                 <ConfigSelect
                     label="Algorithm:"

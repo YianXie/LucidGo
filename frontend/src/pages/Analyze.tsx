@@ -1,8 +1,10 @@
 import api from "@/api";
-import GameBoard from "@/components/board/GameBoard";
+import Controls from "@/components/board/Controls";
+import GameBoard, { type GameBoardHandle } from "@/components/board/GameBoard";
 import WinRate from "@/components/board/WinRate";
 import AnalysisConfigFields from "@/components/settings/AnalysisConfigFields";
 import {
+    ANALYSIS_RIGHT_PANEL_WIDTH,
     BOARD_SIZE,
     GAMES_URL,
     GET_GAME_DATA_URL,
@@ -101,6 +103,11 @@ function Demo() {
     const [analysisSessions, setAnalysisSessions] = useState<
         HistoryAnalysisSession[]
     >([]);
+
+    const gameBoardRefs = useRef<Record<number, GameBoardHandle | null>>({});
+    const [liveMovesLengths, setLiveMovesLengths] = useState<
+        Record<number, number>
+    >({});
     const [historyMenuAnchor, setHistoryMenuAnchor] =
         useState<HTMLElement | null>(null);
     const [selectedAnalysisSession, setSelectedAnalysisSession] = useState<
@@ -660,454 +667,539 @@ function Demo() {
                         },
                     }}
                 >
-                    {games.map((game, i) => (
-                        <Stack
-                            key={i}
-                            gap={2}
-                            direction={{ xs: "column", md: "row" }}
-                            alignItems={{ xs: "stretch", md: "center" }}
-                            justifyContent="center"
-                            sx={{
-                                position: "relative",
-                                width: { xs: "100%", md: "max-content" },
-                                maxWidth: "none",
-                                mx: "auto",
-                                flexShrink: 0,
-                                transformOrigin: "center center",
-                                willChange: "transform",
-                                ...(deletingGameIndex === i && {
-                                    animation: `boardDeleteExit ${ANIMATION_MS}ms ease-in forwards`,
-                                    pointerEvents: "none",
-                                }),
-                                ...(creatingGameIndex === i && {
-                                    animation: `boardCreate ${ANIMATION_MS}ms ease-out forwards`,
-                                    pointerEvents: "none",
-                                }),
-                            }}
-                        >
-                            <Box>
-                                <Stack
-                                    direction="row"
-                                    justifyContent="space-between"
-                                    alignItems="center"
-                                >
-                                    <TextField
-                                        variant="standard"
-                                        value={game.name ?? `Board ${i + 1}`}
-                                        onChange={(event) =>
-                                            updateGame(i, {
-                                                name: event.target.value,
-                                            })
-                                        }
-                                        sx={{
-                                            "& .MuiInput-underline:before": {
-                                                borderBottom: "none",
-                                            },
-                                            "& .MuiInput-underline:hover:not(.Mui-disabled):before":
-                                                {
-                                                    borderBottom:
-                                                        "1px solid rgba(0, 0, 0, 0.87)",
-                                                },
-                                        }}
-                                    />
-                                    <Stack direction="row" alignItems="center">
-                                        {isMobile && (
+                    {games.map((game, i) => {
+                        const maxMoveForBoard = game.live
+                            ? (liveMovesLengths[i] ?? 0)
+                            : (game.gameData?.moves.length ?? 0);
+
+                        const handleMoveChange = (amount: number) => {
+                            const current = game.currentMoveIndex ?? 0;
+                            updateGame(i, {
+                                currentMoveIndex: Math.max(
+                                    0,
+                                    Math.min(current + amount, maxMoveForBoard)
+                                ),
+                            });
+                        };
+
+                        const controlsProps = {
+                            maxMove: maxMoveForBoard,
+                            live: game.live,
+                            currentMoveIndex: game.currentMoveIndex,
+                            onMoveChange: handleMoveChange,
+                            onGenerateWinrate: () => void onGenerateWinrate(i),
+                            onAnalyzeCurrentMove: () =>
+                                void onAnalyzeCurrentMove(i),
+                            onAnalyzeAllMoves: () => void onAnalyzeAllMoves(i),
+                            onPassMove: () =>
+                                gameBoardRefs.current[i]?.handlePassMove(),
+                        };
+
+                        const winRateProps = {
+                            data: game.winrate,
+                            setMove: (move: number) =>
+                                updateGame(i, { currentMoveIndex: move }),
+                            currentMove: game.currentMoveIndex ?? 0,
+                        };
+
+                        return (
+                            <Stack
+                                key={i}
+                                gap={2}
+                                direction={{ xs: "column", md: "row" }}
+                                alignItems={{ xs: "stretch", md: "flex-start" }}
+                                justifyContent="center"
+                                sx={{
+                                    position: "relative",
+                                    width: { xs: "100%", md: "max-content" },
+                                    maxWidth: "none",
+                                    mx: "auto",
+                                    flexShrink: 0,
+                                    transformOrigin: "center center",
+                                    willChange: "transform",
+                                    ...(deletingGameIndex === i && {
+                                        animation: `boardDeleteExit ${ANIMATION_MS}ms ease-in forwards`,
+                                        pointerEvents: "none",
+                                    }),
+                                    ...(creatingGameIndex === i && {
+                                        animation: `boardCreate ${ANIMATION_MS}ms ease-out forwards`,
+                                        pointerEvents: "none",
+                                    }),
+                                }}
+                            >
+                                <Box>
+                                    <Stack
+                                        direction="row"
+                                        justifyContent="space-between"
+                                        alignItems="center"
+                                    >
+                                        <TextField
+                                            variant="standard"
+                                            value={
+                                                game.name ?? `Board ${i + 1}`
+                                            }
+                                            onChange={(event) =>
+                                                updateGame(i, {
+                                                    name: event.target.value,
+                                                })
+                                            }
+                                            sx={{
+                                                "& .MuiInput-underline:before":
+                                                    {
+                                                        borderBottom: "none",
+                                                    },
+                                                "& .MuiInput-underline:hover:not(.Mui-disabled):before":
+                                                    {
+                                                        borderBottom:
+                                                            "1px solid rgba(0, 0, 0, 0.87)",
+                                                    },
+                                            }}
+                                        />
+                                        <Stack
+                                            direction="row"
+                                            alignItems="center"
+                                        >
+                                            {isMobile && (
+                                                <Tooltip
+                                                    title="Analysis settings"
+                                                    arrow
+                                                >
+                                                    <IconButton
+                                                        onClick={() => {
+                                                            setSettingsGameIndex(
+                                                                i
+                                                            );
+                                                            setSettingsDrawerOpen(
+                                                                true
+                                                            );
+                                                        }}
+                                                        size="small"
+                                                    >
+                                                        <TuneIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            )}
                                             <Tooltip
-                                                title="Analysis settings"
+                                                title={
+                                                    game.gameData === null
+                                                        ? ""
+                                                        : game.gameID
+                                                          ? "Unsave game"
+                                                          : "Save game"
+                                                }
                                                 arrow
                                             >
-                                                <IconButton
-                                                    onClick={() => {
-                                                        setSettingsGameIndex(i);
-                                                        setSettingsDrawerOpen(
-                                                            true
-                                                        );
-                                                    }}
-                                                    size="small"
-                                                >
-                                                    <TuneIcon fontSize="small" />
-                                                </IconButton>
+                                                <span>
+                                                    <IconButton
+                                                        onClick={() =>
+                                                            game.gameID
+                                                                ? void onUnsaveBoard(
+                                                                      i
+                                                                  )
+                                                                : void onSaveBoard(
+                                                                      i
+                                                                  )
+                                                        }
+                                                        disabled={
+                                                            game.gameData ===
+                                                            null
+                                                        }
+                                                        color={
+                                                            game.gameID
+                                                                ? "primary"
+                                                                : "default"
+                                                        }
+                                                    >
+                                                        {game.gameID ? (
+                                                            <BookmarkIcon />
+                                                        ) : (
+                                                            <BookmarkBorderIcon />
+                                                        )}
+                                                    </IconButton>
+                                                </span>
                                             </Tooltip>
-                                        )}
+                                            <Tooltip
+                                                title={
+                                                    games.length > 1 &&
+                                                    !isAnimating
+                                                        ? "Delete board"
+                                                        : ""
+                                                }
+                                                arrow
+                                            >
+                                                <span>
+                                                    <IconButton
+                                                        onClick={() =>
+                                                            requestDeleteBoard(
+                                                                i
+                                                            )
+                                                        }
+                                                        sx={{
+                                                            color: "error.main",
+                                                            "&:hover": {
+                                                                backgroundColor:
+                                                                    "#ff000010",
+                                                            },
+                                                        }}
+                                                        disabled={
+                                                            games.length ===
+                                                                1 || isAnimating
+                                                        }
+                                                    >
+                                                        <DeleteIcon color="inherit" />
+                                                    </IconButton>
+                                                </span>
+                                            </Tooltip>
+                                        </Stack>
+                                    </Stack>
+                                    <GameBoard
+                                        key={i}
+                                        ref={(handle) => {
+                                            gameBoardRefs.current[i] = handle;
+                                        }}
+                                        gameData={game.gameData}
+                                        analysisData={game.analysisData}
+                                        isLoading={game.loading}
+                                        loadedValue={game.loadedValue}
+                                        live={game.live}
+                                        analysisConfig={game.analysisConfig}
+                                        gameSource={game.gameSource}
+                                        currentMoveIndex={game.currentMoveIndex}
+                                        setCurrentMoveIndex={(move) =>
+                                            updateGame(i, {
+                                                currentMoveIndex: move,
+                                            })
+                                        }
+                                        onGameSourceChange={(
+                                            source: GameSource
+                                        ) =>
+                                            updateGame(i, {
+                                                gameSource: source,
+                                            })
+                                        }
+                                        onViewSample={() =>
+                                            updateGame(i, {
+                                                gameSource: "sample",
+                                            })
+                                        }
+                                        onLive={() => {
+                                            const liveData: GameData = {
+                                                komi: 6.5,
+                                                moves: [],
+                                                size: 19,
+                                                players: {
+                                                    black: "Black",
+                                                    white: "White",
+                                                },
+                                                winner: "Unknown",
+                                            };
+                                            updateGame(i, {
+                                                gameData: liveData,
+                                                currentMoveIndex: 0,
+                                                live: true,
+                                            });
+                                            if (autoSaveEnabled) {
+                                                void saveGame(
+                                                    i,
+                                                    "live",
+                                                    liveData,
+                                                    game.name
+                                                );
+                                            }
+                                        }}
+                                        onFileChange={(file) =>
+                                            updateGame(i, { file })
+                                        }
+                                        onMovesLengthChange={(n) =>
+                                            setLiveMovesLengths((prev) => ({
+                                                ...prev,
+                                                [i]: n,
+                                            }))
+                                        }
+                                    />
+                                    {/* Mobile: controls + winrate below board */}
+                                    <Box
+                                        sx={{
+                                            display: {
+                                                xs: "block",
+                                                md: "none",
+                                            },
+                                        }}
+                                    >
+                                        <Controls {...controlsProps} />
+                                        <WinRate {...winRateProps} />
+                                    </Box>
+                                </Box>
+
+                                {/* Desktop right sidebar */}
+                                <Paper
+                                    elevation={1}
+                                    square
+                                    sx={{
+                                        width: ANALYSIS_RIGHT_PANEL_WIDTH,
+                                        flexShrink: 0,
+                                        display: { xs: "none", md: "flex" },
+                                        flexDirection: "column",
+                                        position: "sticky",
+                                        top: 16,
+                                        maxHeight: "calc(100vh - 32px)",
+                                        overflow: "hidden",
+                                        alignSelf: "flex-start",
+                                        pointerEvents: game.loading
+                                            ? "none"
+                                            : "auto",
+                                        opacity: game.loading ? 0.5 : 1,
+                                        filter: game.loading
+                                            ? "brightness(0.5)"
+                                            : "none",
+                                        cursor: game.loading
+                                            ? "not-allowed"
+                                            : "auto",
+                                    }}
+                                >
+                                    {/* 1. Controls */}
+                                    <Controls
+                                        {...controlsProps}
+                                        sx={{
+                                            borderRadius: 0,
+                                            boxShadow: "none",
+                                            borderBottom: 1,
+                                            borderColor: "divider",
+                                            flexWrap: "nowrap",
+                                            overflowX: "auto",
+                                        }}
+                                    />
+
+                                    {/* 2. Win Rate */}
+                                    <Box
+                                        sx={{
+                                            borderBottom: 1,
+                                            borderColor: "divider",
+                                            flexShrink: 0,
+                                        }}
+                                    >
+                                        <WinRate {...winRateProps} />
+                                    </Box>
+
+                                    {/* 3. Settings header */}
+                                    <Box
+                                        sx={{
+                                            px: 2,
+                                            pt: 1.5,
+                                            pb: 1,
+                                            borderBottom: 1,
+                                            borderColor: "divider",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "space-between",
+                                            flexShrink: 0,
+                                            cursor: "default",
+                                        }}
+                                        onClick={() => setSettingsGameIndex(i)}
+                                    >
+                                        <Box>
+                                            <Typography
+                                                variant="subtitle1"
+                                                fontWeight={500}
+                                            >
+                                                Analysis Settings
+                                            </Typography>
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                            >
+                                                Board {i + 1}
+                                            </Typography>
+                                        </Box>
+                                        {gameID &&
+                                            analysisSessions.length > 0 && (
+                                                <>
+                                                    <Tooltip
+                                                        title="Past configurations"
+                                                        arrow
+                                                    >
+                                                        <IconButton
+                                                            size="medium"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setHistoryMenuAnchor(
+                                                                    e.currentTarget
+                                                                );
+                                                            }}
+                                                        >
+                                                            <HistoryIcon fontSize="medium" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                    <Menu
+                                                        anchorEl={
+                                                            historyMenuAnchor
+                                                        }
+                                                        open={Boolean(
+                                                            historyMenuAnchor
+                                                        )}
+                                                        onClose={() =>
+                                                            setHistoryMenuAnchor(
+                                                                null
+                                                            )
+                                                        }
+                                                        anchorOrigin={{
+                                                            vertical: "bottom",
+                                                            horizontal: "right",
+                                                        }}
+                                                        transformOrigin={{
+                                                            vertical: "top",
+                                                            horizontal: "right",
+                                                        }}
+                                                        slotProps={{
+                                                            list: {
+                                                                autoFocusItem: true,
+                                                            },
+                                                        }}
+                                                    >
+                                                        {analysisSessions.map(
+                                                            (session) => {
+                                                                const algo =
+                                                                    session
+                                                                        .analysis_config
+                                                                        ?.general
+                                                                        ?.algorithm ??
+                                                                    "Unknown";
+                                                                const date =
+                                                                    new Date(
+                                                                        session.created_at
+                                                                    ).toLocaleDateString(
+                                                                        undefined,
+                                                                        {
+                                                                            month: "short",
+                                                                            day: "numeric",
+                                                                            year: "numeric",
+                                                                        }
+                                                                    );
+                                                                return (
+                                                                    <MenuItem
+                                                                        key={
+                                                                            session.id
+                                                                        }
+                                                                        onClick={() => {
+                                                                            void loadHistorySession(
+                                                                                session.id
+                                                                            );
+                                                                            setSelectedAnalysisSession(
+                                                                                session.id
+                                                                            );
+                                                                        }}
+                                                                    >
+                                                                        <ListItemIcon>
+                                                                            {session.id ===
+                                                                                selectedAnalysisSession && (
+                                                                                <CheckIcon color="primary" />
+                                                                            )}
+                                                                        </ListItemIcon>
+                                                                        <ListItemText>
+                                                                            {
+                                                                                algo
+                                                                            }{" "}
+                                                                            &mdash;{" "}
+                                                                            {
+                                                                                date
+                                                                            }
+                                                                        </ListItemText>
+                                                                    </MenuItem>
+                                                                );
+                                                            }
+                                                        )}
+                                                    </Menu>
+                                                </>
+                                            )}
+                                    </Box>
+
+                                    {/* Settings content */}
+                                    <Box
+                                        sx={{
+                                            flex: 1,
+                                            overflow: "auto",
+                                            scrollbarWidth: "thin",
+                                        }}
+                                    >
+                                        <AnalysisConfigFields
+                                            analysisConfig={draftAnalysisConfig}
+                                            setAnalysisConfig={
+                                                setDraftAnalysisConfig
+                                            }
+                                        />
+                                    </Box>
+
+                                    {/* Action buttons */}
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            gap: 2,
+                                            p: 2,
+                                            borderTop: 1,
+                                            borderColor: "divider",
+                                            flexShrink: 0,
+                                        }}
+                                    >
                                         <Tooltip
                                             title={
                                                 game.gameData === null
-                                                    ? ""
-                                                    : game.gameID
-                                                      ? "Unsave game"
-                                                      : "Save game"
-                                            }
-                                            arrow
-                                        >
-                                            <span>
-                                                <IconButton
-                                                    onClick={() =>
-                                                        game.gameID
-                                                            ? void onUnsaveBoard(
-                                                                  i
-                                                              )
-                                                            : void onSaveBoard(
-                                                                  i
-                                                              )
-                                                    }
-                                                    disabled={
-                                                        game.gameData === null
-                                                    }
-                                                    color={
-                                                        game.gameID
-                                                            ? "primary"
-                                                            : "default"
-                                                    }
-                                                >
-                                                    {game.gameID ? (
-                                                        <BookmarkIcon />
-                                                    ) : (
-                                                        <BookmarkBorderIcon />
-                                                    )}
-                                                </IconButton>
-                                            </span>
-                                        </Tooltip>
-                                        <Tooltip
-                                            title={
-                                                games.length > 1 && !isAnimating
-                                                    ? "Delete board"
+                                                    ? "No game data"
                                                     : ""
                                             }
                                             arrow
                                         >
-                                            <span>
-                                                <IconButton
-                                                    onClick={() =>
-                                                        requestDeleteBoard(i)
+                                            <span style={{ flex: 1 }}>
+                                                <Button
+                                                    variant="outlined"
+                                                    color="error"
+                                                    onClick={
+                                                        onResetAnalysisSettings
                                                     }
+                                                    disabled={
+                                                        game.gameData === null
+                                                    }
+                                                    fullWidth
                                                     sx={{
-                                                        color: "error.main",
                                                         "&:hover": {
                                                             backgroundColor:
-                                                                "#ff000010",
+                                                                "rgba(211, 47, 47, 0.08)",
+                                                            borderColor:
+                                                                "#d32f2f",
                                                         },
                                                     }}
-                                                    disabled={
-                                                        games.length === 1 ||
-                                                        isAnimating
-                                                    }
                                                 >
-                                                    <DeleteIcon color="inherit" />
-                                                </IconButton>
+                                                    Reset
+                                                </Button>
                                             </span>
                                         </Tooltip>
-                                    </Stack>
-                                </Stack>
-                                <GameBoard
-                                    key={i}
-                                    gameData={game.gameData}
-                                    analysisData={game.analysisData}
-                                    isLoading={game.loading}
-                                    loadedValue={game.loadedValue}
-                                    live={game.live}
-                                    analysisConfig={game.analysisConfig}
-                                    gameSource={game.gameSource}
-                                    currentMoveIndex={game.currentMoveIndex}
-                                    setCurrentMoveIndex={(move) =>
-                                        updateGame(i, {
-                                            currentMoveIndex: move,
-                                        })
-                                    }
-                                    onGameSourceChange={(source: GameSource) =>
-                                        updateGame(i, { gameSource: source })
-                                    }
-                                    onGenerateWinrate={() => {
-                                        void onGenerateWinrate(i);
-                                    }}
-                                    onAnalyzeCurrentMove={() => {
-                                        void onAnalyzeCurrentMove(i);
-                                    }}
-                                    onAnalyzeAllMoves={() => {
-                                        void onAnalyzeAllMoves(i);
-                                    }}
-                                    onViewSample={() =>
-                                        updateGame(i, {
-                                            gameSource: "sample",
-                                        })
-                                    }
-                                    onLive={() => {
-                                        const liveData: GameData = {
-                                            komi: 6.5,
-                                            moves: [],
-                                            size: 19,
-                                            players: {
-                                                black: "Black",
-                                                white: "White",
-                                            },
-                                            winner: "Unknown",
-                                        };
-                                        updateGame(i, {
-                                            gameData: liveData,
-                                            currentMoveIndex: 0,
-                                            live: true,
-                                        });
-                                        if (autoSaveEnabled) {
-                                            void saveGame(
-                                                i,
-                                                "live",
-                                                liveData,
-                                                game.name
-                                            );
-                                        }
-                                    }}
-                                    onFileChange={(file) =>
-                                        updateGame(i, { file })
-                                    }
-                                />
-                                <WinRate
-                                    data={game.winrate}
-                                    setMove={(move) =>
-                                        updateGame(i, {
-                                            currentMoveIndex: move,
-                                        })
-                                    }
-                                    currentMove={game.currentMoveIndex ?? 0}
-                                />
-                            </Box>
-                            <Paper
-                                elevation={1}
-                                square
-                                sx={{
-                                    width: { xs: "100%", md: 400 },
-                                    maxWidth: { xs: "100%", md: 400 },
-                                    flexShrink: 0,
-                                    display: { xs: "none", md: "flex" },
-                                    flexDirection: "column",
-                                    maxHeight: {
-                                        xs: "none",
-                                        md: "calc(100vh - 100px)",
-                                    },
-                                    pointerEvents: game.loading
-                                        ? "none"
-                                        : "auto",
-                                    opacity: game.loading ? 0.5 : 1,
-                                    filter: game.loading
-                                        ? "brightness(0.5)"
-                                        : "none",
-                                    cursor: game.loading
-                                        ? "not-allowed"
-                                        : "auto",
-                                }}
-                            >
-                                <Box
-                                    sx={{
-                                        px: 2,
-                                        pt: 2,
-                                        pb: 1,
-                                        borderBottom: 1,
-                                        borderColor: "divider",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "space-between",
-                                    }}
-                                >
-                                    <Box>
-                                        <Typography variant="h6" component="h2">
-                                            Analysis settings
-                                        </Typography>
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                            sx={{ mt: 0.5 }}
+                                        <Tooltip
+                                            title={
+                                                game.gameData === null
+                                                    ? "No game data"
+                                                    : ""
+                                            }
+                                            arrow
                                         >
-                                            Board {i + 1}
-                                        </Typography>
-                                    </Box>
-                                    {gameID && analysisSessions.length > 0 && (
-                                        <>
-                                            <Tooltip
-                                                title="Past configurations"
-                                                arrow
-                                            >
-                                                <IconButton
-                                                    size="medium"
-                                                    onClick={(e) =>
-                                                        setHistoryMenuAnchor(
-                                                            e.currentTarget
-                                                        )
+                                            <span style={{ flex: 1 }}>
+                                                <Button
+                                                    variant="contained"
+                                                    onClick={
+                                                        onSaveAnalysisSettings
                                                     }
+                                                    disabled={
+                                                        game.gameData === null
+                                                    }
+                                                    fullWidth
                                                 >
-                                                    <HistoryIcon fontSize="medium" />
-                                                </IconButton>
-                                            </Tooltip>
-                                            <Menu
-                                                anchorEl={historyMenuAnchor}
-                                                open={Boolean(
-                                                    historyMenuAnchor
-                                                )}
-                                                onClose={() =>
-                                                    setHistoryMenuAnchor(null)
-                                                }
-                                                anchorOrigin={{
-                                                    vertical: "bottom",
-                                                    horizontal: "right",
-                                                }}
-                                                transformOrigin={{
-                                                    vertical: "top",
-                                                    horizontal: "right",
-                                                }}
-                                                slotProps={{
-                                                    list: {
-                                                        autoFocusItem: true,
-                                                    },
-                                                }}
-                                            >
-                                                {analysisSessions.map(
-                                                    (session) => {
-                                                        const algo =
-                                                            session
-                                                                .analysis_config
-                                                                ?.general
-                                                                ?.algorithm ??
-                                                            "Unknown";
-                                                        const date = new Date(
-                                                            session.created_at
-                                                        ).toLocaleDateString(
-                                                            undefined,
-                                                            {
-                                                                month: "short",
-                                                                day: "numeric",
-                                                                year: "numeric",
-                                                            }
-                                                        );
-                                                        return (
-                                                            <MenuItem
-                                                                key={session.id}
-                                                                onClick={() => {
-                                                                    void loadHistorySession(
-                                                                        session.id
-                                                                    );
-                                                                    setSelectedAnalysisSession(
-                                                                        session.id
-                                                                    );
-                                                                }}
-                                                            >
-                                                                <ListItemIcon>
-                                                                    {session.id ===
-                                                                        selectedAnalysisSession && (
-                                                                        <CheckIcon color="primary" />
-                                                                    )}
-                                                                </ListItemIcon>
-                                                                <ListItemText>
-                                                                    {algo}{" "}
-                                                                    &mdash;{" "}
-                                                                    {date}
-                                                                </ListItemText>
-                                                            </MenuItem>
-                                                        );
-                                                    }
-                                                )}
-                                            </Menu>
-                                        </>
-                                    )}
-                                </Box>
-                                <Box
-                                    sx={{
-                                        flex: 1,
-                                        overflow: "auto",
-                                        px: 2,
-                                        py: 2,
-                                        scrollbarWidth: "thin",
-                                    }}
-                                >
-                                    <AnalysisConfigFields
-                                        analysisConfig={draftAnalysisConfig}
-                                        setAnalysisConfig={
-                                            setDraftAnalysisConfig
-                                        }
-                                    />
-                                </Box>
-                                <Box
-                                    sx={{
-                                        display: "flex",
-                                        flexDirection: "row",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        gap: 2,
-                                        margin: 2,
-                                    }}
-                                >
-                                    <Tooltip
-                                        title={
-                                            game.gameData === null
-                                                ? "No game data"
-                                                : ""
-                                        }
-                                        arrow
-                                    >
-                                        <span
-                                            style={{
-                                                display: "flex",
-                                                justifyContent: "center",
-                                                alignItems: "center",
-                                                width: "100%",
-                                                padding: 0,
-                                                margin: 0,
-                                            }}
-                                        >
-                                            <Button
-                                                variant="outlined"
-                                                color="error"
-                                                onClick={
-                                                    onResetAnalysisSettings
-                                                }
-                                                disabled={
-                                                    game.gameData === null
-                                                }
-                                                sx={{
-                                                    width: "100%",
-                                                    "&:hover": {
-                                                        backgroundColor:
-                                                            "rgba(211, 47, 47, 0.08)",
-                                                        borderColor: "#d32f2f",
-                                                    },
-                                                }}
-                                            >
-                                                Reset
-                                            </Button>
-                                        </span>
-                                    </Tooltip>
-                                    <Tooltip
-                                        title={
-                                            game.gameData === null
-                                                ? "No game data"
-                                                : ""
-                                        }
-                                        arrow
-                                    >
-                                        <span
-                                            style={{
-                                                display: "flex",
-                                                justifyContent: "center",
-                                                alignItems: "center",
-                                                width: "100%",
-                                                padding: 0,
-                                                margin: 0,
-                                            }}
-                                        >
-                                            <Button
-                                                variant="contained"
-                                                onClick={onSaveAnalysisSettings}
-                                                disabled={
-                                                    game.gameData === null
-                                                }
-                                                sx={{
-                                                    width: "100%",
-                                                }}
-                                            >
-                                                Save
-                                            </Button>
-                                        </span>
-                                    </Tooltip>
-                                </Box>
-                            </Paper>
-                        </Stack>
-                    ))}
+                                                    Save
+                                                </Button>
+                                            </span>
+                                        </Tooltip>
+                                    </Box>
+                                </Paper>
+                            </Stack>
+                        );
+                    })}
                 </Box>
             </Box>
             <Box sx={{ display: "flex", justifyContent: "center" }}>

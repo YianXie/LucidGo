@@ -101,7 +101,7 @@ function Home() {
                     position: "relative",
                     mt: 4,
                 }}
-                onClick={() => navigate("/demo")}
+                onClick={() => navigate(isAuthenticated ? "/analyze" : "/demo")}
                 {...hoverProps}
             >
                 <CardActionArea>
@@ -143,7 +143,9 @@ function Home() {
                         >
                             <OpenInNewIcon sx={{ fontSize: 48, mb: 2 }} />
                             <Typography variant="h5" fontWeight={500}>
-                                Try it out
+                                {isAuthenticated
+                                    ? "Start analyzing"
+                                    : "Try it out"}
                             </Typography>
                         </CardContent>
                     )}

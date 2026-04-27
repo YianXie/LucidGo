@@ -1,3 +1,7 @@
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import Accordion from "@mui/material/Accordion";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import AccordionSummary from "@mui/material/AccordionSummary";
 import Box from "@mui/material/Box";
 import Checkbox from "@mui/material/Checkbox";
 import MenuItem from "@mui/material/MenuItem";
@@ -145,7 +149,7 @@ export function ConfigSlider({
             <Stack
                 direction="row"
                 spacing={2}
-                sx={{ width: "500px", alignItems: "center" }}
+                sx={{ flex: 1, minWidth: 0, alignItems: "center" }}
             >
                 <Typography variant="body1">{min}</Typography>
                 <Slider
@@ -220,7 +224,7 @@ export function ConfigSelect({
 }
 
 /**
- * A titled section wrapper for grouping related config fields.
+ * A collapsible accordion section for grouping related config fields.
  */
 export function ConfigSection({
     title,
@@ -230,20 +234,40 @@ export function ConfigSection({
     children: React.ReactNode;
 }) {
     return (
-        <Box>
-            <Typography variant="h4" component="h2" fontWeight={500}>
-                {title}
-            </Typography>
-            <Box
+        <Accordion
+            defaultExpanded={false}
+            disableGutters
+            elevation={0}
+            sx={{
+                border: "1px solid",
+                borderColor: "divider",
+                "&:not(:last-child)": { borderBottom: 0 },
+                "&::before": { display: "none" },
+            }}
+        >
+            <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
                 sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 2,
-                    mt: 1,
+                    minHeight: 44,
+                    "& .MuiAccordionSummary-content": { my: 1 },
                 }}
             >
-                {children}
-            </Box>
-        </Box>
+                <Typography variant="subtitle1" fontWeight={500}>
+                    {title}
+                </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ pt: 0 }}>
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 2,
+                        pb: 1,
+                    }}
+                >
+                    {children}
+                </Box>
+            </AccordionDetails>
+        </Accordion>
     );
 }

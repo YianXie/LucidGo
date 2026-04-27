@@ -14,6 +14,7 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import type { SxProps, Theme } from "@mui/material/styles";
 import { MouseEvent, useState } from "react";
 
 import { FAST_FORWARD_AMOUNT } from "../../constants";
@@ -28,6 +29,7 @@ function Controls({
     onAnalyzeCurrentMove,
     onAnalyzeAllMoves,
     onPassMove,
+    sx: sxOverride,
 }: {
     maxMove: number;
     live: boolean;
@@ -37,6 +39,7 @@ function Controls({
     onAnalyzeCurrentMove: () => void;
     onAnalyzeAllMoves: () => void;
     onPassMove: () => void;
+    sx?: SxProps<Theme>;
 }) {
     const [analysisMenuAnchor, setAnalysisMenuAnchor] =
         useState<null | HTMLElement>(null);
@@ -50,15 +53,22 @@ function Controls({
 
     return (
         <Paper
-            sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 1,
-                p: 1,
-                borderRadius: "0 0 12px 12px",
-                flexWrap: "wrap",
-            }}
+            sx={[
+                {
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 1,
+                    p: 1,
+                    borderRadius: "0 0 12px 12px",
+                    flexWrap: "wrap",
+                },
+                ...(Array.isArray(sxOverride)
+                    ? sxOverride
+                    : sxOverride
+                      ? [sxOverride]
+                      : []),
+            ]}
         >
             <Box>
                 <Tooltip
