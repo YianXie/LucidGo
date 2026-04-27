@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import Layout from "./components/layout/Layout";
+import Analyze from "./pages/Analyze";
 import Demo from "./pages/Demo";
 import Docs from "./pages/Docs";
 import Home from "./pages/Home";
@@ -18,14 +19,8 @@ function App() {
             <Routes>
                 <Route path="/" element={<Layout />}>
                     <Route index element={<Home />} />
-                    <Route
-                        path="demo/"
-                        element={
-                            <ProtectedRoute>
-                                <Demo />
-                            </ProtectedRoute>
-                        }
-                    />
+                    <Route path="demo/" element={<Demo />} />
+                    <Route path="analyze/" element={<Analyze />} />
                     <Route path="docs/" element={<Docs />} />
                     <Route path="docs/:id/" element={<Docs />} />
                     <Route

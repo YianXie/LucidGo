@@ -3,10 +3,12 @@ import GameBoard from "@/components/board/GameBoard";
 import WinRate from "@/components/board/WinRate";
 import AnalysisConfigFields from "@/components/settings/AnalysisConfigFields";
 import {
+    BOARD_SIZE,
+    GAMES_URL,
+    GET_GAME_DATA_URL,
     POST_ANALYSIS_URL,
     POST_WINRATE_URL,
     SGF_SAMPLE,
-    SGF_SAMPLE_GAME_DATA,
 } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import usePageTitle from "@/hooks/usePageTitle";
@@ -16,6 +18,8 @@ import {
     type BoardState,
     type GameData,
     type GameSource,
+    type HistoryAnalysisSession,
+    type HistoryEntry,
     WinrateResult,
     isValidMove,
 } from "@/types/game";
@@ -24,11 +28,19 @@ import {
     buildWinrateRequest,
 } from "@/utils/buildAnalysisRequest";
 import { toGTPFormat } from "@/utils/coordinates";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
+import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
+import CheckIcon from "@mui/icons-material/Check";
 import DeleteIcon from "@mui/icons-material/Delete";
+import HistoryIcon from "@mui/icons-material/History";
 import TuneIcon from "@mui/icons-material/Tune";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import SwipeableDrawer from "@mui/material/SwipeableDrawer";
@@ -38,19 +50,20 @@ import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const defaultBoard = (analysisConfig: AnalysisConfig): BoardState => ({
     name: null,
     file: null,
     gameID: null,
-    sgfContent: SGF_SAMPLE,
-    gameData: SGF_SAMPLE_GAME_DATA as GameData,
+    sgfContent: "",
+    gameData: null,
     analysisData: null,
     winrate: [],
     currentMoveIndex: null,
     loading: false,
-    gameSource: "sample",
+    gameSource: "none",
     live: false,
     loadedValue: null,
     analysisConfig: analysisConfig,
@@ -59,9 +72,11 @@ const defaultBoard = (analysisConfig: AnalysisConfig): BoardState => ({
 const ANIMATION_MS = 250;
 
 function Demo() {
-    usePageTitle("Demo");
+    usePageTitle("Analyze");
 
     const { userSettings } = useAuth();
+    const [searchParams] = useSearchParams();
+    const gameID = searchParams.get("gameID");
     const [games, setGames] = useState<BoardState[]>([
         defaultBoard(userSettings.analysis_config),
     ]);
@@ -83,6 +98,14 @@ function Demo() {
     const [settingsGameIndex, setSettingsGameIndex] = useState(0);
     const [draftAnalysisConfig, setDraftAnalysisConfig] =
         useState<AnalysisConfig>(userSettings.analysis_config);
+    const [analysisSessions, setAnalysisSessions] = useState<
+        HistoryAnalysisSession[]
+    >([]);
+    const [historyMenuAnchor, setHistoryMenuAnchor] =
+        useState<HTMLElement | null>(null);
+    const [selectedAnalysisSession, setSelectedAnalysisSession] = useState<
+        string | null
+    >(null);
 
     useEffect(() => {
         return () => {
@@ -91,6 +114,58 @@ function Demo() {
             }
         };
     }, []);
+
+    useEffect(() => {
+        if (analysisSessions.length > 0) {
+            setSelectedAnalysisSession(analysisSessions[0].id);
+            void loadHistorySession(analysisSessions[0].id);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [analysisSessions]);
+
+    useEffect(() => {
+        if (gameID) {
+            try {
+                void api
+                    .get<HistoryEntry>(`${GAMES_URL}${gameID}`)
+                    .then(({ data }) => {
+                        setAnalysisSessions(data.analysis_sessions ?? []);
+                        setGames((prev) => {
+                            if (prev.length !== 1) return prev;
+                            const newBoard = defaultBoard(
+                                userSettings.analysis_config
+                            );
+                            newBoard.gameData = {
+                                size: data.board_size,
+                                moves: data.moves,
+                                komi: data.komi ?? undefined,
+                                players: {
+                                    black: data.black_player,
+                                    white: data.white_player,
+                                },
+                                winner: data.winner ?? undefined,
+                            };
+                            newBoard.name = data.name;
+                            newBoard.gameID = data.id;
+                            newBoard.sgfContent = data.sgf_data ?? "";
+                            newBoard.currentMoveIndex = 0;
+                            newBoard.loading = false;
+                            newBoard.gameSource = "file";
+                            newBoard.live = false;
+                            newBoard.loadedValue = 0;
+                            newBoard.analysisConfig =
+                                userSettings.analysis_config;
+                            return [newBoard];
+                        });
+                    });
+            } catch (error) {
+                console.error("Failed to load game data:", error);
+            }
+        } else {
+            setAnalysisSessions([]);
+            setGames([defaultBoard(userSettings.analysis_config)]);
+        }
+    }, [userSettings.analysis_config, gameID, setGames]);
 
     useEffect(() => {
         setGames((prev) => {
@@ -122,12 +197,152 @@ function Demo() {
         setDraftAnalysisConfig(structuredClone(settingsBoardAnalysisConfig));
     }, [settingsGameIndex, settingsBoardAnalysisConfig]);
 
+    // Read file / sample content when a board's source changes.
+    const fileSignature = games
+        .map((b) => `${b.file?.name ?? ""}:${b.gameSource}`)
+        .join("|");
+
+    useEffect(() => {
+        games.forEach((board, i) => {
+            if (board.gameSource === "none") return;
+            if (board.gameData && board.gameData.moves.length > 0) return;
+
+            if (board.gameSource === "sample") {
+                getGameData(SGF_SAMPLE, i);
+            } else if (board.gameSource === "file" && board.file) {
+                const reader = new FileReader();
+                reader.onload = (e) =>
+                    getGameData(e.target?.result as string, i);
+                reader.readAsText(board.file);
+            }
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fileSignature]);
+
     const updateGame = (index: number, updates: Partial<BoardState>) => {
         setGames((prev) =>
             prev.map((board, i) =>
                 i === index ? { ...board, ...updates } : board
             )
         );
+    };
+
+    const saveGame = async (
+        gameIndex: number,
+        source: "upload" | "live",
+        gameData: GameData,
+        boardName: string | null,
+        sgfData: string = ""
+    ) => {
+        try {
+            const { data } = await api.post<{ id: string }>(GAMES_URL, {
+                name: boardName || `Board ${gameIndex + 1}`,
+                source,
+                board_size: gameData.size,
+                komi: gameData.komi ?? null,
+                black_player: gameData.players?.black ?? "Unknown",
+                white_player: gameData.players?.white ?? "Unknown",
+                winner: gameData.winner ?? "Unknown",
+                moves: gameData.moves,
+                sgf_data: sgfData,
+            });
+            updateGame(gameIndex, { gameID: data.id });
+            return data.id;
+        } catch (error) {
+            console.error("Failed to save game:", error);
+            return null;
+        }
+    };
+
+    const autoSaveEnabled = userSettings.general_settings.auto_save_games;
+
+    const saveAnalysisSession = async (
+        savedGameID: string,
+        config: AnalysisConfig,
+        results: AnalysisResult[]
+    ): Promise<HistoryAnalysisSession | null> => {
+        try {
+            const { data } = await api.post<HistoryAnalysisSession>(
+                `${GAMES_URL}${savedGameID}/analyses/`,
+                {
+                    analysis_config: config,
+                    results,
+                }
+            );
+            // Refresh the history dropdown if this session belongs to the
+            // game currently identified by the gameID URL param.
+            if (gameID === savedGameID) {
+                setAnalysisSessions((prev) => {
+                    const existing = prev.findIndex((s) => s.id === data.id);
+                    if (existing >= 0) {
+                        const next = prev.slice();
+                        next[existing] = data;
+                        return next;
+                    }
+                    return [data, ...prev];
+                });
+                setSelectedAnalysisSession(data.id);
+            }
+            return data;
+        } catch (error) {
+            console.error("Failed to save analysis session:", error);
+            toast.error("Failed to save analysis session");
+            return null;
+        }
+    };
+
+    const ensureGameSaved = async (
+        gameIndex: number
+    ): Promise<string | null> => {
+        const board = games[gameIndex];
+        if (!board) return null;
+        if (board.gameID) return board.gameID;
+        if (!board.gameData) return null;
+        const source = board.live ? "live" : "upload";
+        return await saveGame(
+            gameIndex,
+            source,
+            board.gameData,
+            board.name,
+            board.sgfContent
+        );
+    };
+
+    const getGameData = async (
+        SGFContent: string,
+        gameIndex: number,
+        source: "upload" | "live" = "upload"
+    ) => {
+        updateGame(gameIndex, { loading: true, loadedValue: null });
+        try {
+            const { data } = await api.post<GameData>(GET_GAME_DATA_URL, {
+                sgf_file_data: SGFContent,
+            });
+            if (data.size === null || data.size != BOARD_SIZE) {
+                throw new Error("Invalid board size");
+            }
+
+            data.moves = data.moves.filter((m) => isValidMove(m));
+            updateGame(gameIndex, {
+                gameData: data,
+                currentMoveIndex: 0,
+                sgfContent: SGFContent,
+            });
+            if (autoSaveEnabled) {
+                void saveGame(
+                    gameIndex,
+                    source,
+                    data,
+                    games[gameIndex]?.name ?? null,
+                    SGFContent
+                );
+            }
+        } catch (error) {
+            toast.error("Invalid .sgf file");
+            console.error("Error while fetching game data:", error);
+        } finally {
+            updateGame(gameIndex, { loading: false });
+        }
     };
 
     const analyzeMove = useCallback(
@@ -259,8 +474,24 @@ function Demo() {
                 winrate: analysisResults.map((result) => result.stats.winrate),
             });
             updateGame(gameIndex, { loading: false });
+
+            // Only persist when every move (and the empty board) was
+            // successfully analyzed - sparse sessions are not saved.
+            const fullyAnalyzed =
+                analysisResults.length === gameData.moves.length + 1;
+            if (autoSaveEnabled && fullyAnalyzed) {
+                const savedGameID = await ensureGameSaved(gameIndex);
+                if (savedGameID) {
+                    await saveAnalysisSession(
+                        savedGameID,
+                        analysisConfig,
+                        analysisResults
+                    );
+                }
+            }
         },
-        [analyzeMove, games]
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [analyzeMove, games, autoSaveEnabled]
     );
 
     const onResetAnalysisSettings = () => {
@@ -273,6 +504,71 @@ function Demo() {
         const next = structuredClone(draftAnalysisConfig);
         updateGame(idx, { analysisConfig: next });
         toast.success("Configuration updated");
+    };
+
+    const loadHistorySession = async (sessionID: string) => {
+        if (!gameID) return;
+        setHistoryMenuAnchor(null);
+        const idx = settingsGameIndex;
+        try {
+            const { data } = await api.get<HistoryAnalysisSession>(
+                `${GAMES_URL}${gameID}/analyses/${sessionID}/`
+            );
+            const config = structuredClone(data.analysis_config);
+            setDraftAnalysisConfig(config);
+            updateGame(idx, {
+                analysisConfig: config,
+                analysisData: data.results,
+                loading: false,
+            });
+        } catch (error) {
+            toast.error("Failed to load past analysis session");
+            console.error("Failed to load analysis session:", error);
+        }
+    };
+
+    const onSaveBoard = async (gameIndex: number) => {
+        const board = games[gameIndex];
+        if (!board?.gameData) return;
+        const savedGameID = await ensureGameSaved(gameIndex);
+        if (!savedGameID) {
+            toast.error("Failed to save game");
+            return;
+        }
+        // Persist the analysis session too if every move was analyzed
+        // (sparse / winrate-only states are not saved).
+        const analysisData = board.analysisData;
+        const expectedLen = board.gameData.moves.length + 1;
+        const fullyAnalyzed =
+            analysisData !== null &&
+            analysisData.length === expectedLen &&
+            analysisData.every((r) => r !== null);
+        if (fullyAnalyzed) {
+            await saveAnalysisSession(
+                savedGameID,
+                board.analysisConfig,
+                analysisData as AnalysisResult[]
+            );
+        }
+        toast.success("Game saved");
+    };
+
+    const onUnsaveBoard = async (gameIndex: number) => {
+        const board = games[gameIndex];
+        if (!board?.gameID) return;
+        const savedGameID = board.gameID;
+        try {
+            await api.delete(`${GAMES_URL}${savedGameID}/`);
+            updateGame(gameIndex, { gameID: null });
+            if (gameID === savedGameID) {
+                setAnalysisSessions([]);
+                setSelectedAnalysisSession(null);
+            }
+            toast.success("Game unsaved");
+        } catch (error) {
+            console.error("Failed to unsave game:", error);
+            toast.error("Failed to unsave game");
+        }
     };
 
     const isAnimating =
@@ -435,6 +731,44 @@ function Demo() {
                                         )}
                                         <Tooltip
                                             title={
+                                                game.gameData === null
+                                                    ? ""
+                                                    : game.gameID
+                                                      ? "Unsave game"
+                                                      : "Save game"
+                                            }
+                                            arrow
+                                        >
+                                            <span>
+                                                <IconButton
+                                                    onClick={() =>
+                                                        game.gameID
+                                                            ? void onUnsaveBoard(
+                                                                  i
+                                                              )
+                                                            : void onSaveBoard(
+                                                                  i
+                                                              )
+                                                    }
+                                                    disabled={
+                                                        game.gameData === null
+                                                    }
+                                                    color={
+                                                        game.gameID
+                                                            ? "primary"
+                                                            : "default"
+                                                    }
+                                                >
+                                                    {game.gameID ? (
+                                                        <BookmarkIcon />
+                                                    ) : (
+                                                        <BookmarkBorderIcon />
+                                                    )}
+                                                </IconButton>
+                                            </span>
+                                        </Tooltip>
+                                        <Tooltip
+                                            title={
                                                 games.length > 1 && !isAnimating
                                                     ? "Delete board"
                                                     : ""
@@ -512,6 +846,14 @@ function Demo() {
                                             currentMoveIndex: 0,
                                             live: true,
                                         });
+                                        if (autoSaveEnabled) {
+                                            void saveGame(
+                                                i,
+                                                "live",
+                                                liveData,
+                                                game.name
+                                            );
+                                        }
                                     }}
                                     onFileChange={(file) =>
                                         updateGame(i, { file })
@@ -576,6 +918,93 @@ function Demo() {
                                             Board {i + 1}
                                         </Typography>
                                     </Box>
+                                    {gameID && analysisSessions.length > 0 && (
+                                        <>
+                                            <Tooltip
+                                                title="Past configurations"
+                                                arrow
+                                            >
+                                                <IconButton
+                                                    size="medium"
+                                                    onClick={(e) =>
+                                                        setHistoryMenuAnchor(
+                                                            e.currentTarget
+                                                        )
+                                                    }
+                                                >
+                                                    <HistoryIcon fontSize="medium" />
+                                                </IconButton>
+                                            </Tooltip>
+                                            <Menu
+                                                anchorEl={historyMenuAnchor}
+                                                open={Boolean(
+                                                    historyMenuAnchor
+                                                )}
+                                                onClose={() =>
+                                                    setHistoryMenuAnchor(null)
+                                                }
+                                                anchorOrigin={{
+                                                    vertical: "bottom",
+                                                    horizontal: "right",
+                                                }}
+                                                transformOrigin={{
+                                                    vertical: "top",
+                                                    horizontal: "right",
+                                                }}
+                                                slotProps={{
+                                                    list: {
+                                                        autoFocusItem: true,
+                                                    },
+                                                }}
+                                            >
+                                                {analysisSessions.map(
+                                                    (session) => {
+                                                        const algo =
+                                                            session
+                                                                .analysis_config
+                                                                ?.general
+                                                                ?.algorithm ??
+                                                            "Unknown";
+                                                        const date = new Date(
+                                                            session.created_at
+                                                        ).toLocaleDateString(
+                                                            undefined,
+                                                            {
+                                                                month: "short",
+                                                                day: "numeric",
+                                                                year: "numeric",
+                                                            }
+                                                        );
+                                                        return (
+                                                            <MenuItem
+                                                                key={session.id}
+                                                                onClick={() => {
+                                                                    void loadHistorySession(
+                                                                        session.id
+                                                                    );
+                                                                    setSelectedAnalysisSession(
+                                                                        session.id
+                                                                    );
+                                                                }}
+                                                            >
+                                                                <ListItemIcon>
+                                                                    {session.id ===
+                                                                        selectedAnalysisSession && (
+                                                                        <CheckIcon color="primary" />
+                                                                    )}
+                                                                </ListItemIcon>
+                                                                <ListItemText>
+                                                                    {algo}{" "}
+                                                                    &mdash;{" "}
+                                                                    {date}
+                                                                </ListItemText>
+                                                            </MenuItem>
+                                                        );
+                                                    }
+                                                )}
+                                            </Menu>
+                                        </>
+                                    )}
                                 </Box>
                                 <Box
                                     sx={{
@@ -750,6 +1179,72 @@ function Demo() {
                             Board {settingsGameIndex + 1}
                         </Typography>
                     </Box>
+                    {gameID && analysisSessions.length > 0 && (
+                        <>
+                            <Tooltip title="Past configurations" arrow>
+                                <IconButton
+                                    size="medium"
+                                    onClick={(e) =>
+                                        setHistoryMenuAnchor(e.currentTarget)
+                                    }
+                                >
+                                    <HistoryIcon fontSize="medium" />
+                                </IconButton>
+                            </Tooltip>
+                            <Menu
+                                anchorEl={historyMenuAnchor}
+                                open={Boolean(historyMenuAnchor)}
+                                onClose={() => setHistoryMenuAnchor(null)}
+                                anchorOrigin={{
+                                    vertical: "bottom",
+                                    horizontal: "right",
+                                }}
+                                transformOrigin={{
+                                    vertical: "top",
+                                    horizontal: "right",
+                                }}
+                                slotProps={{
+                                    list: { autoFocusItem: true },
+                                }}
+                            >
+                                {analysisSessions.map((session) => {
+                                    const algo =
+                                        session.analysis_config?.general
+                                            ?.algorithm ?? "Unknown";
+                                    const date = new Date(
+                                        session.created_at
+                                    ).toLocaleDateString(undefined, {
+                                        month: "short",
+                                        day: "numeric",
+                                        year: "numeric",
+                                    });
+                                    return (
+                                        <MenuItem
+                                            key={session.id}
+                                            onClick={() => {
+                                                void loadHistorySession(
+                                                    session.id
+                                                );
+                                                setSelectedAnalysisSession(
+                                                    session.id
+                                                );
+                                            }}
+                                        >
+                                            <ListItemIcon>
+                                                {session.id ===
+                                                    selectedAnalysisSession && (
+                                                    <CheckIcon color="primary" />
+                                                )}
+                                            </ListItemIcon>
+                                            <ListItemText>
+                                                {algo} &mdash; {date}
+                                            </ListItemText>
+                                        </MenuItem>
+                                    );
+                                })}
+                            </Menu>
+                        </>
+                    )}
                 </Box>
                 <Box
                     sx={{

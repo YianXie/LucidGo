@@ -1,3 +1,4 @@
+import { useAuth } from "@/contexts/AuthContext";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -16,8 +17,9 @@ import usePageTitle from "../hooks/usePageTitle";
 function Home() {
     usePageTitle("Home");
 
-    const navigate = useNavigate();
+    const { isAuthenticated } = useAuth();
     const [imageHovered, hoverProps] = useHover();
+    const navigate = useNavigate();
 
     return (
         <Box
@@ -59,7 +61,9 @@ function Home() {
                 <Button
                     variant="contained"
                     size="large"
-                    onClick={() => navigate("/demo")}
+                    onClick={() =>
+                        navigate(isAuthenticated ? "/analyze" : "/demo")
+                    }
                     sx={{
                         px: 4,
                         py: 1.5,
@@ -67,7 +71,7 @@ function Home() {
                         fontSize: "1rem",
                     }}
                 >
-                    Demo
+                    {isAuthenticated ? "Analyze" : "Demo"}
                 </Button>
                 <Button
                     variant="outlined"

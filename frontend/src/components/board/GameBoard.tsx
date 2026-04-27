@@ -222,7 +222,7 @@ function GameBoard({
     }, [live]);
 
     useEffect(() => {
-        if (live) return;
+        if (live || !gameData) return;
 
         const handleWheel = (event: WheelEvent) => {
             event.preventDefault();
@@ -236,10 +236,10 @@ function GameBoard({
         return () => {
             canvas?.removeEventListener("wheel", handleWheel);
         };
-    }, [live, onMoveChange]);
+    }, [live, gameData, onMoveChange]);
 
     useEffect(() => {
-        if (live) return;
+        if (live || !gameData) return;
 
         const handleClick = (event: MouseEvent) => {
             event.preventDefault();
@@ -260,14 +260,13 @@ function GameBoard({
             canvas?.removeEventListener("click", handleClick);
             canvas?.removeEventListener("contextmenu", handleContextMenu);
         };
-    }, [live, onMoveChange]);
+    }, [live, gameData, onMoveChange]);
 
     useEffect(() => {
-        if (live) return;
+        if (live || !gameData) return;
 
         const handleKeyDown = (event: KeyboardEvent) => {
             event.preventDefault();
-            console.log(event.key);
             if (event.key === "ArrowRight") onMoveChange(1);
             else if (event.key === "ArrowLeft") onMoveChange(-1);
         };
@@ -277,7 +276,7 @@ function GameBoard({
         return () => {
             window.removeEventListener("keydown", handleKeyDown);
         };
-    }, [live, onMoveChange]);
+    }, [live, gameData, onMoveChange]);
 
     const clientToCanvasCoords = (x: number, y: number) => {
         if (!canvasRef.current) return [null, null] as const;

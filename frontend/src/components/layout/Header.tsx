@@ -75,7 +75,10 @@ function Header() {
 
     const navItems = [
         { label: "Docs", path: "/docs" },
-        { label: "Demo", path: "/demo" },
+        {
+            label: isAuthenticated ? "Analyze" : "Demo",
+            path: isAuthenticated ? "/analyze" : "/demo",
+        },
     ];
 
     const accountMenuItems = [

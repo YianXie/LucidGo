@@ -47,7 +47,7 @@ class HealthView(APIView):
 
 
 class AnalyzeView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request: Request) -> Response:
         if not request.data:
@@ -74,7 +74,7 @@ class AnalyzeView(APIView):
 
 
 class WinrateView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request: Request) -> Response:
         if not request.data:
@@ -99,7 +99,7 @@ class WinrateView(APIView):
 
 
 class GetGameDataView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request: Request) -> Response:
         if not request.data:
