@@ -58,7 +58,7 @@ run-all:
 		-e 'activate' \
 		-e 'create window with default profile' \
 		-e 'tell current session of current window' \
-		-e 'write text "cd \"$(CURDIR)/backend\" && uv run python manage.py runserver"' \
+		-e 'write text "unset VIRTUAL_ENV VIRTUAL_ENV_PROMPT && cd \"$(CURDIR)/backend\" && uv run python manage.py runserver"' \
 		-e 'end tell' \
 		-e 'create window with default profile' \
 		-e 'tell current session of current window' \
@@ -66,7 +66,7 @@ run-all:
 		-e 'end tell' \
 		-e 'create window with default profile' \
 		-e 'tell current session of current window' \
-		-e 'write text "cd \"$(HOME)/Desktop/projects/LucidTree\" && make runserver"' \
+		-e 'write text "unset VIRTUAL_ENV VIRTUAL_ENV_PROMPT && cd \"$(HOME)/Desktop/projects/LucidTree\" && make runserver"' \
 		-e 'end tell' \
 		-e 'end tell'
 
