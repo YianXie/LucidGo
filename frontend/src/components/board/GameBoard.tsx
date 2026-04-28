@@ -107,6 +107,8 @@ const GameBoard = forwardRef<
     const [boardImageData, setBoardImageData] = useState<ImageData | null>(
         null
     );
+    const [scrollKeyIsPressed, setScrollKeyIsPressed] =
+        useState<boolean>(false);
     const [toPlay, setToPlay] = useState<"B" | "W">("B");
     const [moves, setMoves] = useState<GameMove[]>(gameData?.moves ?? []);
     const movesRef = useRef(moves);
@@ -238,6 +240,7 @@ const GameBoard = forwardRef<
         if (live || !gameData) return;
 
         const handleWheel = (event: WheelEvent) => {
+            if (!scrollKeyIsPressed) return;
             event.preventDefault();
             if (event.deltaY > 0) onMoveChange(1);
             else if (event.deltaY < 0) onMoveChange(-1);
@@ -249,7 +252,7 @@ const GameBoard = forwardRef<
         return () => {
             canvas?.removeEventListener("wheel", handleWheel);
         };
-    }, [live, gameData, onMoveChange]);
+    }, [live, gameData, scrollKeyIsPressed, onMoveChange]);
 
     useEffect(() => {
         if (live || !gameData) return;
@@ -279,15 +282,23 @@ const GameBoard = forwardRef<
         if (live || !gameData) return;
 
         const handleKeyDown = (event: KeyboardEvent) => {
-            event.preventDefault();
-            if (event.key === "ArrowRight") onMoveChange(1);
-            else if (event.key === "ArrowLeft") onMoveChange(-1);
+            setScrollKeyIsPressed(
+                event.key === "Meta" || event.key === "Control"
+            );
         };
 
-        window.addEventListener("keydown", handleKeyDown, { passive: false });
+        const handleKeyUp = (event: KeyboardEvent) => {
+            setScrollKeyIsPressed(
+                !(event.key === "Meta" || event.key === "Control")
+            );
+        };
+
+        window.addEventListener("keydown", handleKeyDown, { passive: true });
+        window.addEventListener("keyup", handleKeyUp, { passive: true });
 
         return () => {
             window.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("keyup", handleKeyUp);
         };
     }, [live, gameData, onMoveChange]);
 
