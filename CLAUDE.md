@@ -80,7 +80,8 @@ npm run test         # Jest (no test files exist yet — Jest is configured but 
 ### Frontend Routes
 
 - `/demo/` — Main interactive board (protected); supports multiple simultaneous boards
-- `/settings/:id/` — Per-board analysis config editor (protected)
+- `/analyze/` — Analysis page (protected)
+- `/settings/` and `/settings/:id/` — Per-board analysis config editor (protected)
 - `/profile/` — Account management (protected)
 - `/docs/:id/` — MDX-rendered documentation (public)
 
@@ -88,17 +89,17 @@ npm run test         # Jest (no test files exist yet — Jest is configured but 
 
 - **`AuthContext.tsx`** — Global auth state (user info, tokens, login/logout); also fetches and holds the user's default `AnalysisConfig` on login
 - **`Demo.tsx`** — Owns the `BoardState[]` array; each entry has its own game data, analysis results per move, and current move index
-- **`UserSettings` model** — Persists `analysis_config` JSON per user on the backend
+- **`UserSettings` model** — Persists `analysis_config` and `general_settings` (e.g. `auto_save_games`) JSON per user on the backend
 - **`Game` model** — UUID PK; stores parsed SGF data (moves, board size, komi, players, winner) per user
 - **`AnalysisSession` model** — UUID PK linked to a `Game`; stores `analysis_config` and per-move results JSON
 
 ### Analysis Config
 
-`AnalysisConfig` (defined in `frontend/src/types/game.ts`) has four sections: `general` (algorithm, rules, komi), `nn` (neural net params), `mcts` (simulations, c_puct, dirichlet), `output` (top_moves count, include_policy/winrate/visits). `frontend/src/utils/buildAnalysisRequest.ts` constructs the LucidTree request from this config and the current board state.
+`AnalysisConfig` (defined in `frontend/src/types/game.ts`) has five sections: `general` (algorithm, rules, komi), `nn` (neural net params), `mcts` (simulations, c_puct, dirichlet), `minimax` (depth, use_alpha_beta), `output` (top_moves count, include_policy/winrate/visits). `frontend/src/utils/buildAnalysisRequest.ts` constructs the LucidTree request from this config and the current board state.
 
 ### GTP Coordinate System
 
-Go moves are stored internally as `[row, col]` pairs but the LucidTree API uses GTP notation (e.g., `"D4"`). Conversion utilities are in `frontend/src/utils/utils.ts`: `toGTPFormat`, `toRowColFormat`, `parseGtpBoardPoint`.
+Go moves are stored internally as `[row, col]` pairs but the LucidTree API uses GTP notation (e.g., `"D4"`). Conversion utilities are in `frontend/src/utils/coordinates.ts`: `toGTPFormat`, `toRowColFormat`, `parseGtpBoardPoint`.
 
 ## Environment Variables
 
@@ -109,6 +110,6 @@ Go moves are stored internally as `[row, col]` pairs but the LucidTree API uses 
 - `API_TIME_OUT` — HTTP timeout in seconds
 - `ENVIRONMENT` — `development` | `production`
 
-**Frontend** (copy `.env.example` → `.env`):
+**Frontend** (copy `.env.example` → `.env` or `.env.local`):
 
 - `VITE_API_URL` — Backend base URL, no trailing slash (e.g., `http://localhost:8000`)
