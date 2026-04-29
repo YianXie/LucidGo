@@ -8,14 +8,12 @@ import SkipNextIcon from "@mui/icons-material/SkipNext";
 import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import type { SxProps, Theme } from "@mui/material/styles";
-import { MouseEvent, useState } from "react";
+import { toast } from "react-toastify";
 
 import { FAST_FORWARD_AMOUNT } from "../../constants";
 import ControlMoveButton from "./ControlMoveButton";
@@ -25,9 +23,6 @@ function Controls({
     live,
     currentMoveIndex,
     onMoveChange,
-    onGenerateWinrate,
-    onAnalyzeCurrentMove,
-    onAnalyzeAllMoves,
     onPassMove,
     sx: sxOverride,
 }: {
@@ -35,21 +30,10 @@ function Controls({
     live: boolean;
     currentMoveIndex: number | null;
     onMoveChange: (amount: number) => void;
-    onGenerateWinrate: () => void;
-    onAnalyzeCurrentMove: () => void;
-    onAnalyzeAllMoves: () => void;
     onPassMove: () => void;
     sx?: SxProps<Theme>;
 }) {
-    const [analysisMenuAnchor, setAnalysisMenuAnchor] =
-        useState<null | HTMLElement>(null);
-    const analysisMenuOpen = Boolean(analysisMenuAnchor);
-
     const moveIndex = currentMoveIndex ?? 0;
-
-    const handleAnalysisMenuClose = () => {
-        setAnalysisMenuAnchor(null);
-    };
 
     return (
         <Paper
@@ -81,49 +65,14 @@ function Controls({
                             aria-label="Analyze with AI"
                             size="small"
                             disabled={live}
-                            onClick={(event: MouseEvent<HTMLButtonElement>) => {
-                                setAnalysisMenuAnchor(event.currentTarget);
+                            onClick={() => {
+                                toast.info("WIP");
                             }}
                         >
                             <HandymanIcon />
                         </IconButton>
                     </span>
                 </Tooltip>
-                <Menu
-                    open={analysisMenuOpen}
-                    anchorEl={analysisMenuAnchor}
-                    onClose={handleAnalysisMenuClose}
-                    slotProps={{
-                        list: {
-                            "aria-labelledby": "basic-button",
-                        },
-                    }}
-                >
-                    <MenuItem
-                        onClick={() => {
-                            handleAnalysisMenuClose();
-                            onGenerateWinrate();
-                        }}
-                    >
-                        Generate win rate
-                    </MenuItem>
-                    <MenuItem
-                        onClick={() => {
-                            handleAnalysisMenuClose();
-                            onAnalyzeCurrentMove();
-                        }}
-                    >
-                        Analyze current move
-                    </MenuItem>
-                    <MenuItem
-                        onClick={() => {
-                            handleAnalysisMenuClose();
-                            onAnalyzeAllMoves();
-                        }}
-                    >
-                        Analyze all moves (slow)
-                    </MenuItem>
-                </Menu>
             </Box>
 
             <Stack direction="row" spacing={0.5} sx={{ ml: "auto" }}>

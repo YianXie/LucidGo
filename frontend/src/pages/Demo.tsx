@@ -26,10 +26,10 @@ import {
     buildWinrateRequest,
 } from "@/utils/buildAnalysisRequest";
 import { toGTPFormat } from "@/utils/coordinates";
-import DeleteIcon from "@mui/icons-material/Delete";
 import TuneIcon from "@mui/icons-material/Tune";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Grow from "@mui/material/Grow";
 import IconButton from "@mui/material/IconButton";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
@@ -52,52 +52,31 @@ const defaultBoard = (analysisConfig: AnalysisConfig): BoardState => ({
     winrate: [],
     currentMoveIndex: null,
     loading: false,
-    gameSource: "sample",
+    gameSource: "none",
     live: false,
     loadedValue: null,
     analysisConfig: analysisConfig,
+    draftAnalysisConfig: analysisConfig,
 });
-
-const ANIMATION_MS = 250;
 
 function Demo() {
     usePageTitle("Demo");
 
     const { userSettings } = useAuth();
-    const [games, setGames] = useState<BoardState[]>([
-        defaultBoard(userSettings.analysis_config),
-    ]);
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const [settingsDrawerOpen, setSettingsDrawerOpen] = useState(false);
 
-    const [deletingGameIndex, setDeletingGameIndex] = useState<number | null>(
-        null
-    );
-    const [creatingGameIndex, setCreatingGameIndex] = useState<number | null>(
-        null
-    );
-    const animationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
-        null
-    );
-
-    const [settingsGameIndex, setSettingsGameIndex] = useState(0);
-    const [draftAnalysisConfig, setDraftAnalysisConfig] =
-        useState<AnalysisConfig>(userSettings.analysis_config);
-
-    const gameBoardRefs = useRef<Record<number, GameBoardHandle | null>>({});
+    const [currentSettingsIndex, setCurrentSettingsIndex] = useState<number>(0);
+    const [games, setGames] = useState<BoardState[]>([
+        defaultBoard(userSettings.analysis_config),
+    ]);
     const [liveMovesLengths, setLiveMovesLengths] = useState<
         Record<number, number>
     >({});
 
-    useEffect(() => {
-        return () => {
-            if (animationTimerRef.current) {
-                clearTimeout(animationTimerRef.current);
-            }
-        };
-    }, []);
+    const gameBoardRefs = useRef<Record<number, GameBoardHandle | null>>({});
 
     useEffect(() => {
         setGames((prev) => {
@@ -113,21 +92,6 @@ function Demo() {
             return [defaultBoard(userSettings.analysis_config)];
         });
     }, [userSettings.analysis_config]);
-
-    useEffect(() => {
-        setSettingsGameIndex((idx) => {
-            if (games.length === 0) return 0;
-            return Math.min(idx, games.length - 1);
-        });
-    }, [games.length]);
-
-    const settingsBoardAnalysisConfig =
-        games[settingsGameIndex]?.analysisConfig;
-
-    useEffect(() => {
-        if (settingsBoardAnalysisConfig === undefined) return;
-        setDraftAnalysisConfig(structuredClone(settingsBoardAnalysisConfig));
-    }, [settingsGameIndex, settingsBoardAnalysisConfig]);
 
     const updateGame = (index: number, updates: Partial<BoardState>) => {
         setGames((prev) =>
@@ -270,47 +234,23 @@ function Demo() {
         [analyzeMove, games]
     );
 
-    const onResetAnalysisSettings = () => {
-        const idx = settingsGameIndex;
-        setDraftAnalysisConfig(games[idx].analysisConfig);
+    const onResetAnalysisSettings = (gameIndex: number) => {
+        updateGame(gameIndex, {
+            draftAnalysisConfig: games[gameIndex].analysisConfig,
+        });
     };
 
-    const onSaveAnalysisSettings = () => {
-        const idx = settingsGameIndex;
-        const next = structuredClone(draftAnalysisConfig);
-        updateGame(idx, { analysisConfig: next });
+    const onSaveAnalysisSettings = (gameIndex: number) => {
+        const next = structuredClone(games[gameIndex].draftAnalysisConfig);
+        updateGame(gameIndex, { analysisConfig: next });
         toast.success("Configuration updated");
     };
 
-    const isAnimating =
-        deletingGameIndex !== null || creatingGameIndex !== null;
-
-    const requestDeleteBoard = (gameIndex: number) => {
-        if (isAnimating) return;
-        if (animationTimerRef.current) clearTimeout(animationTimerRef.current);
-
-        setDeletingGameIndex(gameIndex);
-        animationTimerRef.current = setTimeout(() => {
-            animationTimerRef.current = null;
-            setDeletingGameIndex(null);
-            setGames((prev) => prev.filter((_, i) => i !== gameIndex));
-        }, ANIMATION_MS);
-    };
-
-    const requestCreateBoard = () => {
-        if (isAnimating) return;
-        if (animationTimerRef.current) clearTimeout(animationTimerRef.current);
-
-        const newIndex = games.length;
-        setGames((prev) => [
-            ...prev,
-            defaultBoard(userSettings.analysis_config),
-        ]);
-        setCreatingGameIndex(newIndex);
-        animationTimerRef.current = setTimeout(() => {
-            animationTimerRef.current = null;
-            setCreatingGameIndex(null);
-        }, ANIMATION_MS);
+    const analysisConfigIsDirty = (gameIndex: number) => {
+        return (
+            JSON.stringify(games[gameIndex].analysisConfig) !==
+            JSON.stringify(games[gameIndex].draftAnalysisConfig)
+        );
     };
 
     return (
@@ -421,14 +361,6 @@ function Demo() {
                                     flexShrink: 0,
                                     transformOrigin: "center center",
                                     willChange: "transform",
-                                    ...(deletingGameIndex === i && {
-                                        animation: `boardDeleteExit ${ANIMATION_MS}ms ease-in forwards`,
-                                        pointerEvents: "none",
-                                    }),
-                                    ...(creatingGameIndex === i && {
-                                        animation: `boardCreate ${ANIMATION_MS}ms ease-out forwards`,
-                                        pointerEvents: "none",
-                                    }),
                                 }}
                             >
                                 <Box>
@@ -459,63 +391,26 @@ function Demo() {
                                                     },
                                             }}
                                         />
-                                        <Stack
-                                            direction="row"
-                                            alignItems="center"
-                                        >
-                                            {isMobile && (
-                                                <Tooltip
-                                                    title="Analysis settings"
-                                                    arrow
-                                                >
-                                                    <IconButton
-                                                        onClick={() => {
-                                                            setSettingsGameIndex(
-                                                                i
-                                                            );
-                                                            setSettingsDrawerOpen(
-                                                                true
-                                                            );
-                                                        }}
-                                                        size="small"
-                                                    >
-                                                        <TuneIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            )}
+                                        {isMobile && (
                                             <Tooltip
-                                                title={
-                                                    games.length > 1 &&
-                                                    !isAnimating
-                                                        ? "Delete board"
-                                                        : ""
-                                                }
+                                                title="Analysis settings"
                                                 arrow
                                             >
-                                                <span>
-                                                    <IconButton
-                                                        onClick={() =>
-                                                            requestDeleteBoard(
-                                                                i
-                                                            )
-                                                        }
-                                                        sx={{
-                                                            color: "error.main",
-                                                            "&:hover": {
-                                                                backgroundColor:
-                                                                    "#ff000010",
-                                                            },
-                                                        }}
-                                                        disabled={
-                                                            games.length ===
-                                                                1 || isAnimating
-                                                        }
-                                                    >
-                                                        <DeleteIcon color="inherit" />
-                                                    </IconButton>
-                                                </span>
+                                                <IconButton
+                                                    onClick={() => {
+                                                        setCurrentSettingsIndex(
+                                                            i
+                                                        );
+                                                        setSettingsDrawerOpen(
+                                                            true
+                                                        );
+                                                    }}
+                                                    size="small"
+                                                >
+                                                    <TuneIcon fontSize="small" />
+                                                </IconButton>
                                             </Tooltip>
-                                        </Stack>
+                                        )}
                                     </Stack>
                                     <GameBoard
                                         key={i}
@@ -638,7 +533,7 @@ function Demo() {
                                         <WinRate {...winRateProps} />
                                     </Box>
 
-                                    {/* 3. Settings */}
+                                    {/* 3. Settings header */}
                                     <Box
                                         sx={{
                                             px: 2,
@@ -646,10 +541,12 @@ function Demo() {
                                             pb: 1,
                                             borderBottom: 1,
                                             borderColor: "divider",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "space-between",
                                             flexShrink: 0,
                                             cursor: "default",
                                         }}
-                                        onClick={() => setSettingsGameIndex(i)}
                                     >
                                         <Typography
                                             variant="subtitle1"
@@ -657,13 +554,9 @@ function Demo() {
                                         >
                                             Analysis Settings
                                         </Typography>
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                        >
-                                            Board {i + 1}
-                                        </Typography>
                                     </Box>
+
+                                    {/* Settings content */}
                                     <Box
                                         sx={{
                                             flex: 1,
@@ -672,15 +565,24 @@ function Demo() {
                                         }}
                                     >
                                         <AnalysisConfigFields
-                                            analysisConfig={draftAnalysisConfig}
-                                            setAnalysisConfig={
-                                                setDraftAnalysisConfig
+                                            analysisConfig={
+                                                games[i].draftAnalysisConfig
+                                            }
+                                            setAnalysisConfig={(
+                                                config: AnalysisConfig
+                                            ) =>
+                                                updateGame(i, {
+                                                    draftAnalysisConfig: config,
+                                                })
                                             }
                                         />
                                     </Box>
+
+                                    {/* Action buttons */}
                                     <Box
                                         sx={{
                                             display: "flex",
+                                            flexDirection: "column",
                                             gap: 2,
                                             p: 2,
                                             borderTop: 1,
@@ -688,79 +590,87 @@ function Demo() {
                                             flexShrink: 0,
                                         }}
                                     >
-                                        <Tooltip
-                                            title={
-                                                game.gameData === null
-                                                    ? "No game data"
-                                                    : ""
-                                            }
-                                            arrow
+                                        {analysisConfigIsDirty(i) && (
+                                            <Box
+                                                sx={{ display: "flex", gap: 1 }}
+                                            >
+                                                <Grow in={true} timeout="auto">
+                                                    <Button
+                                                        variant="outlined"
+                                                        color="error"
+                                                        onClick={() =>
+                                                            onResetAnalysisSettings(
+                                                                i
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            game.gameData ===
+                                                            null
+                                                        }
+                                                        fullWidth
+                                                        sx={{
+                                                            "&:hover": {
+                                                                backgroundColor:
+                                                                    "rgba(211, 47, 47, 0.08)",
+                                                                borderColor:
+                                                                    "#d32f2f",
+                                                            },
+                                                        }}
+                                                    >
+                                                        Reset
+                                                    </Button>
+                                                </Grow>
+                                                <Grow in={true} timeout="auto">
+                                                    <Button
+                                                        variant="contained"
+                                                        onClick={() =>
+                                                            onSaveAnalysisSettings(
+                                                                i
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            game.gameData ===
+                                                            null
+                                                        }
+                                                        fullWidth
+                                                    >
+                                                        Save
+                                                    </Button>
+                                                </Grow>
+                                            </Box>
+                                        )}
+                                        <Button
+                                            variant="contained"
+                                            onClick={() => onGenerateWinrate(i)}
+                                            disabled={game.gameData === null}
+                                            fullWidth
                                         >
-                                            <span style={{ flex: 1 }}>
-                                                <Button
-                                                    variant="outlined"
-                                                    color="error"
-                                                    onClick={
-                                                        onResetAnalysisSettings
-                                                    }
-                                                    disabled={
-                                                        game.gameData === null
-                                                    }
-                                                    fullWidth
-                                                    sx={{
-                                                        "&:hover": {
-                                                            backgroundColor:
-                                                                "rgba(211, 47, 47, 0.08)",
-                                                            borderColor:
-                                                                "#d32f2f",
-                                                        },
-                                                    }}
-                                                >
-                                                    Reset
-                                                </Button>
-                                            </span>
-                                        </Tooltip>
-                                        <Tooltip
-                                            title={
-                                                game.gameData === null
-                                                    ? "No game data"
-                                                    : ""
+                                            Generate Winrate
+                                        </Button>
+                                        <Button
+                                            variant="contained"
+                                            onClick={() =>
+                                                onAnalyzeCurrentMove(i)
                                             }
-                                            arrow
+                                            disabled={game.gameData === null}
+                                            fullWidth
                                         >
-                                            <span style={{ flex: 1 }}>
-                                                <Button
-                                                    variant="contained"
-                                                    onClick={
-                                                        onSaveAnalysisSettings
-                                                    }
-                                                    disabled={
-                                                        game.gameData === null
-                                                    }
-                                                    fullWidth
-                                                >
-                                                    Save
-                                                </Button>
-                                            </span>
-                                        </Tooltip>
+                                            Analyze Current Move
+                                        </Button>
+                                        <Button
+                                            variant="contained"
+                                            onClick={() => onAnalyzeAllMoves(i)}
+                                            disabled={game.gameData === null}
+                                            fullWidth
+                                        >
+                                            Analyze All Moves
+                                        </Button>
                                     </Box>
                                 </Paper>
                             </Stack>
                         );
                     })}
                 </Box>
-            </Box>
-            <Box sx={{ display: "flex", justifyContent: "center" }}>
-                <Button
-                    variant="outlined"
-                    sx={{
-                        borderColor: "divider",
-                    }}
-                    onClick={requestCreateBoard}
-                    disabled={isAnimating}
-                >
-                    Add Board
-                </Button>
             </Box>
 
             {/* Mobile-only: analysis settings bottom drawer */}
@@ -807,18 +717,9 @@ function Demo() {
                         flexShrink: 0,
                     }}
                 >
-                    <Box>
-                        <Typography variant="h6" component="h2">
-                            Analysis settings
-                        </Typography>
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ mt: 0.5 }}
-                        >
-                            Board {settingsGameIndex + 1}
-                        </Typography>
-                    </Box>
+                    <Typography variant="h6" component="h2">
+                        Analysis settings
+                    </Typography>
                 </Box>
                 <Box
                     sx={{
@@ -829,21 +730,103 @@ function Demo() {
                         scrollbarWidth: "thin",
                     }}
                 >
-                    <AnalysisConfigFields
-                        analysisConfig={draftAnalysisConfig}
-                        setAnalysisConfig={setDraftAnalysisConfig}
-                    />
+                    {games[currentSettingsIndex] && (
+                        <AnalysisConfigFields
+                            analysisConfig={
+                                games[currentSettingsIndex].draftAnalysisConfig
+                            }
+                            setAnalysisConfig={(config: AnalysisConfig) =>
+                                updateGame(currentSettingsIndex, {
+                                    draftAnalysisConfig: config,
+                                })
+                            }
+                        />
+                    )}
                 </Box>
-                <Button
-                    variant="contained"
-                    onClick={() => {
-                        onSaveAnalysisSettings();
-                        setSettingsDrawerOpen(false);
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 2,
+                        p: 2,
+                        borderTop: 1,
+                        borderColor: "divider",
+                        flexShrink: 0,
                     }}
-                    sx={{ m: 2, flexShrink: 0 }}
                 >
-                    Apply
-                </Button>
+                    {analysisConfigIsDirty(currentSettingsIndex) && (
+                        <Box sx={{ display: "flex", gap: 1 }}>
+                            <Grow in={true} timeout="auto">
+                                <Button
+                                    variant="outlined"
+                                    color="error"
+                                    onClick={() =>
+                                        onResetAnalysisSettings(
+                                            currentSettingsIndex
+                                        )
+                                    }
+                                    disabled={
+                                        games[currentSettingsIndex].gameData ===
+                                        null
+                                    }
+                                    fullWidth
+                                    sx={{
+                                        "&:hover": {
+                                            backgroundColor:
+                                                "rgba(211, 47, 47, 0.08)",
+                                            borderColor: "#d32f2f",
+                                        },
+                                    }}
+                                >
+                                    Reset
+                                </Button>
+                            </Grow>
+                            <Grow in={true} timeout="auto">
+                                <Button
+                                    variant="contained"
+                                    onClick={() =>
+                                        onSaveAnalysisSettings(
+                                            currentSettingsIndex
+                                        )
+                                    }
+                                    disabled={
+                                        games[currentSettingsIndex].gameData ===
+                                        null
+                                    }
+                                    fullWidth
+                                >
+                                    Save
+                                </Button>
+                            </Grow>
+                        </Box>
+                    )}
+                    <Button
+                        variant="contained"
+                        onClick={() => onGenerateWinrate(currentSettingsIndex)}
+                        disabled={games[currentSettingsIndex].gameData === null}
+                        fullWidth
+                    >
+                        Generate Winrate
+                    </Button>
+                    <Button
+                        variant="contained"
+                        onClick={() =>
+                            onAnalyzeCurrentMove(currentSettingsIndex)
+                        }
+                        disabled={games[currentSettingsIndex].gameData === null}
+                        fullWidth
+                    >
+                        Analyze Current Move
+                    </Button>
+                    <Button
+                        variant="contained"
+                        onClick={() => onAnalyzeAllMoves(currentSettingsIndex)}
+                        disabled={games[currentSettingsIndex].gameData === null}
+                        fullWidth
+                    >
+                        Analyze All Moves
+                    </Button>
+                </Box>
             </SwipeableDrawer>
         </Box>
     );
