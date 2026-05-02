@@ -23,7 +23,7 @@ import Typography from "@mui/material/Typography";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function formatDate(dateString: string): string {
+const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString(undefined, {
         year: "numeric",
         month: "short",
@@ -31,9 +31,9 @@ function formatDate(dateString: string): string {
         hour: "2-digit",
         minute: "2-digit",
     });
-}
+};
 
-function GameCard({ game }: { game: GameSummary }) {
+const GameCard = ({ game }: { game: GameSummary }) => {
     const navigate = useNavigate();
 
     return (
@@ -108,9 +108,9 @@ function GameCard({ game }: { game: GameSummary }) {
             </CardActions>
         </Card>
     );
-}
+};
 
-function GameSection({
+const GameSection = ({
     title,
     games,
     defaultExpanded = true,
@@ -118,7 +118,7 @@ function GameSection({
     title: string;
     games: GameSummary[];
     defaultExpanded?: boolean;
-}) {
+}) => {
     return (
         <Accordion defaultExpanded={defaultExpanded} disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -150,9 +150,9 @@ function GameSection({
             </AccordionDetails>
         </Accordion>
     );
-}
+};
 
-function ProfileSkeleton() {
+const ProfileSkeleton = () => {
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>
             <Stack
@@ -175,9 +175,9 @@ function ProfileSkeleton() {
             ))}
         </Container>
     );
-}
+};
 
-function Profile() {
+const Profile = () => {
     usePageTitle("Profile");
     const { user } = useAuth();
     const email = (user?.email as string) ?? "";
@@ -246,6 +246,6 @@ function Profile() {
             </Stack>
         </Container>
     );
-}
+};
 
 export default Profile;

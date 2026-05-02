@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 
 import { useAuth } from "../../contexts/AuthContext";
 
-function ProtectedRoute({ children }: { children: ReactNode }) {
+const ProtectedRoute = ({ children }: { children: ReactNode }) => {
     const { isAuthenticated } = useAuth();
 
     useEffect(() => {
@@ -22,6 +22,6 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
     }
 
     return children;
-}
+};
 
 export default ProtectedRoute;

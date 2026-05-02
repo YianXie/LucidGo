@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 
 import { useAuth } from "../../contexts/AuthContext";
 
-function Logout() {
+const Logout = () => {
     const { logout, isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
@@ -22,6 +22,6 @@ function Logout() {
     }, [isAuthenticated]);
 
     return null;
-}
+};
 
 export default Logout;

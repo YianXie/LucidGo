@@ -13,7 +13,7 @@ import Logout from "./pages/auth/Logout";
 import Profile from "./pages/auth/Profile";
 import Register from "./pages/auth/Register";
 
-function App() {
+const App = () => {
     return (
         <BrowserRouter>
             <Routes>
@@ -55,6 +55,6 @@ function App() {
             </Routes>
         </BrowserRouter>
     );
-}
+};
 
 export default App;

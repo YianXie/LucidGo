@@ -59,7 +59,7 @@ const defaultBoard = (analysisConfig: AnalysisConfig): BoardState => ({
     draftAnalysisConfig: analysisConfig,
 });
 
-function Demo() {
+const Demo = () => {
     usePageTitle("Demo");
 
     const { userSettings } = useAuth();
@@ -831,6 +831,6 @@ function Demo() {
             </SwipeableDrawer>
         </Box>
     );
-}
+};
 
 export default Demo;

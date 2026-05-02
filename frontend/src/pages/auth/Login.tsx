@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 import api from "../../api";
 import { useAuth } from "../../contexts/AuthContext";
 
-function Login() {
+const Login = () => {
     const { login, isAuthenticated } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
@@ -92,6 +92,6 @@ function Login() {
             />
         </AuthFormLayout>
     );
-}
+};
 
 export default Login;

@@ -29,7 +29,7 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import logo from "/logo.png";
 
-function HideOnScroll({ children }: { children: ReactElement }) {
+const HideOnScroll = ({ children }: { children: ReactElement }) => {
     const trigger = useScrollTrigger({
         target: typeof window !== "undefined" ? window : undefined,
         threshold: 100,
@@ -40,9 +40,9 @@ function HideOnScroll({ children }: { children: ReactElement }) {
             {children}
         </Slide>
     );
-}
+};
 
-function Header() {
+const Header = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const theme = useTheme();
@@ -317,6 +317,6 @@ function Header() {
             </Drawer>
         </>
     );
-}
+};
 
 export default Header;

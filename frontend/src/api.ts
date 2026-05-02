@@ -12,13 +12,13 @@ type QueueItem = {
 };
 let refreshQueue: QueueItem[] = [];
 
-function processQueue(error: unknown, newAccessToken: string | null = null) {
+const processQueue = (error: unknown, newAccessToken: string | null = null) => {
     refreshQueue.forEach(({ resolve, reject }) => {
         if (error) reject(error);
         else if (newAccessToken) resolve(newAccessToken);
     });
     refreshQueue = [];
-}
+};
 
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem("access");

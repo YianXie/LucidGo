@@ -22,7 +22,7 @@ import api from "../api";
 import { useAuth } from "../contexts/AuthContext";
 import usePageTitle from "../hooks/usePageTitle";
 
-function Settings() {
+const Settings = () => {
     usePageTitle("Settings");
 
     const { user, userSettings, setUserSettings, login, logout } = useAuth();
@@ -353,6 +353,6 @@ function Settings() {
             )}
         </SidebarLayout>
     );
-}
+};
 
 export default Settings;

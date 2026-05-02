@@ -5,13 +5,13 @@ import type { ReactNode } from "react";
 
 import { DRAWER_WIDTH } from "../../constants";
 
-function Sidebar({
+const Sidebar = ({
     children,
     title = "Documentation",
 }: {
     children: ReactNode;
     title?: string;
-}) {
+}) => {
     return (
         <Paper
             elevation={0}
@@ -35,6 +35,6 @@ function Sidebar({
             </List>
         </Paper>
     );
-}
+};
 
 export default Sidebar;

@@ -3,10 +3,10 @@ import { useState } from "react";
 /**
  * Custom hook for managing hover state
  */
-function useHover(): [
+const useHover = (): [
     boolean,
     { onMouseEnter: () => void; onMouseLeave: () => void },
-] {
+] => {
     const [isHovered, setIsHovered] = useState(false);
 
     const hoverProps = {
@@ -15,6 +15,6 @@ function useHover(): [
     };
 
     return [isHovered, hoverProps];
-}
+};
 
 export default useHover;

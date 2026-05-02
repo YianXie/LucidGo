@@ -75,7 +75,7 @@ const defaultBoard = (analysisConfig: AnalysisConfig): BoardState => ({
 
 const ANIMATION_MS = 250;
 
-function Demo() {
+const Demo = () => {
     usePageTitle("Analyze");
 
     const { userSettings } = useAuth();
@@ -88,7 +88,6 @@ function Demo() {
     const animationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
         null
     );
-    const gameBoardRefs = useRef<Record<number, GameBoardHandle | null>>({});
 
     const [games, setGames] = useState<BoardState[]>([
         defaultBoard(userSettings.analysis_config),
@@ -107,6 +106,11 @@ function Demo() {
     const [liveMovesLengths, setLiveMovesLengths] = useState<
         Record<number, number>
     >({});
+    const gameBoardRefs = useRef<Record<number, GameBoardHandle | null>>({});
+
+    const handleBoardPassMove = useCallback((boardIndex: number) => {
+        gameBoardRefs.current[boardIndex]?.handlePassMove();
+    }, []);
     const [historyMenuAnchor, setHistoryMenuAnchor] =
         useState<HTMLElement | null>(null);
     const [selectedAnalysisSession, setSelectedAnalysisSession] = useState<
@@ -677,8 +681,7 @@ function Demo() {
                             onAnalyzeCurrentMove: () =>
                                 void onAnalyzeCurrentMove(i),
                             onAnalyzeAllMoves: () => void onAnalyzeAllMoves(i),
-                            onPassMove: () =>
-                                gameBoardRefs.current[i]?.handlePassMove(),
+                            onPassMove: () => handleBoardPassMove(i),
                         };
 
                         const winRateProps = {
@@ -1443,6 +1446,6 @@ function Demo() {
             </SwipeableDrawer>
         </Box>
     );
-}
+};
 
 export default Demo;

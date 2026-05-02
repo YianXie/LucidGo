@@ -22,7 +22,7 @@ const rawDocs: string[] = [
     installation.toString(),
 ];
 
-function Docs() {
+const Docs = () => {
     const { id } = useParams();
     const location = useLocation();
     const [docs, setDocs] = useState<
@@ -104,6 +104,6 @@ function Docs() {
             </Box>
         </SidebarLayout>
     );
-}
+};
 
 export default Docs;

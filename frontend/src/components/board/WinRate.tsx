@@ -30,7 +30,7 @@ ChartJS.register(
     Legend
 );
 
-function WinRate({
+const WinRate = ({
     data,
     setMove,
     currentMove,
@@ -38,7 +38,7 @@ function WinRate({
     data: { black: number; white: number }[] | null | undefined;
     setMove: (n: number) => void;
     currentMove: number;
-}) {
+}) => {
     const [hoverX, setHoverX] = useState<number | null>(null);
     const chartRef = useRef<Chart<"line"> | null>(null);
     const leadersRef = useRef<("black" | "white")[]>([]);
@@ -360,6 +360,6 @@ function WinRate({
             )}
         </>
     );
-}
+};
 
 export default WinRate;

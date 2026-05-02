@@ -27,12 +27,12 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-function isTokenExpired(token: string): boolean {
+const isTokenExpired = (token: string): boolean => {
     const payload = jwtDecode<AccessTokenPayload>(token);
     return (payload.exp ?? 0) < Date.now() / 1000;
-}
+};
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [accessToken, setAccessToken] = useState<string | null>(null);
     const [refreshToken, setRefreshToken] = useState<string | null>(null);
     const [user, setUser] = useState<Record<string, unknown> | null>(null);
@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     useEffect(() => {
-        async function initializeAuth() {
+        const initializeAuth = async () => {
             const storedAccess = localStorage.getItem("access");
             const storedRefresh = localStorage.getItem("refresh");
             if (storedAccess && storedRefresh) {
@@ -132,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             } else {
                 setIsAuthenticated(false);
             }
-        }
+        };
         void initializeAuth();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -178,12 +178,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             {children}
         </AuthContext.Provider>
     );
-}
+};
 
-// eslint-disable-next-line react-refresh/only-export-components
-export function useAuth(): AuthContextValue {
+const useAuth = (): AuthContextValue => {
     const ctx = useContext(AuthContext);
     if (ctx === undefined)
         throw new Error("useAuth must be used within an AuthProvider");
     return ctx;
-}
+};
+
+// eslint-disable-next-line react-refresh/only-export-components
+export { useAuth, AuthProvider };

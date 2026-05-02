@@ -6,7 +6,7 @@ import { Bounce, ToastContainer } from "react-toastify";
 import Footer from "./Footer";
 import NavSidebar from "./NavSidebar";
 
-function Layout() {
+const Layout = () => {
     const theme = useTheme();
     const isDark = theme.palette.mode === "dark";
 
@@ -58,6 +58,6 @@ function Layout() {
             />
         </Box>
     );
-}
+};
 
 export default Layout;

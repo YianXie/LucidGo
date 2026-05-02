@@ -9,22 +9,22 @@ import {
     ConfigTextField,
 } from "./ConfigFields";
 
-function AnalysisConfigFields({
+const AnalysisConfigFields = ({
     analysisConfig,
     setAnalysisConfig,
 }: {
     analysisConfig: AnalysisConfig;
     setAnalysisConfig: (config: AnalysisConfig) => void;
-}) {
-    function patch<K extends keyof AnalysisConfig>(
-        section: K,
-        fields: Partial<AnalysisConfig[K]>
-    ) {
+}) => {
+    const patch = (
+        section: keyof AnalysisConfig,
+        fields: Partial<AnalysisConfig[keyof AnalysisConfig]>
+    ) => {
         setAnalysisConfig({
             ...analysisConfig,
             [section]: { ...analysisConfig[section], ...fields },
         });
-    }
+    };
 
     const nnConfigContent = (
         <ConfigSection title="Neural Network">
@@ -234,6 +234,6 @@ function AnalysisConfigFields({
             </ConfigSection>
         </Box>
     );
-}
+};
 
 export default AnalysisConfigFields;

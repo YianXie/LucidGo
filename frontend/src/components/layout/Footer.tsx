@@ -2,7 +2,7 @@ import AppBar from "@mui/material/AppBar";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 
-function Footer() {
+const Footer = () => {
     return (
         <AppBar
             component="footer"
@@ -30,6 +30,6 @@ function Footer() {
             </Typography>
         </AppBar>
     );
-}
+};
 
 export default Footer;

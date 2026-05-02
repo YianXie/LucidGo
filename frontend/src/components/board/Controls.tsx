@@ -18,7 +18,7 @@ import { toast } from "react-toastify";
 import { FAST_FORWARD_AMOUNT } from "../../constants";
 import ControlMoveButton from "./ControlMoveButton";
 
-function Controls({
+const Controls = ({
     maxMove,
     live,
     currentMoveIndex,
@@ -32,7 +32,7 @@ function Controls({
     onMoveChange: (amount: number) => void;
     onPassMove: () => void;
     sx?: SxProps<Theme>;
-}) {
+}) => {
     const moveIndex = currentMoveIndex ?? 0;
 
     return (
@@ -148,6 +148,6 @@ function Controls({
             </Tooltip>
         </Paper>
     );
-}
+};
 
 export default Controls;

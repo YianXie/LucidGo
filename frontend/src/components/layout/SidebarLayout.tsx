@@ -9,7 +9,7 @@ import type { SxProps, Theme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useState } from "react";
 
-function SidebarLayout({
+const SidebarLayout = ({
     sidebar,
     hasContent,
     welcomeTitle,
@@ -23,7 +23,7 @@ function SidebarLayout({
     welcomeSubtitle: string;
     contentSx?: SxProps<Theme>;
     children?: React.ReactNode;
-}) {
+}) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -107,6 +107,6 @@ function SidebarLayout({
             {mainContent}
         </Box>
     );
-}
+};
 
 export default SidebarLayout;

@@ -14,7 +14,7 @@ import demoPicture from "../assets/images/home/demo.png";
 import useHover from "../hooks/useHover";
 import usePageTitle from "../hooks/usePageTitle";
 
-function Home() {
+const Home = () => {
     usePageTitle("Home");
 
     const { isAuthenticated } = useAuth();
@@ -153,6 +153,6 @@ function Home() {
             </Card>
         </Box>
     );
-}
+};
 
 export default Home;

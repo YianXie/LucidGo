@@ -3,13 +3,13 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { useState } from "react";
 
-function Upload({
+const Upload = ({
     setFile,
     accept,
 }: {
     setFile: (file: File) => void;
     accept: string;
-}) {
+}) => {
     const [isDragging, setIsDragging] = useState(false);
 
     const handleDragOver = (e: React.DragEvent) => {
@@ -86,6 +86,6 @@ function Upload({
             />
         </Paper>
     );
-}
+};
 
 export default Upload;

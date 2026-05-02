@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 
 import usePageTitle from "../hooks/usePageTitle";
 
-function NotFoundPage() {
+const NotFoundPage = () => {
     usePageTitle("404 Not Found");
 
     return (
@@ -44,6 +44,6 @@ function NotFoundPage() {
             </Stack>
         </Box>
     );
-}
+};
 
 export default NotFoundPage;

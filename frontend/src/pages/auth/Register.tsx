@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 import api from "../../api";
 import { useAuth } from "../../contexts/AuthContext";
 
-function Register() {
+const Register = () => {
     const { isAuthenticated } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
@@ -100,6 +100,6 @@ function Register() {
             />
         </AuthFormLayout>
     );
-}
+};
 
 export default Register;

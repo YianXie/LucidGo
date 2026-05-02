@@ -2,7 +2,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 
-function ThemeWrapper({ children }: { children: ReactNode }) {
+const ThemeWrapper = ({ children }: { children: ReactNode }) => {
     const [prefersDarkMode, setPrefersDarkMode] = useState(
         typeof window !== "undefined" &&
             window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -37,6 +37,6 @@ function ThemeWrapper({ children }: { children: ReactNode }) {
             {children}
         </ThemeProvider>
     );
-}
+};
 
 export default ThemeWrapper;

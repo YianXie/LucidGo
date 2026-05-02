@@ -4,7 +4,7 @@ import ListItemText from "@mui/material/ListItemText";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
-function SidebarLink({
+const SidebarLink = ({
     children,
     to,
     isActive,
@@ -12,7 +12,7 @@ function SidebarLink({
     children: ReactNode;
     to: string;
     isActive: boolean;
-}) {
+}) => {
     return (
         <ListItem disablePadding>
             <ListItemButton
@@ -43,6 +43,6 @@ function SidebarLink({
             </ListItemButton>
         </ListItem>
     );
-}
+};
 
 export default SidebarLink;

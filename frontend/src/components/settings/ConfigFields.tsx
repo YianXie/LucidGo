@@ -17,7 +17,7 @@ const fieldRowSx = { display: "flex", alignItems: "center", gap: 2 } as const;
 /**
  * A labeled text/number input field row used in config forms.
  */
-export function ConfigTextField({
+const ConfigTextField = ({
     label,
     value,
     type = "text",
@@ -31,7 +31,7 @@ export function ConfigTextField({
     onChange: (value: string) => void;
     inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
     tooltip?: string;
-}) {
+}) => {
     const labelElement = tooltip ? (
         <Tooltip title={tooltip} placement="top" arrow>
             <Typography
@@ -62,12 +62,12 @@ export function ConfigTextField({
             />
         </Box>
     );
-}
+};
 
 /**
  * A labeled checkbox field row used in config forms.
  */
-export function ConfigCheckbox({
+const ConfigCheckbox = ({
     label,
     checked,
     tooltip,
@@ -77,7 +77,7 @@ export function ConfigCheckbox({
     checked: boolean;
     tooltip?: string;
     onChange: (checked: boolean) => void;
-}) {
+}) => {
     const labelElement = tooltip ? (
         <Tooltip title={tooltip} placement="top" arrow>
             <Typography
@@ -103,12 +103,12 @@ export function ConfigCheckbox({
             {labelElement}
         </Box>
     );
-}
+};
 
 /**
  * A labeled slider field row used in config forms.
  */
-export function ConfigSlider({
+const ConfigSlider = ({
     label,
     value,
     onChange,
@@ -126,7 +126,7 @@ export function ConfigSlider({
     step: number;
     ariaLabel: string;
     tooltip?: string;
-}) {
+}) => {
     const labelElement = tooltip ? (
         <Tooltip title={tooltip} placement="top" arrow>
             <Typography
@@ -165,12 +165,12 @@ export function ConfigSlider({
             </Stack>
         </Box>
     );
-}
+};
 
 /**
  * A labeled select/dropdown field row used in config forms.
  */
-export function ConfigSelect({
+const ConfigSelect = ({
     label,
     value,
     onChange,
@@ -186,7 +186,7 @@ export function ConfigSelect({
     id?: string;
     tooltip?: string;
     labelID?: string;
-}) {
+}) => {
     const labelElement = tooltip ? (
         <Tooltip title={tooltip} placement="top" arrow>
             <Typography
@@ -221,18 +221,18 @@ export function ConfigSelect({
             </Select>
         </Box>
     );
-}
+};
 
 /**
  * A collapsible accordion section for grouping related config fields.
  */
-export function ConfigSection({
+const ConfigSection = ({
     title,
     children,
 }: {
     title: string;
     children: React.ReactNode;
-}) {
+}) => {
     return (
         <Accordion
             defaultExpanded={false}
@@ -270,4 +270,12 @@ export function ConfigSection({
             </AccordionDetails>
         </Accordion>
     );
-}
+};
+
+export {
+    ConfigTextField,
+    ConfigCheckbox,
+    ConfigSlider,
+    ConfigSelect,
+    ConfigSection,
+};

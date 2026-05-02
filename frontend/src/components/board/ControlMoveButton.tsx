@@ -2,7 +2,7 @@ import placeStoneSoundInstance from "@/assets/sounds/placeStoneSoundInstance";
 import IconButton from "@mui/material/IconButton";
 import type { ReactNode } from "react";
 
-function ControlMoveButton({
+const ControlMoveButton = ({
     icon,
     label,
     amount,
@@ -14,7 +14,7 @@ function ControlMoveButton({
     amount: number;
     onMoveChange: (amount: number) => void;
     disabled: boolean;
-}) {
+}) => {
     return (
         <span>
             <IconButton
@@ -30,6 +30,6 @@ function ControlMoveButton({
             </IconButton>
         </span>
     );
-}
+};
 
 export default ControlMoveButton;

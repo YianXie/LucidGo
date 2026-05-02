@@ -29,7 +29,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import logo from "/logo.png";
 
-function NavSidebar() {
+const NavSidebar = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const theme = useTheme();
@@ -264,6 +264,6 @@ function NavSidebar() {
             </Drawer>
         </>
     );
-}
+};
 
 export default NavSidebar;

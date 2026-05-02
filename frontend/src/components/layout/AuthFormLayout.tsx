@@ -6,7 +6,7 @@ import { Link as RouterLink } from "react-router-dom";
 
 import LoadingOverlay from "../common/LoadingOverlay";
 
-function AuthFormLayout({
+const AuthFormLayout = ({
     title,
     submitLabel,
     isLoading,
@@ -22,7 +22,7 @@ function AuthFormLayout({
     linkTo: string;
     linkText: string;
     children: React.ReactNode;
-}) {
+}) => {
     return (
         <>
             <LoadingOverlay open={isLoading} />
@@ -59,6 +59,6 @@ function AuthFormLayout({
             </Box>
         </>
     );
-}
+};
 
 export default AuthFormLayout;
