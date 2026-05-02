@@ -52,7 +52,7 @@ const defaultBoard = (analysisConfig: AnalysisConfig): BoardState => ({
     winrate: [],
     currentMoveIndex: null,
     loading: false,
-    gameSource: "none",
+    gameSource: "sample",
     live: false,
     loadedValue: null,
     analysisConfig: analysisConfig,
