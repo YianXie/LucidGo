@@ -897,10 +897,11 @@ function Demo() {
                                             updateGame(i, { file })
                                         }
                                         onMovesLengthChange={(n) =>
-                                            setLiveMovesLengths((prev) => ({
-                                                ...prev,
-                                                [i]: n,
-                                            }))
+                                            setLiveMovesLengths((prev) =>
+                                                prev[i] === n
+                                                    ? prev
+                                                    : { ...prev, [i]: n }
+                                            )
                                         }
                                     />
                                     {/* Mobile: controls + winrate below board */}

@@ -679,9 +679,12 @@ const GameBoard = forwardRef<
         []
     );
 
+    const onMovesLengthChangeRef = useRef(onMovesLengthChange);
+    onMovesLengthChangeRef.current = onMovesLengthChange;
+
     useEffect(() => {
-        if (live) onMovesLengthChange?.(moves.length);
-    }, [live, moves.length, onMovesLengthChange]);
+        if (live) onMovesLengthChangeRef.current?.(moves.length);
+    }, [live, moves.length]);
 
     return (
         <Box
