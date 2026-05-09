@@ -51,7 +51,6 @@ type GameBoardProps = {
     onViewSample: () => void;
     onLive: () => void;
     onFileChange: (file: File | null | undefined) => void;
-    onMovesLengthChange: (n: number) => void;
 };
 
 /** Side to play at board position `moveIndex` (0 = empty board, Black moves first). */
@@ -90,7 +89,6 @@ const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(
             onViewSample,
             onLive,
             onFileChange,
-            onMovesLengthChange,
         },
         ref
     ) {
@@ -714,13 +712,6 @@ const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(
             }),
             []
         );
-
-        const onMovesLengthChangeRef = useRef(onMovesLengthChange);
-        onMovesLengthChangeRef.current = onMovesLengthChange;
-
-        useEffect(() => {
-            if (live) onMovesLengthChangeRef.current?.(moves.length);
-        }, [live, moves.length]);
 
         return (
             <Box

@@ -1,3 +1,4 @@
+import { Compare } from "@mui/icons-material";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import ProtectedRoute from "./components/common/ProtectedRoute";
@@ -36,6 +37,14 @@ const App = () => {
                         element={
                             <ProtectedRoute>
                                 <Settings />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="compare/"
+                        element={
+                            <ProtectedRoute>
+                                <Compare />
                             </ProtectedRoute>
                         }
                     />
