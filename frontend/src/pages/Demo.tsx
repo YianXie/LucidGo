@@ -1,10 +1,8 @@
 import api from "@/api";
-import Controls from "@/components/board/Controls";
-import GameBoard, { type GameBoardHandle } from "@/components/board/GameBoard";
-import WinRate from "@/components/board/WinRate";
+import Game from "@/components/board/Game";
+import { type GameBoardHandle } from "@/components/board/GameBoard";
 import AnalysisConfigFields from "@/components/settings/AnalysisConfigFields";
 import {
-    ANALYSIS_RIGHT_PANEL_WIDTH,
     POST_ANALYSIS_URL,
     POST_WINRATE_URL,
     SGF_SAMPLE,
@@ -17,7 +15,6 @@ import {
     type AnalysisResult,
     type BoardState,
     type GameData,
-    type GameSource,
     WinrateResult,
     isValidMove,
 } from "@/types/game";
@@ -26,20 +23,12 @@ import {
     buildWinrateRequest,
 } from "@/utils/buildAnalysisRequest";
 import { toGTPFormat } from "@/utils/coordinates";
-import TuneIcon from "@mui/icons-material/Tune";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Grow from "@mui/material/Grow";
-import IconButton from "@mui/material/IconButton";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
 import SwipeableDrawer from "@mui/material/SwipeableDrawer";
-import TextField from "@mui/material/TextField";
-import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { useTheme } from "@mui/material/styles";
-import useMediaQuery from "@mui/material/useMediaQuery";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
 const defaultBoard = (analysisConfig: AnalysisConfig): BoardState => ({
@@ -64,34 +53,17 @@ const Demo = () => {
 
     const { userSettings } = useAuth();
 
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-    const [settingsDrawerOpen, setSettingsDrawerOpen] = useState(false);
+    const gameBoardRefs = useRef<Record<number, GameBoardHandle | null>>({});
 
+    const [settingsDrawerOpen, setSettingsDrawerOpen] = useState(false);
     const [currentSettingsIndex, setCurrentSettingsIndex] = useState<number>(0);
     const [games, setGames] = useState<BoardState[]>([
         defaultBoard(userSettings.analysis_config),
     ]);
-    const [liveMovesLengths, setLiveMovesLengths] = useState<
-        Record<number, number>
-    >({});
 
-    const gameBoardRefs = useRef<Record<number, GameBoardHandle | null>>({});
-
-    useEffect(() => {
-        setGames((prev) => {
-            if (prev.length !== 1) return prev;
-            const only = prev[0];
-            const pristine =
-                only.gameData === null &&
-                only.file === null &&
-                only.gameSource === "none" &&
-                only.analysisData === null &&
-                !only.loading;
-            if (!pristine) return prev;
-            return [defaultBoard(userSettings.analysis_config)];
-        });
-    }, [userSettings.analysis_config]);
+    const handleBoardPassMove = useCallback((boardIndex: number) => {
+        gameBoardRefs.current[boardIndex]?.handlePassMove();
+    }, []);
 
     const updateGame = (index: number, updates: Partial<BoardState>) => {
         setGames((prev) =>
@@ -133,13 +105,8 @@ const Demo = () => {
                 );
                 return data;
             } catch (error) {
-                toast.error(
-                    `Error analyzing move ${moveIndex + 1} in board ${gameIndex + 1}`
-                );
-                console.error(
-                    `Error analyzing move ${moveIndex + 1} in board ${gameIndex + 1}:`,
-                    error
-                );
+                toast.error(`Error analyzing move ${moveIndex + 1}`);
+                console.error(`Error analyzing move ${moveIndex + 1}:`, error);
             }
             return null;
         },
@@ -169,8 +136,8 @@ const Demo = () => {
                 );
                 updateGame(gameIndex, { winrate: data.winrate });
             } catch (error) {
-                toast.error(`Error analyzing board ${gameIndex + 1}`);
-                console.error(`Error analyzing board ${gameIndex + 1}:`, error);
+                toast.error(`Error generating winrate`);
+                console.error(`Error generating winrate:`, error);
             } finally {
                 updateGame(gameIndex, { loading: false });
             }
@@ -285,392 +252,43 @@ const Demo = () => {
                         flexDirection: "column",
                         gap: 4,
                         alignItems: "center",
-                        "@keyframes boardDeleteExit": {
-                            from: {
-                                transform: "scale(1)",
-                                opacity: 1,
-                                filter: "brightness(1)",
-                            },
-                            to: {
-                                transform: "scale(0.22)",
-                                opacity: 0,
-                                filter: "brightness(0.2)",
-                            },
-                        },
-                        "@keyframes boardCreate": {
-                            from: {
-                                transform: "scale(0.22)",
-                                opacity: 0,
-                                filter: "brightness(0.2)",
-                            },
-                            to: {
-                                transform: "scale(1)",
-                                opacity: 1,
-                                filter: "brightness(1)",
-                            },
-                        },
                     }}
                 >
-                    {games.map((game, i) => {
-                        const maxMoveForBoard = game.live
-                            ? (liveMovesLengths[i] ?? 0)
-                            : (game.gameData?.moves.length ?? 0);
-
-                        const handleMoveChange = (amount: number) => {
-                            const current = game.currentMoveIndex ?? 0;
-                            updateGame(i, {
-                                currentMoveIndex: Math.max(
-                                    0,
-                                    Math.min(current + amount, maxMoveForBoard)
-                                ),
-                            });
-                        };
-
-                        const controlsProps = {
-                            maxMove: maxMoveForBoard,
-                            live: game.live,
-                            currentMoveIndex: game.currentMoveIndex,
-                            onMoveChange: handleMoveChange,
-                            onGenerateWinrate: () => void onGenerateWinrate(i),
-                            onAnalyzeCurrentMove: () =>
-                                void onAnalyzeCurrentMove(i),
-                            onAnalyzeAllMoves: () => void onAnalyzeAllMoves(i),
-                            onPassMove: () =>
-                                gameBoardRefs.current[i]?.handlePassMove(),
-                        };
-
-                        const winRateProps = {
-                            data: game.winrate,
-                            setMove: (move: number) =>
-                                updateGame(i, { currentMoveIndex: move }),
-                            currentMove: game.currentMoveIndex ?? 0,
-                        };
-
-                        return (
-                            <Stack
-                                key={i}
-                                gap={2}
-                                direction={{ xs: "column", md: "row" }}
-                                alignItems={{ xs: "stretch", md: "flex-start" }}
-                                justifyContent="center"
-                                sx={{
-                                    position: "relative",
-                                    width: { xs: "100%", md: "max-content" },
-                                    maxWidth: "none",
-                                    mx: "auto",
-                                    flexShrink: 0,
-                                    transformOrigin: "center center",
-                                    willChange: "transform",
-                                }}
-                            >
-                                <Box>
-                                    <Stack
-                                        direction="row"
-                                        justifyContent="space-between"
-                                        alignItems="center"
-                                    >
-                                        <TextField
-                                            variant="standard"
-                                            value={
-                                                game.name ?? `Board ${i + 1}`
-                                            }
-                                            onChange={(event) =>
-                                                updateGame(i, {
-                                                    name: event.target.value,
-                                                })
-                                            }
-                                            sx={{
-                                                "& .MuiInput-underline:before":
-                                                    {
-                                                        borderBottom: "none",
-                                                    },
-                                                "& .MuiInput-underline:hover:not(.Mui-disabled):before":
-                                                    {
-                                                        borderBottom:
-                                                            "1px solid rgba(0, 0, 0, 0.87)",
-                                                    },
-                                            }}
-                                        />
-                                        {isMobile && (
-                                            <Tooltip
-                                                title="Analysis settings"
-                                                arrow
-                                            >
-                                                <IconButton
-                                                    onClick={() => {
-                                                        setCurrentSettingsIndex(
-                                                            i
-                                                        );
-                                                        setSettingsDrawerOpen(
-                                                            true
-                                                        );
-                                                    }}
-                                                    size="small"
-                                                >
-                                                    <TuneIcon fontSize="small" />
-                                                </IconButton>
-                                            </Tooltip>
-                                        )}
-                                    </Stack>
-                                    <GameBoard
-                                        key={i}
-                                        ref={(handle) => {
-                                            gameBoardRefs.current[i] = handle;
-                                        }}
-                                        gameData={game.gameData}
-                                        analysisData={game.analysisData}
-                                        isLoading={game.loading}
-                                        loadedValue={game.loadedValue}
-                                        live={game.live}
-                                        analysisConfig={game.analysisConfig}
-                                        gameSource={game.gameSource}
-                                        currentMoveIndex={game.currentMoveIndex}
-                                        setCurrentMoveIndex={(move) =>
-                                            updateGame(i, {
-                                                currentMoveIndex: move,
-                                            })
-                                        }
-                                        onGameSourceChange={(
-                                            source: GameSource
-                                        ) =>
-                                            updateGame(i, {
-                                                gameSource: source,
-                                            })
-                                        }
-                                        onViewSample={() =>
-                                            updateGame(i, {
-                                                gameSource: "sample",
-                                            })
-                                        }
-                                        onLive={() => {
-                                            const liveData: GameData = {
-                                                komi: 6.5,
-                                                moves: [],
-                                                size: 19,
-                                                players: {
-                                                    black: "Black",
-                                                    white: "White",
-                                                },
-                                                winner: "Unknown",
-                                            };
-                                            updateGame(i, {
-                                                gameData: liveData,
-                                                currentMoveIndex: 0,
-                                                live: true,
-                                            });
-                                        }}
-                                        onFileChange={(file) =>
-                                            updateGame(i, { file })
-                                        }
-                                        onMovesLengthChange={(n) =>
-                                            setLiveMovesLengths((prev) =>
-                                                prev[i] === n
-                                                    ? prev
-                                                    : { ...prev, [i]: n }
-                                            )
-                                        }
-                                    />
-                                    {/* Mobile: controls + winrate below board */}
-                                    <Box
-                                        sx={{
-                                            display: {
-                                                xs: "block",
-                                                md: "none",
-                                            },
-                                        }}
-                                    >
-                                        <Controls {...controlsProps} />
-                                        <WinRate {...winRateProps} />
-                                    </Box>
-                                </Box>
-
-                                {/* Desktop right sidebar */}
-                                <Paper
-                                    elevation={1}
-                                    square
-                                    sx={{
-                                        width: ANALYSIS_RIGHT_PANEL_WIDTH,
-                                        flexShrink: 0,
-                                        display: { xs: "none", md: "flex" },
-                                        flexDirection: "column",
-                                        position: "sticky",
-                                        top: 16,
-                                        maxHeight: "calc(100vh - 32px)",
-                                        overflow: "hidden",
-                                        alignSelf: "flex-start",
-                                        pointerEvents: game.loading
-                                            ? "none"
-                                            : "auto",
-                                        opacity: game.loading ? 0.5 : 1,
-                                        filter: game.loading
-                                            ? "brightness(0.5)"
-                                            : "none",
-                                        cursor: game.loading
-                                            ? "not-allowed"
-                                            : "auto",
-                                    }}
-                                >
-                                    {/* 1. Controls */}
-                                    <Controls
-                                        {...controlsProps}
-                                        sx={{
-                                            borderRadius: 0,
-                                            boxShadow: "none",
-                                            borderBottom: 1,
-                                            borderColor: "divider",
-                                            flexWrap: "nowrap",
-                                            overflowX: "auto",
-                                        }}
-                                    />
-
-                                    {/* 2. Win Rate */}
-                                    <Box
-                                        sx={{
-                                            borderBottom: 1,
-                                            borderColor: "divider",
-                                            flexShrink: 0,
-                                        }}
-                                    >
-                                        <WinRate {...winRateProps} />
-                                    </Box>
-
-                                    {/* 3. Settings header */}
-                                    <Box
-                                        sx={{
-                                            px: 2,
-                                            pt: 1.5,
-                                            pb: 1,
-                                            borderBottom: 1,
-                                            borderColor: "divider",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "space-between",
-                                            flexShrink: 0,
-                                            cursor: "default",
-                                        }}
-                                    >
-                                        <Typography
-                                            variant="subtitle1"
-                                            fontWeight={500}
-                                        >
-                                            Analysis Settings
-                                        </Typography>
-                                    </Box>
-
-                                    {/* Settings content */}
-                                    <Box
-                                        sx={{
-                                            flex: 1,
-                                            overflow: "auto",
-                                            scrollbarWidth: "thin",
-                                        }}
-                                    >
-                                        <AnalysisConfigFields
-                                            analysisConfig={
-                                                games[i].draftAnalysisConfig
-                                            }
-                                            setAnalysisConfig={(
-                                                config: AnalysisConfig
-                                            ) =>
-                                                updateGame(i, {
-                                                    draftAnalysisConfig: config,
-                                                })
-                                            }
-                                        />
-                                    </Box>
-
-                                    {/* Action buttons */}
-                                    <Box
-                                        sx={{
-                                            display: "flex",
-                                            flexDirection: "column",
-                                            gap: 2,
-                                            p: 2,
-                                            borderTop: 1,
-                                            borderColor: "divider",
-                                            flexShrink: 0,
-                                        }}
-                                    >
-                                        {analysisConfigIsDirty(i) && (
-                                            <Box
-                                                sx={{ display: "flex", gap: 1 }}
-                                            >
-                                                <Grow in={true} timeout="auto">
-                                                    <Button
-                                                        variant="outlined"
-                                                        color="error"
-                                                        onClick={() =>
-                                                            onResetAnalysisSettings(
-                                                                i
-                                                            )
-                                                        }
-                                                        disabled={
-                                                            game.gameData ===
-                                                            null
-                                                        }
-                                                        fullWidth
-                                                        sx={{
-                                                            "&:hover": {
-                                                                backgroundColor:
-                                                                    "rgba(211, 47, 47, 0.08)",
-                                                                borderColor:
-                                                                    "#d32f2f",
-                                                            },
-                                                        }}
-                                                    >
-                                                        Reset
-                                                    </Button>
-                                                </Grow>
-                                                <Grow in={true} timeout="auto">
-                                                    <Button
-                                                        variant="contained"
-                                                        onClick={() =>
-                                                            onSaveAnalysisSettings(
-                                                                i
-                                                            )
-                                                        }
-                                                        disabled={
-                                                            game.gameData ===
-                                                            null
-                                                        }
-                                                        fullWidth
-                                                    >
-                                                        Save
-                                                    </Button>
-                                                </Grow>
-                                            </Box>
-                                        )}
-                                        <Button
-                                            variant="contained"
-                                            onClick={() => onGenerateWinrate(i)}
-                                            disabled={game.gameData === null}
-                                            fullWidth
-                                        >
-                                            Generate Winrate
-                                        </Button>
-                                        <Button
-                                            variant="contained"
-                                            onClick={() =>
-                                                onAnalyzeCurrentMove(i)
-                                            }
-                                            disabled={game.gameData === null}
-                                            fullWidth
-                                        >
-                                            Analyze Current Move
-                                        </Button>
-                                        <Button
-                                            variant="contained"
-                                            onClick={() => onAnalyzeAllMoves(i)}
-                                            disabled={game.gameData === null}
-                                            fullWidth
-                                        >
-                                            Analyze All Moves
-                                        </Button>
-                                    </Box>
-                                </Paper>
-                            </Stack>
-                        );
-                    })}
+                    {games.map((game, gameIndex) => (
+                        <Game
+                            key={gameIndex}
+                            gameIndex={gameIndex}
+                            game={game}
+                            updateGame={(update: Partial<BoardState>) =>
+                                updateGame(gameIndex, update)
+                            }
+                            onGenerateWinrate={() =>
+                                onGenerateWinrate(gameIndex)
+                            }
+                            onAnalyzeCurrentMove={() =>
+                                onAnalyzeCurrentMove(gameIndex)
+                            }
+                            onAnalyzeAllMoves={() =>
+                                onAnalyzeAllMoves(gameIndex)
+                            }
+                            handleBoardPassMove={() =>
+                                handleBoardPassMove(gameIndex)
+                            }
+                            setCurrentSettingsIndex={setCurrentSettingsIndex}
+                            setSettingsDrawerOpen={setSettingsDrawerOpen}
+                            onSaveAnalysisSettings={() =>
+                                onSaveAnalysisSettings(gameIndex)
+                            }
+                            onResetAnalysisSettings={() =>
+                                onResetAnalysisSettings(gameIndex)
+                            }
+                            analysisConfigIsDirty={analysisConfigIsDirty(
+                                gameIndex
+                            )}
+                            gameBoardRefs={gameBoardRefs}
+                            numGames={games.length}
+                        />
+                    ))}
                 </Box>
             </Box>
 

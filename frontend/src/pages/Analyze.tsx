@@ -10,6 +10,7 @@ import {
     POST_WINRATE_URL,
     SGF_SAMPLE,
 } from "@/constants";
+import { ANIMATION_MS } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import usePageTitle from "@/hooks/usePageTitle";
 import {
@@ -61,8 +62,6 @@ const defaultBoard = (analysisConfig: AnalysisConfig): BoardState => ({
     draftAnalysisConfig: analysisConfig,
 });
 
-const ANIMATION_MS = 250;
-
 const Demo = () => {
     usePageTitle("Analyze");
 
@@ -87,20 +86,20 @@ const Demo = () => {
     const [creatingGameIndex, setCreatingGameIndex] = useState<number | null>(
         null
     );
-    const [selectedGames, setSelectedGames] = useState<BoardState[] | null>(
+    const [selectedGameIndex, setSelectedGameIndex] = useState<number[] | null>(
         null
     );
     const [settingsDrawerOpen, setSettingsDrawerOpen] = useState(false);
     const gameBoardRefs = useRef<Record<number, GameBoardHandle | null>>({});
-
-    const handleBoardPassMove = useCallback((boardIndex: number) => {
-        gameBoardRefs.current[boardIndex]?.handlePassMove();
-    }, []);
     const [selectedAnalysisSession, setSelectedAnalysisSession] = useState<
         string | null
     >(null);
     const [historyMenuAnchor, setHistoryMenuAnchor] =
         useState<HTMLElement | null>(null);
+
+    const handleBoardPassMove = useCallback((boardIndex: number) => {
+        gameBoardRefs.current[boardIndex]?.handlePassMove();
+    }, []);
 
     useEffect(() => {
         return () => {
@@ -163,8 +162,8 @@ const Demo = () => {
     }, [userSettings.analysis_config, gameID, setGames]);
 
     useEffect(() => {
-        console.log(selectedGames);
-    }, [selectedGames]);
+        console.log(selectedGameIndex);
+    }, [selectedGameIndex]);
 
     useEffect(() => {
         setGames((prev) => {
@@ -657,8 +656,21 @@ const Demo = () => {
                             updateGame={(update: Partial<BoardState>) =>
                                 updateGame(gameIndex, update)
                             }
-                            selectedGames={selectedGames}
-                            onSelectGame={(checked: boolean) => {}}
+                            selectedGameIndex={selectedGameIndex}
+                            onSelectGame={(checked: boolean) => {
+                                if (checked) {
+                                    setSelectedGameIndex((prev) => [
+                                        ...(prev ? prev : []),
+                                        gameIndex,
+                                    ]);
+                                } else {
+                                    setSelectedGameIndex((prev) =>
+                                        (prev as number[]).filter(
+                                            (index) => gameIndex !== index
+                                        )
+                                    );
+                                }
+                            }}
                             onGenerateWinrate={() =>
                                 onGenerateWinrate(gameIndex)
                             }

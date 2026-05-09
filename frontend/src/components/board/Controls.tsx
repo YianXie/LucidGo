@@ -15,8 +15,9 @@ import Typography from "@mui/material/Typography";
 import type { SxProps, Theme } from "@mui/material/styles";
 import { toast } from "react-toastify";
 
-import { FAST_FORWARD_AMOUNT } from "../../constants";
 import ControlMoveButton from "./ControlMoveButton";
+
+const FAST_FORWARD_AMOUNT = 5;
 
 const Controls = ({
     maxMove,

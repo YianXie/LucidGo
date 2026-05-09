@@ -3,6 +3,7 @@ import GameBoard, { type GameBoardHandle } from "@/components/board/GameBoard";
 import WinRate from "@/components/board/WinRate";
 import AnalysisConfigFields from "@/components/settings/AnalysisConfigFields";
 import { ANALYSIS_RIGHT_PANEL_WIDTH } from "@/constants";
+import { ANIMATION_MS } from "@/constants";
 import {
     type AnalysisConfig,
     type BoardState,
@@ -37,7 +38,7 @@ const Game = ({
     gameIndex,
     game,
     updateGame,
-    selectedGames,
+    selectedGameIndex,
     onSelectGame,
     onGenerateWinrate,
     onAnalyzeCurrentMove,
@@ -58,43 +59,43 @@ const Game = ({
     historyMenuAnchor,
     setHistoryMenuAnchor,
     gameBoardRefs,
-    isCreating,
-    isDeleting,
+    isCreating = false,
+    isDeleting = false,
     numGames,
     compareOk,
 }: {
     gameIndex: number;
     game: BoardState;
     updateGame: (updates: Partial<BoardState>) => void;
-    selectedGames: BoardState[] | null;
-    onSelectGame: (checked: boolean, game: BoardState) => void;
+    selectedGameIndex?: number[] | null;
+    onSelectGame?: (checked: boolean) => void;
     onGenerateWinrate: () => void;
     onAnalyzeCurrentMove: () => void;
     onAnalyzeAllMoves: () => void;
     handleBoardPassMove: () => void;
     setCurrentSettingsIndex: (id: number) => void;
     setSettingsDrawerOpen: (opened: boolean) => void;
-    onSaveGame: () => void;
-    onUnsaveGame: () => void;
-    onDeleteBoard: () => void;
+    onSaveGame?: () => void;
+    onUnsaveGame?: () => void;
+    onDeleteBoard?: () => void;
     onSaveAnalysisSettings: () => void;
     onResetAnalysisSettings: () => void;
     analysisConfigIsDirty: boolean;
-    analysisSessions: HistoryAnalysisSession[];
-    selectedAnalysisSession: string | null;
-    setSelectedAnalysisSession: (id: string) => void;
-    loadHistorySession: (id: string) => void;
-    historyMenuAnchor: Element | null;
-    setHistoryMenuAnchor: React.Dispatch<
+    analysisSessions?: HistoryAnalysisSession[];
+    selectedAnalysisSession?: string | null;
+    setSelectedAnalysisSession?: (id: string) => void;
+    loadHistorySession?: (id: string) => void;
+    historyMenuAnchor?: Element | null;
+    setHistoryMenuAnchor?: React.Dispatch<
         React.SetStateAction<HTMLElement | null>
     >;
     gameBoardRefs: React.MutableRefObject<
         Record<number, GameBoardHandle | null>
     >;
-    isCreating: boolean;
-    isDeleting: boolean;
+    isCreating?: boolean;
+    isDeleting?: boolean;
     numGames: number;
-    compareOk: boolean;
+    compareOk?: boolean;
 }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -126,12 +127,15 @@ const Game = ({
         currentMove: game.currentMoveIndex ?? 0,
     };
 
+    const thisSelected =
+        selectedGameIndex &&
+        selectedGameIndex.some((index) => index === gameIndex);
     const checkboxDisabled =
-        !compareOk ||
-        !!game.live ||
-        (selectedGames && game.sgfContent !== selectedGames[0].sgfContent);
-
-    const ANIMATION_MS = 250;
+        (!compareOk ||
+            game.live ||
+            !game.gameData?.moves ||
+            (selectedGameIndex && selectedGameIndex.length >= 2)) &&
+        !thisSelected;
 
     return (
         <Stack
@@ -196,63 +200,78 @@ const Game = ({
                                 </IconButton>
                             </Tooltip>
                         )}
-                        <Tooltip
-                            title={
-                                game.gameData === null
-                                    ? ""
-                                    : game.gameID
-                                      ? "Unsave game"
-                                      : "Save game"
-                            }
-                            arrow
-                        >
-                            <span>
-                                <IconButton
-                                    onClick={() =>
-                                        game.gameID
-                                            ? void onUnsaveGame()
-                                            : void onSaveGame()
+                        {(onSaveGame || onUnsaveGame) && (
+                            <Tooltip
+                                title={
+                                    game.gameData === null
+                                        ? ""
+                                        : game.gameID
+                                          ? "Unsave game"
+                                          : "Save game"
+                                }
+                                arrow
+                            >
+                                <span>
+                                    <IconButton
+                                        onClick={() =>
+                                            game.gameID
+                                                ? void onUnsaveGame?.()
+                                                : void onSaveGame?.()
+                                        }
+                                        disabled={game.gameData === null}
+                                        color={
+                                            game.gameID ? "primary" : "default"
+                                        }
+                                    >
+                                        {game.gameID ? (
+                                            <BookmarkIcon />
+                                        ) : (
+                                            <BookmarkBorderIcon />
+                                        )}
+                                    </IconButton>
+                                </span>
+                            </Tooltip>
+                        )}
+                        {onDeleteBoard && (
+                            <Tooltip title={"Delete board"} arrow>
+                                <span>
+                                    <IconButton
+                                        onClick={onDeleteBoard}
+                                        sx={{
+                                            color: "error.main",
+                                            "&:hover": {
+                                                backgroundColor: "#ff000010",
+                                            },
+                                        }}
+                                        disabled={numGames === 1}
+                                    >
+                                        <DeleteIcon color="inherit" />
+                                    </IconButton>
+                                </span>
+                            </Tooltip>
+                        )}
+                        {onSelectGame && (
+                            <Tooltip
+                                title={"Select this game for comparison"}
+                                arrow
+                            >
+                                <Checkbox
+                                    checked={
+                                        selectedGameIndex !== null &&
+                                        selectedGameIndex !== undefined &&
+                                        selectedGameIndex.some(
+                                            (index) => index === gameIndex
+                                        )
                                     }
-                                    disabled={game.gameData === null}
-                                    color={game.gameID ? "primary" : "default"}
-                                >
-                                    {game.gameID ? (
-                                        <BookmarkIcon />
-                                    ) : (
-                                        <BookmarkBorderIcon />
-                                    )}
-                                </IconButton>
-                            </span>
-                        </Tooltip>
-                        <Tooltip title={numGames > 1} arrow>
-                            <span>
-                                <IconButton
-                                    onClick={onDeleteBoard}
-                                    sx={{
-                                        color: "error.main",
-                                        "&:hover": {
-                                            backgroundColor: "#ff000010",
-                                        },
+                                    disabled={checkboxDisabled as boolean}
+                                    onChange={(
+                                        event: React.ChangeEvent<HTMLInputElement>
+                                    ) => {
+                                        onSelectGame(event.target.checked);
                                     }}
-                                    disabled={numGames === 1}
-                                >
-                                    <DeleteIcon color="inherit" />
-                                </IconButton>
-                            </span>
-                        </Tooltip>
-                        <Tooltip
-                            title={"Select this game for comparison"}
-                            arrow
-                        >
-                            <Checkbox
-                                disabled={checkboxDisabled as boolean}
-                                onChange={(
-                                    event: React.ChangeEvent<HTMLInputElement>
-                                ) => {
-                                    onSelectGame(event.target.checked, game);
-                                }}
-                            />
-                        </Tooltip>
+                                />
+                            </Tooltip>
+                        )}
                     </Box>
                 </Stack>
                 <GameBoard
@@ -378,75 +397,80 @@ const Game = ({
                     <Typography variant="subtitle1" fontWeight={500}>
                         Analysis Settings
                     </Typography>
-                    {game.gameID && analysisSessions.length > 0 && (
-                        <>
-                            <Tooltip title="Past configurations" arrow>
-                                <IconButton
-                                    size="medium"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setHistoryMenuAnchor(e.currentTarget);
+                    {game.gameID &&
+                        analysisSessions &&
+                        analysisSessions.length > 0 &&
+                        setHistoryMenuAnchor && (
+                            <>
+                                <Tooltip title="Past configurations" arrow>
+                                    <IconButton
+                                        size="medium"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setHistoryMenuAnchor(
+                                                e.currentTarget
+                                            );
+                                        }}
+                                    >
+                                        <HistoryIcon fontSize="medium" />
+                                    </IconButton>
+                                </Tooltip>
+                                <Menu
+                                    anchorEl={historyMenuAnchor ?? null}
+                                    open={Boolean(historyMenuAnchor)}
+                                    onClose={() => setHistoryMenuAnchor(null)}
+                                    anchorOrigin={{
+                                        vertical: "bottom",
+                                        horizontal: "right",
+                                    }}
+                                    transformOrigin={{
+                                        vertical: "top",
+                                        horizontal: "right",
+                                    }}
+                                    slotProps={{
+                                        list: {
+                                            autoFocusItem: true,
+                                        },
                                     }}
                                 >
-                                    <HistoryIcon fontSize="medium" />
-                                </IconButton>
-                            </Tooltip>
-                            <Menu
-                                anchorEl={historyMenuAnchor}
-                                open={Boolean(historyMenuAnchor)}
-                                onClose={() => setHistoryMenuAnchor(null)}
-                                anchorOrigin={{
-                                    vertical: "bottom",
-                                    horizontal: "right",
-                                }}
-                                transformOrigin={{
-                                    vertical: "top",
-                                    horizontal: "right",
-                                }}
-                                slotProps={{
-                                    list: {
-                                        autoFocusItem: true,
-                                    },
-                                }}
-                            >
-                                {analysisSessions.map((session) => {
-                                    const algo =
-                                        session.analysis_config?.general
-                                            ?.algorithm ?? "Unknown";
-                                    const date = new Date(
-                                        session.created_at
-                                    ).toLocaleDateString(undefined, {
-                                        month: "short",
-                                        day: "numeric",
-                                        year: "numeric",
-                                    });
-                                    return (
-                                        <MenuItem
-                                            key={session.id}
-                                            onClick={() => {
-                                                void loadHistorySession(
-                                                    session.id
-                                                );
-                                                setSelectedAnalysisSession(
-                                                    session.id
-                                                );
-                                            }}
-                                        >
-                                            <ListItemIcon>
-                                                {session.id ===
-                                                    selectedAnalysisSession && (
-                                                    <CheckIcon color="primary" />
-                                                )}
-                                            </ListItemIcon>
-                                            <ListItemText>
-                                                {algo} &mdash; {date}
-                                            </ListItemText>
-                                        </MenuItem>
-                                    );
-                                })}
-                            </Menu>
-                        </>
-                    )}
+                                    {analysisSessions.map((session) => {
+                                        const algo =
+                                            session.analysis_config?.general
+                                                ?.algorithm ?? "Unknown";
+                                        const date = new Date(
+                                            session.created_at
+                                        ).toLocaleDateString(undefined, {
+                                            month: "short",
+                                            day: "numeric",
+                                            year: "numeric",
+                                        });
+                                        return (
+                                            <MenuItem
+                                                key={session.id}
+                                                onClick={() => {
+                                                    void loadHistorySession?.(
+                                                        session.id
+                                                    );
+                                                    setSelectedAnalysisSession?.(
+                                                        session.id
+                                                    );
+                                                }}
+                                            >
+                                                <ListItemIcon>
+                                                    {session.id ===
+                                                        selectedAnalysisSession && (
+                                                        <CheckIcon color="primary" />
+                                                    )}
+                                                </ListItemIcon>
+                                                <ListItemText>
+                                                    {algo} &mdash; {date}
+                                                </ListItemText>
+                                            </MenuItem>
+                                        );
+                                    })}
+                                </Menu>
+                            </>
+                        )}
                 </Box>
 
                 {/* Settings content */}
