@@ -21,26 +21,17 @@ const Layout = () => {
         >
             <NavSidebar />
             <Box
+                component="main"
                 sx={{
                     flex: 1,
                     display: "flex",
                     flexDirection: "column",
                     minWidth: 0,
-                    overflow: "hidden",
+                    overflowX: "auto",
+                    overflowY: "auto",
                 }}
             >
-                <Box
-                    component="main"
-                    sx={{
-                        flex: 1,
-                        minWidth: 0,
-                        overflowX: "auto",
-                        overflowY: "auto",
-                    }}
-                >
-                    <Outlet />
-                </Box>
-                <Footer />
+                <Outlet />
             </Box>
 
             <ToastContainer

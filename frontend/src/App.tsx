@@ -1,9 +1,9 @@
-import { Compare } from "@mui/icons-material";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import Layout from "./components/layout/Layout";
 import Analyze from "./pages/Analyze";
+import Compare from "./pages/Compare";
 import Demo from "./pages/Demo";
 import Docs from "./pages/Docs";
 import Home from "./pages/Home";

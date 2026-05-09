@@ -1,4 +1,5 @@
 import api from "@/api";
+import ComparisonReadyIndicator from "@/components/board/ComparisonReadyIndicator";
 import Game from "@/components/board/Game";
 import { type GameBoardHandle } from "@/components/board/GameBoard";
 import AnalysisConfigFields from "@/components/settings/AnalysisConfigFields";
@@ -38,6 +39,7 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
+import Slide from "@mui/material/Slide";
 import SwipeableDrawer from "@mui/material/SwipeableDrawer";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
@@ -596,7 +598,6 @@ const Demo = () => {
                 gap: 4,
                 py: 4,
                 px: 2,
-                boxSizing: "border-box",
             }}
         >
             <Box
@@ -948,6 +949,22 @@ const Demo = () => {
                     </Button>
                 </Box>
             </SwipeableDrawer>
+
+            {/* The comparison-ready indicator */}
+            {selectedGameIndex.length == 2 && (
+                <Slide appear={true} in={true} direction="up">
+                    <ComparisonReadyIndicator
+                        game1Name={
+                            games[selectedGameIndex[0]].name ??
+                            `Board ${selectedGameIndex[0] + 1}`
+                        }
+                        game2Name={
+                            games[selectedGameIndex[1]].name ??
+                            `Board ${selectedGameIndex[1] + 1}`
+                        }
+                    />
+                </Slide>
+            )}
         </Box>
     );
 };
