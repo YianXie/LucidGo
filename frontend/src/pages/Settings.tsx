@@ -1,6 +1,6 @@
 import Sidebar from "@/components/common/Sidebar";
+import SidebarLayout from "@/components/common/SidebarLayout";
 import SidebarLink from "@/components/common/SidebarLink";
-import SidebarLayout from "@/components/layout/SidebarLayout";
 import AnalysisConfigFields from "@/components/settings/AnalysisConfigFields";
 import GeneralSettingsFields from "@/components/settings/GeneralSettingsFields";
 import { DEFAULT_USER_SETTINGS, USER_SETTINGS_URL } from "@/constants";

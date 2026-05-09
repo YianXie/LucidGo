@@ -1,4 +1,3 @@
-import { DRAWER_WIDTH } from "@/constants";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
@@ -20,7 +19,7 @@ const ComparisonReadyIndicator = forwardRef<
                 position: "fixed",
                 bottom: 0,
                 left: 0,
-                width: "inherit",
+                width: "100%",
                 display: "flex",
                 backgroundColor: (theme) => theme.palette.primary.light,
                 justifyContent: "space-between",
@@ -33,7 +32,13 @@ const ComparisonReadyIndicator = forwardRef<
             <Typography fontWeight={500} fontSize={18}>
                 Compare {props.game1Name} and {props.game2Name}
             </Typography>
-            <Button color="secondary" variant="contained">
+            <Button
+                color="secondary"
+                variant="contained"
+                onClick={() => {
+                    console.log("Compare feature WIP");
+                }}
+            >
                 Compare
             </Button>
         </Box>

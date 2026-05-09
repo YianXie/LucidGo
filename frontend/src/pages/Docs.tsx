@@ -12,8 +12,8 @@ import githubAction from "../../../docs/github-action.md";
 import howToUse from "../../../docs/how-to-use.md";
 import installation from "../../../docs/installation.md";
 import Sidebar from "../components/common/Sidebar";
+import SidebarLayout from "../components/common/SidebarLayout";
 import SidebarLink from "../components/common/SidebarLink";
-import SidebarLayout from "../components/layout/SidebarLayout";
 
 const rawDocs: string[] = [
     getStarted.toString(),
