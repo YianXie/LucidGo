@@ -39,6 +39,7 @@ const Game = ({
     game,
     updateGame,
     selectedGameIndex,
+    selectedGameSGF,
     onSelectGame,
     onGenerateWinrate,
     onAnalyzeCurrentMove,
@@ -67,7 +68,8 @@ const Game = ({
     gameIndex: number;
     game: BoardState;
     updateGame: (updates: Partial<BoardState>) => void;
-    selectedGameIndex?: number[] | null;
+    selectedGameIndex?: number[];
+    selectedGameSGF?: string | null;
     onSelectGame?: (checked: boolean) => void;
     onGenerateWinrate: () => void;
     onAnalyzeCurrentMove: () => void;
@@ -131,11 +133,13 @@ const Game = ({
         selectedGameIndex &&
         selectedGameIndex.some((index) => index === gameIndex);
     const checkboxDisabled =
-        (!compareOk ||
+        !thisSelected &&
+        (!selectedGameIndex ||
+            !compareOk ||
             game.live ||
             !game.gameData?.moves ||
-            (selectedGameIndex && selectedGameIndex.length >= 2)) &&
-        !thisSelected;
+            selectedGameIndex.length >= 2 ||
+            (selectedGameSGF && game.sgfContent !== selectedGameSGF));
 
     return (
         <Stack

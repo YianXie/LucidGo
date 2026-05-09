@@ -86,9 +86,7 @@ const Demo = () => {
     const [creatingGameIndex, setCreatingGameIndex] = useState<number | null>(
         null
     );
-    const [selectedGameIndex, setSelectedGameIndex] = useState<number[] | null>(
-        null
-    );
+    const [selectedGameIndex, setSelectedGameIndex] = useState<number[]>([]);
     const [settingsDrawerOpen, setSettingsDrawerOpen] = useState(false);
     const gameBoardRefs = useRef<Record<number, GameBoardHandle | null>>({});
     const [selectedAnalysisSession, setSelectedAnalysisSession] = useState<
@@ -160,10 +158,6 @@ const Demo = () => {
             setGames([defaultBoard(userSettings.analysis_config)]);
         }
     }, [userSettings.analysis_config, gameID, setGames]);
-
-    useEffect(() => {
-        console.log(selectedGameIndex);
-    }, [selectedGameIndex]);
 
     useEffect(() => {
         setGames((prev) => {
@@ -449,12 +443,12 @@ const Demo = () => {
                     loadedValue: (100 / denom) * i,
                 });
             }
-            updateGame(gameIndex, { loadedValue: null });
-            updateGame(gameIndex, { analysisData: analysisResults });
             updateGame(gameIndex, {
+                loadedValue: null,
+                analysisData: analysisResults,
                 winrate: analysisResults.map((result) => result.stats.winrate),
+                loading: false,
             });
-            updateGame(gameIndex, { loading: false });
 
             const fullyAnalyzed =
                 analysisResults.length === gameData.moves.length + 1;
@@ -657,15 +651,20 @@ const Demo = () => {
                                 updateGame(gameIndex, update)
                             }
                             selectedGameIndex={selectedGameIndex}
+                            selectedGameSGF={
+                                selectedGameIndex.length > 0
+                                    ? games[selectedGameIndex[0]].sgfContent
+                                    : null
+                            }
                             onSelectGame={(checked: boolean) => {
                                 if (checked) {
                                     setSelectedGameIndex((prev) => [
-                                        ...(prev ? prev : []),
+                                        ...prev,
                                         gameIndex,
                                     ]);
                                 } else {
                                     setSelectedGameIndex((prev) =>
-                                        (prev as number[]).filter(
+                                        prev.filter(
                                             (index) => gameIndex !== index
                                         )
                                     );
