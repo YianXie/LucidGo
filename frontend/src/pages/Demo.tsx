@@ -32,7 +32,7 @@ import { useCallback, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
 const defaultBoard = (analysisConfig: AnalysisConfig): BoardState => ({
-    name: null,
+    name: "Ke Jie v.s. AlphaGo Game 1",
     file: null,
     gameID: null,
     sgfContent: SGF_SAMPLE,
