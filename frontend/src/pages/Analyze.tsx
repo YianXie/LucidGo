@@ -17,8 +17,8 @@ import usePageTitle from "@/hooks/usePageTitle";
 import {
     type AnalysisConfig,
     type AnalysisResult,
-    type BoardState,
     type GameData,
+    type GameState,
     type HistoryAnalysisSession,
     type HistoryEntry,
     WinrateResult,
@@ -44,10 +44,10 @@ import SwipeableDrawer from "@mui/material/SwipeableDrawer";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
-const defaultBoard = (analysisConfig: AnalysisConfig): BoardState => ({
+const defaultBoard = (analysisConfig: AnalysisConfig): GameState => ({
     name: null,
     file: null,
     gameID: null,
@@ -69,13 +69,14 @@ const Demo = () => {
 
     const { userSettings } = useAuth();
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const gameID = searchParams.get("gameID");
 
     const animationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
         null
     );
 
-    const [games, setGames] = useState<BoardState[]>([
+    const [games, setGames] = useState<GameState[]>([
         defaultBoard(userSettings.analysis_config),
     ]);
     const [analysisSessions, setAnalysisSessions] = useState<
@@ -196,9 +197,9 @@ const Demo = () => {
             }
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fileSignature]);
+    }, [fileSignature, games]);
 
-    const updateGame = (index: number, updates: Partial<BoardState>) => {
+    const updateGame = (index: number, updates: Partial<GameState>) => {
         setGames((prev) =>
             prev.map((board, i) =>
                 i === index ? { ...board, ...updates } : board
@@ -268,28 +269,7 @@ const Demo = () => {
         }
     };
 
-    const ensureGameSaved = async (
-        gameIndex: number
-    ): Promise<string | null> => {
-        const board = games[gameIndex];
-        if (!board) return null;
-        if (board.gameID) return board.gameID;
-        if (!board.gameData) return null;
-        const source = board.live ? "live" : "upload";
-        return await saveGame(
-            gameIndex,
-            source,
-            board.gameData,
-            board.name,
-            board.sgfContent
-        );
-    };
-
-    const getGameData = async (
-        SGFContent: string,
-        gameIndex: number,
-        source: "upload" | "live" = "upload"
-    ) => {
+    const getGameData = async (SGFContent: string, gameIndex: number) => {
         updateGame(gameIndex, { loading: true, loadedValue: null });
         try {
             const { data } = await api.post<GameData>(GET_GAME_DATA_URL, {
@@ -305,15 +285,6 @@ const Demo = () => {
                 currentMoveIndex: 0,
                 sgfContent: SGFContent,
             });
-            if (autoSaveEnabled) {
-                void saveGame(
-                    gameIndex,
-                    source,
-                    data,
-                    games[gameIndex]?.name ?? null,
-                    SGFContent
-                );
-            }
         } catch (error) {
             toast.error("Invalid .sgf file");
             console.error("Error while fetching game data:", error);
@@ -455,14 +426,7 @@ const Demo = () => {
             const fullyAnalyzed =
                 analysisResults.length === gameData.moves.length + 1;
             if (autoSaveEnabled && fullyAnalyzed) {
-                const savedGameID = await ensureGameSaved(gameIndex);
-                if (savedGameID) {
-                    await saveAnalysisSession(
-                        savedGameID,
-                        analysisConfig,
-                        analysisResults
-                    );
-                }
+                await onSaveGame(gameIndex);
             }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -503,11 +467,20 @@ const Demo = () => {
 
     const onSaveGame = async (gameIndex: number) => {
         const board = games[gameIndex];
-        if (!board?.gameData) return;
-        const savedGameID = await ensureGameSaved(gameIndex);
+        if (!board) return null;
+        if (!board.gameData) return null;
+
+        const source = board.live ? "live" : "upload";
+        const savedGameID = await saveGame(
+            gameIndex,
+            source,
+            board.gameData,
+            board.name,
+            board.sgfContent
+        );
         if (!savedGameID) {
             toast.error("Failed to save game");
-            return;
+            return null;
         }
 
         const analysisData = board.analysisData;
@@ -524,6 +497,7 @@ const Demo = () => {
             );
         }
         toast.success("Game saved");
+        return savedGameID;
     };
 
     const onUnsaveGame = async (gameIndex: number) => {
@@ -542,6 +516,28 @@ const Demo = () => {
             console.error("Failed to unsave game:", error);
             toast.error("Failed to unsave game");
         }
+    };
+
+    const onCompare = async () => {
+        const savedGameIDs: string[] = [];
+        for (const idx of selectedGameIndex) {
+            updateGame(idx, { loading: true, loadedValue: null });
+            try {
+                const savedGameID = await onSaveGame(idx);
+                if (savedGameID) {
+                    savedGameIDs.push(savedGameID as string);
+                }
+            } catch (error) {
+                console.error(
+                    "Error while saving games for comparison:",
+                    error
+                );
+                toast.error("Error while saving games for comparison");
+            } finally {
+                updateGame(idx, { loading: false });
+            }
+        }
+        navigate(`/compare?game1=${savedGameIDs[0]}&game2=${savedGameIDs[1]}`);
     };
 
     const analysisConfigIsDirty = (gameIndex: number) => {
@@ -647,8 +643,8 @@ const Demo = () => {
                         <Game
                             key={gameIndex}
                             gameIndex={gameIndex}
-                            game={game}
-                            updateGame={(update: Partial<BoardState>) =>
+                            gameState={game}
+                            updateGame={(update: Partial<GameState>) =>
                                 updateGame(gameIndex, update)
                             }
                             selectedGameIndex={selectedGameIndex}
@@ -962,6 +958,7 @@ const Demo = () => {
                             games[selectedGameIndex[1]].name ??
                             `Board ${selectedGameIndex[1] + 1}`
                         }
+                        onCompare={onCompare}
                     />
                 </Slide>
             )}

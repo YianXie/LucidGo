@@ -6,9 +6,9 @@ import { ANALYSIS_RIGHT_PANEL_WIDTH } from "@/constants";
 import { ANIMATION_MS } from "@/constants";
 import {
     type AnalysisConfig,
-    type BoardState,
     type GameData,
     type GameSource,
+    type GameState,
     type HistoryAnalysisSession,
 } from "@/types/game";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
@@ -33,10 +33,11 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { useEffect, useState } from "react";
 
 const Game = ({
     gameIndex,
-    game,
+    gameState,
     updateGame,
     selectedGameIndex,
     selectedGameSGF,
@@ -66,8 +67,8 @@ const Game = ({
     compareOk,
 }: {
     gameIndex: number;
-    game: BoardState;
-    updateGame: (updates: Partial<BoardState>) => void;
+    gameState: GameState;
+    updateGame: (updates: Partial<GameState>) => void;
     selectedGameIndex?: number[];
     selectedGameSGF?: string | null;
     onSelectGame?: (checked: boolean) => void;
@@ -99,35 +100,11 @@ const Game = ({
     numGames: number;
     compareOk?: boolean;
 }) => {
+    const [compareCheckboxTooltipTitle, setCompareCheckboxTooltipTitle] =
+        useState("");
+
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
-    const handleMoveChange = (amount: number) => {
-        const current = game.currentMoveIndex ?? 0;
-        updateGame({
-            currentMoveIndex: Math.max(
-                0,
-                Math.min(current + amount, game.gameData?.moves.length ?? 0)
-            ),
-        });
-    };
-
-    const controlsProps = {
-        maxMove: game.gameData?.moves.length as number,
-        live: game.live,
-        currentMoveIndex: game.currentMoveIndex,
-        onMoveChange: handleMoveChange,
-        onGenerateWinrate: onGenerateWinrate,
-        onAnalyzeCurrentMove: onAnalyzeCurrentMove,
-        onAnalyzeAllMoves: onAnalyzeAllMoves,
-        onPassMove: handleBoardPassMove,
-    };
-
-    const winRateProps = {
-        data: game.winrate,
-        setMove: (move: number) => updateGame({ currentMoveIndex: move }),
-        currentMove: game.currentMoveIndex ?? 0,
-    };
 
     const thisSelected =
         selectedGameIndex &&
@@ -136,10 +113,72 @@ const Game = ({
         !thisSelected &&
         (!selectedGameIndex ||
             !compareOk ||
-            game.live ||
-            !game.gameData?.moves ||
+            gameState.live ||
+            !gameState.gameData?.moves ||
             selectedGameIndex.length >= 2 ||
-            (selectedGameSGF && game.sgfContent !== selectedGameSGF));
+            (selectedGameSGF && gameState.sgfContent !== selectedGameSGF));
+
+    useEffect(() => {
+        if (!compareOk)
+            setCompareCheckboxTooltipTitle(
+                "At least two analyzed games are required to start comparison"
+            );
+        else if (gameState.live)
+            setCompareCheckboxTooltipTitle(
+                "Only uploaded or sample games can be compared"
+            );
+        else if (!gameState.gameData?.moves)
+            setCompareCheckboxTooltipTitle("Game not initialized");
+        else if (selectedGameIndex && selectedGameIndex.length >= 2)
+            setCompareCheckboxTooltipTitle(
+                "Two games are already selected — unselect them first"
+            );
+        else if (selectedGameSGF && gameState.sgfContent !== selectedGameSGF)
+            setCompareCheckboxTooltipTitle(
+                "Games must have the same SGF content to be compared"
+            );
+        else if (thisSelected)
+            setCompareCheckboxTooltipTitle("Unselect this game");
+        else setCompareCheckboxTooltipTitle("Select this game for comparison");
+    }, [
+        compareOk,
+        gameState.gameData?.moves,
+        gameState.live,
+        gameState.sgfContent,
+        selectedGameIndex,
+        selectedGameSGF,
+        thisSelected,
+    ]);
+
+    const handleMoveChange = (amount: number) => {
+        const current = gameState.currentMoveIndex ?? 0;
+        updateGame({
+            currentMoveIndex: Math.max(
+                0,
+                Math.min(
+                    current + amount,
+                    gameState.gameData?.moves.length ?? 0
+                )
+            ),
+        });
+    };
+
+    const controlsProps = {
+        maxMove: gameState.gameData?.moves.length as number,
+        live: gameState.live,
+        currentMoveIndex: gameState.currentMoveIndex,
+        onMoveChange: handleMoveChange,
+        onGenerateWinrate: onGenerateWinrate,
+        onAnalyzeCurrentMove: onAnalyzeCurrentMove,
+        onAnalyzeAllMoves: onAnalyzeAllMoves,
+        onPassMove: handleBoardPassMove,
+    };
+
+    const winRateProps = {
+        data: gameState.winrate,
+        setMove: (move: number) => updateGame({ currentMoveIndex: move }),
+        currentMove: gameState.currentMoveIndex ?? 0,
+    };
 
     return (
         <Stack
@@ -173,7 +212,7 @@ const Game = ({
                 >
                     <TextField
                         variant="standard"
-                        value={game.name ?? `Board ${gameIndex + 1}`}
+                        value={gameState.name ?? `Board ${gameIndex + 1}`}
                         onChange={(event) =>
                             updateGame({
                                 name: event.target.value,
@@ -207,9 +246,9 @@ const Game = ({
                         {(onSaveGame || onUnsaveGame) && (
                             <Tooltip
                                 title={
-                                    game.gameData === null
+                                    gameState.gameData === null
                                         ? ""
-                                        : game.gameID
+                                        : gameState.gameID
                                           ? "Unsave game"
                                           : "Save game"
                                 }
@@ -218,16 +257,18 @@ const Game = ({
                                 <span>
                                     <IconButton
                                         onClick={() =>
-                                            game.gameID
+                                            gameState.gameID
                                                 ? void onUnsaveGame?.()
                                                 : void onSaveGame?.()
                                         }
-                                        disabled={game.gameData === null}
+                                        disabled={gameState.gameData === null}
                                         color={
-                                            game.gameID ? "primary" : "default"
+                                            gameState.gameID
+                                                ? "primary"
+                                                : "default"
                                         }
                                     >
-                                        {game.gameID ? (
+                                        {gameState.gameID ? (
                                             <BookmarkIcon />
                                         ) : (
                                             <BookmarkBorderIcon />
@@ -255,25 +296,24 @@ const Game = ({
                             </Tooltip>
                         )}
                         {onSelectGame && (
-                            <Tooltip
-                                title={"Select this game for comparison"}
-                                arrow
-                            >
-                                <Checkbox
-                                    checked={
-                                        selectedGameIndex !== null &&
-                                        selectedGameIndex !== undefined &&
-                                        selectedGameIndex.some(
-                                            (index) => index === gameIndex
-                                        )
-                                    }
-                                    disabled={checkboxDisabled as boolean}
-                                    onChange={(
-                                        event: React.ChangeEvent<HTMLInputElement>
-                                    ) => {
-                                        onSelectGame(event.target.checked);
-                                    }}
-                                />
+                            <Tooltip title={compareCheckboxTooltipTitle} arrow>
+                                <span>
+                                    <Checkbox
+                                        checked={
+                                            selectedGameIndex !== null &&
+                                            selectedGameIndex !== undefined &&
+                                            selectedGameIndex.some(
+                                                (index) => index === gameIndex
+                                            )
+                                        }
+                                        disabled={checkboxDisabled as boolean}
+                                        onChange={(
+                                            event: React.ChangeEvent<HTMLInputElement>
+                                        ) => {
+                                            onSelectGame(event.target.checked);
+                                        }}
+                                    />
+                                </span>
                             </Tooltip>
                         )}
                     </Box>
@@ -282,14 +322,14 @@ const Game = ({
                     ref={(handle) => {
                         gameBoardRefs.current[gameIndex] = handle;
                     }}
-                    gameData={game.gameData}
-                    analysisData={game.analysisData}
-                    isLoading={game.loading}
-                    loadedValue={game.loadedValue}
-                    live={game.live}
-                    analysisConfig={game.analysisConfig}
-                    gameSource={game.gameSource}
-                    currentMoveIndex={game.currentMoveIndex}
+                    gameData={gameState.gameData}
+                    analysisData={gameState.analysisData}
+                    isLoading={gameState.loading}
+                    loadedValue={gameState.loadedValue}
+                    live={gameState.live}
+                    analysisConfig={gameState.analysisConfig}
+                    gameSource={gameState.gameSource}
+                    currentMoveIndex={gameState.currentMoveIndex}
                     setCurrentMoveIndex={(move) =>
                         updateGame({
                             currentMoveIndex: move,
@@ -353,10 +393,10 @@ const Game = ({
                     maxHeight: "calc(100vh - 32px)",
                     overflow: "hidden",
                     alignSelf: "flex-start",
-                    pointerEvents: game.loading ? "none" : "auto",
-                    opacity: game.loading ? 0.5 : 1,
-                    filter: game.loading ? "brightness(0.5)" : "none",
-                    cursor: game.loading ? "not-allowed" : "auto",
+                    pointerEvents: gameState.loading ? "none" : "auto",
+                    opacity: gameState.loading ? 0.5 : 1,
+                    filter: gameState.loading ? "brightness(0.5)" : "none",
+                    cursor: gameState.loading ? "not-allowed" : "auto",
                 }}
             >
                 {/* 1. Controls */}
@@ -401,7 +441,7 @@ const Game = ({
                     <Typography variant="subtitle1" fontWeight={500}>
                         Analysis Settings
                     </Typography>
-                    {game.gameID &&
+                    {gameState.gameID &&
                         analysisSessions &&
                         analysisSessions.length > 0 &&
                         setHistoryMenuAnchor && (
@@ -486,7 +526,7 @@ const Game = ({
                     }}
                 >
                     <AnalysisConfigFields
-                        analysisConfig={game.draftAnalysisConfig}
+                        analysisConfig={gameState.draftAnalysisConfig}
                         setAnalysisConfig={(config: AnalysisConfig) =>
                             updateGame({
                                 draftAnalysisConfig: config,
@@ -514,7 +554,7 @@ const Game = ({
                                     variant="outlined"
                                     color="error"
                                     onClick={onResetAnalysisSettings}
-                                    disabled={game.gameData === null}
+                                    disabled={gameState.gameData === null}
                                     fullWidth
                                     sx={{
                                         "&:hover": {
@@ -531,7 +571,7 @@ const Game = ({
                                 <Button
                                     variant="contained"
                                     onClick={onSaveAnalysisSettings}
-                                    disabled={game.gameData === null}
+                                    disabled={gameState.gameData === null}
                                     fullWidth
                                 >
                                     Save
@@ -542,7 +582,7 @@ const Game = ({
                     <Button
                         variant="contained"
                         onClick={onGenerateWinrate}
-                        disabled={game.gameData === null}
+                        disabled={gameState.gameData === null}
                         fullWidth
                     >
                         Generate Winrate
@@ -550,7 +590,7 @@ const Game = ({
                     <Button
                         variant="contained"
                         onClick={onAnalyzeCurrentMove}
-                        disabled={game.gameData === null}
+                        disabled={gameState.gameData === null}
                         fullWidth
                     >
                         Analyze Current Move
@@ -558,7 +598,7 @@ const Game = ({
                     <Button
                         variant="contained"
                         onClick={onAnalyzeAllMoves}
-                        disabled={game.gameData === null}
+                        disabled={gameState.gameData === null}
                         fullWidth
                     >
                         Analyze All Moves

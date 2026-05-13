@@ -77,7 +77,7 @@ dependencies = [
   "types-pyyaml==6.0.12.20250915",
   "typing-extensions==4.14.1",
   "typing-inspection==0.4.1",
-  "urllib3==2.6.3",
+  "urllib3==2.7.0",
   "uvicorn==0.35.0",
   "virtualenv==20.36.1",
   "whitenoise==6.9.0",

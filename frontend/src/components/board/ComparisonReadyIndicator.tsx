@@ -6,12 +6,13 @@ import { forwardRef } from "react";
 type ComparisonReadyIndicatorProps = {
     game1Name: string;
     game2Name: string;
+    onCompare: () => void;
 };
 
 const ComparisonReadyIndicator = forwardRef<
     Element,
     ComparisonReadyIndicatorProps
->((props, ref) => {
+>(({ game1Name, game2Name, onCompare }, ref) => {
     return (
         <Box
             ref={ref}
@@ -21,7 +22,7 @@ const ComparisonReadyIndicator = forwardRef<
                 left: 0,
                 width: "100%",
                 display: "flex",
-                backgroundColor: (theme) => theme.palette.primary.light,
+                backgroundColor: "#3F74CD",
                 justifyContent: "space-between",
                 alignItems: "center",
                 padding: 2,
@@ -29,14 +30,21 @@ const ComparisonReadyIndicator = forwardRef<
                 zIndex: (theme) => theme.zIndex.tooltip + 1,
             }}
         >
-            <Typography fontWeight={500} fontSize={18}>
-                Compare {props.game1Name} and {props.game2Name}
+            <Typography
+                fontWeight={500}
+                fontSize={18}
+                sx={{
+                    color: "white",
+                }}
+            >
+                Compare {game1Name} and {game2Name}
             </Typography>
             <Button
-                color="secondary"
                 variant="contained"
-                onClick={() => {
-                    console.log("Compare feature WIP");
+                onClick={onCompare}
+                sx={{
+                    backgroundColor: "#9131AB",
+                    color: "white",
                 }}
             >
                 Compare

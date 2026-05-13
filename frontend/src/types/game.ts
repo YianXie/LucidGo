@@ -45,7 +45,7 @@ export interface GameData {
     winner?: string;
 }
 
-export interface BoardState {
+export interface GameState {
     name: string | null;
     file: File | null;
     gameID: string | null;

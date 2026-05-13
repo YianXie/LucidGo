@@ -13,8 +13,8 @@ import usePageTitle from "@/hooks/usePageTitle";
 import {
     type AnalysisConfig,
     type AnalysisResult,
-    type BoardState,
     type GameData,
+    type GameState,
     WinrateResult,
     isValidMove,
 } from "@/types/game";
@@ -31,7 +31,7 @@ import Typography from "@mui/material/Typography";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
-const defaultBoard = (analysisConfig: AnalysisConfig): BoardState => ({
+const defaultBoard = (analysisConfig: AnalysisConfig): GameState => ({
     name: "Ke Jie v.s. AlphaGo Game 1",
     file: null,
     gameID: null,
@@ -57,7 +57,7 @@ const Demo = () => {
 
     const [settingsDrawerOpen, setSettingsDrawerOpen] = useState(false);
     const [currentSettingsIndex, setCurrentSettingsIndex] = useState<number>(0);
-    const [games, setGames] = useState<BoardState[]>([
+    const [games, setGames] = useState<GameState[]>([
         defaultBoard(userSettings.analysis_config),
     ]);
 
@@ -65,7 +65,7 @@ const Demo = () => {
         gameBoardRefs.current[boardIndex]?.handlePassMove();
     }, []);
 
-    const updateGame = (index: number, updates: Partial<BoardState>) => {
+    const updateGame = (index: number, updates: Partial<GameState>) => {
         setGames((prev) =>
             prev.map((board, i) =>
                 i === index ? { ...board, ...updates } : board
@@ -258,8 +258,8 @@ const Demo = () => {
                         <Game
                             key={gameIndex}
                             gameIndex={gameIndex}
-                            game={game}
-                            updateGame={(update: Partial<BoardState>) =>
+                            gameState={game}
+                            updateGame={(update: Partial<GameState>) =>
                                 updateGame(gameIndex, update)
                             }
                             onGenerateWinrate={() =>
