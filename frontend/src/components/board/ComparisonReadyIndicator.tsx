@@ -1,18 +1,21 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import { forwardRef } from "react";
+import { forwardRef, useEffect } from "react";
 
 type ComparisonReadyIndicatorProps = {
-    game1Name: string;
-    game2Name: string;
+    games: string[];
     onCompare: () => void;
 };
 
 const ComparisonReadyIndicator = forwardRef<
     Element,
     ComparisonReadyIndicatorProps
->(({ game1Name, game2Name, onCompare }, ref) => {
+>(({ games, onCompare }, ref) => {
+    useEffect(() => {
+        console.log(games);
+    }, [games]);
+
     return (
         <Box
             ref={ref}
@@ -37,7 +40,10 @@ const ComparisonReadyIndicator = forwardRef<
                     color: "white",
                 }}
             >
-                Compare {game1Name} and {game2Name}
+                {games.map(
+                    (game, idx) =>
+                        `${game}${idx < games.length - 1 ? " - " : ""}`
+                )}
             </Typography>
             <Button
                 variant="contained"

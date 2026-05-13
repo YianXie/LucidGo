@@ -16,11 +16,11 @@ if (!rootEl) {
 }
 
 createRoot(rootEl).render(
-    <StrictMode>
-        <ThemeWrapper>
-            <AuthProvider>
-                <App />
-            </AuthProvider>
-        </ThemeWrapper>
-    </StrictMode>
+    // <StrictMode>
+    <ThemeWrapper>
+        <AuthProvider>
+            <App />
+        </AuthProvider>
+    </ThemeWrapper>
+    // </StrictMode>
 );

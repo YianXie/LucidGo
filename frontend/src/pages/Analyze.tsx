@@ -24,6 +24,7 @@ import {
     WinrateResult,
     isValidMove,
 } from "@/types/game";
+import { defaultBoard } from "@/utils/board";
 import {
     buildAnalysisRequest,
     buildWinrateRequest,
@@ -46,23 +47,6 @@ import Typography from "@mui/material/Typography";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
-
-const defaultBoard = (analysisConfig: AnalysisConfig): GameState => ({
-    name: null,
-    file: null,
-    gameID: null,
-    sgfContent: "",
-    gameData: null,
-    analysisData: null,
-    winrate: [],
-    currentMoveIndex: null,
-    loading: false,
-    gameSource: "none",
-    live: false,
-    loadedValue: null,
-    analysisConfig: analysisConfig,
-    draftAnalysisConfig: analysisConfig,
-});
 
 const Demo = () => {
     usePageTitle("Analyze");
@@ -521,6 +505,11 @@ const Demo = () => {
     const onCompare = async () => {
         const savedGameIDs: string[] = [];
         for (const idx of selectedGameIndex) {
+            const board = games[idx];
+            if (board.gameID) {
+                savedGameIDs.push(board.gameID);
+                continue;
+            }
             updateGame(idx, { loading: true, loadedValue: null });
             try {
                 const savedGameID = await onSaveGame(idx);
@@ -537,7 +526,7 @@ const Demo = () => {
                 updateGame(idx, { loading: false });
             }
         }
-        navigate(`/compare?game1=${savedGameIDs[0]}&game2=${savedGameIDs[1]}`);
+        navigate(`/compare?gameIDs=${savedGameIDs.join(",")}`);
     };
 
     const analysisConfigIsDirty = (gameIndex: number) => {
@@ -947,17 +936,16 @@ const Demo = () => {
             </SwipeableDrawer>
 
             {/* The comparison-ready indicator */}
-            {selectedGameIndex.length == 2 && (
+            {selectedGameIndex.length >= 2 && (
                 <Slide appear={true} in={true} direction="up">
                     <ComparisonReadyIndicator
-                        game1Name={
-                            games[selectedGameIndex[0]].name ??
-                            `Board ${selectedGameIndex[0] + 1}`
-                        }
-                        game2Name={
-                            games[selectedGameIndex[1]].name ??
-                            `Board ${selectedGameIndex[1] + 1}`
-                        }
+                        games={games
+                            .map((game, index) => {
+                                if (selectedGameIndex.includes(index))
+                                    return game.name ?? `Board ${index}`;
+                                return null;
+                            })
+                            .filter((game) => game !== null)}
                         onCompare={onCompare}
                     />
                 </Slide>

@@ -115,7 +115,7 @@ const Game = ({
             !compareOk ||
             gameState.live ||
             !gameState.gameData?.moves ||
-            selectedGameIndex.length >= 2 ||
+            selectedGameIndex.length >= 5 ||
             (selectedGameSGF && gameState.sgfContent !== selectedGameSGF));
 
     useEffect(() => {
@@ -129,9 +129,9 @@ const Game = ({
             );
         else if (!gameState.gameData?.moves)
             setCompareCheckboxTooltipTitle("Game not initialized");
-        else if (selectedGameIndex && selectedGameIndex.length >= 2)
+        else if (selectedGameIndex && selectedGameIndex.length >= 5)
             setCompareCheckboxTooltipTitle(
-                "Two games are already selected — unselect them first"
+                "Too many games are selected - unselect some first"
             );
         else if (selectedGameSGF && gameState.sgfContent !== selectedGameSGF)
             setCompareCheckboxTooltipTitle(
