@@ -5,8 +5,8 @@ from .models import AnalysisSession, Game
 
 @admin.register(Game)
 class GameAdmin(admin.ModelAdmin):  # type: ignore
-    list_display = ("name", "user", "source", "board_size", "winner", "created_at")
-    list_filter = ("source", "board_size")
+    list_display = ("name", "user", "source", "game_data")
+    list_filter = ("source",)
     search_fields = ("name", "user__email")
     readonly_fields = ("id", "created_at", "updated_at")
 

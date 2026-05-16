@@ -44,10 +44,10 @@ type GameBoardProps = {
     loadedValue: number | null;
     live: boolean;
     analysisConfig: AnalysisConfig;
-    gameSource: GameSource;
+    source: GameSource;
     currentMoveIndex: number | null;
     setCurrentMoveIndex: (move: number) => void;
-    onGameSourceChange: (source: GameSource) => void;
+    onSourceChange: (source: GameSource) => void;
     onViewSample: () => void;
     onLive: () => void;
     onFileChange: (file: File | null | undefined) => void;
@@ -82,10 +82,10 @@ const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(
             loadedValue,
             live,
             analysisConfig,
-            gameSource,
+            source,
             currentMoveIndex,
             setCurrentMoveIndex,
-            onGameSourceChange,
+            onSourceChange: onsourceChange,
             onViewSample,
             onLive,
             onFileChange,
@@ -786,7 +786,7 @@ const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(
                         )}
                     </Box>
                 )}
-                {gameSource === "none" && !live && (
+                {source === "none" && !live && (
                     <Box
                         sx={{
                             position: "absolute",
@@ -805,7 +805,7 @@ const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(
                         <Upload
                             setFile={(file) => {
                                 onFileChange(file);
-                                onGameSourceChange("file");
+                                onsourceChange("file");
                             }}
                             accept={".sgf"}
                         />

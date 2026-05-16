@@ -141,7 +141,7 @@ class GetGameDataView(APIView):
         )
 
 
-class GameListCreateView(APIView):
+class GameCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request) -> Response:

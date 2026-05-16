@@ -328,21 +328,21 @@ const Game = ({
                     loadedValue={gameState.loadedValue}
                     live={gameState.live}
                     analysisConfig={gameState.analysisConfig}
-                    gameSource={gameState.gameSource}
+                    source={gameState.source}
                     currentMoveIndex={gameState.currentMoveIndex}
                     setCurrentMoveIndex={(move) =>
                         updateGame({
                             currentMoveIndex: move,
                         })
                     }
-                    onGameSourceChange={(source: GameSource) =>
+                    onSourceChange={(source: GameSource) =>
                         updateGame({
-                            gameSource: source,
+                            source: source,
                         })
                     }
                     onViewSample={() =>
                         updateGame({
-                            gameSource: "sample",
+                            source: "sample",
                         })
                     }
                     onLive={() => {

@@ -4,8 +4,8 @@ export type MoveCoords = [number, number] | null;
 /** A single move: [color, coords]. Coords is null for pass/unknown moves. */
 export type GameMove = [string, MoveCoords];
 
-/** How a board got its game: loaded from a file, the built-in sample, or not yet chosen. */
-export type GameSource = "file" | "sample" | "none";
+/** How a board got its game: loaded from a file, the built-in sample, live, or not yet chosen. */
+export type GameSource = "file" | "sample" | "live" | "none";
 
 /** Type guard: returns true when the move has valid (non-null) coordinates. */
 export function isValidMove(
@@ -23,18 +23,13 @@ export interface HistoryAnalysisSession {
 
 export interface HistoryEntry {
     analysis_sessions: HistoryAnalysisSession[];
-    black_player: string;
-    board_size: number;
     created_at: string;
+    game_data: GameData;
     id: string;
-    komi: number | null;
-    moves: GameMove[];
     name: string;
     sgf_data: string;
-    source: "upload" | "live";
+    source: GameSource;
     updated_at: string;
-    winner: string;
-    white_player: string;
 }
 
 export interface GameData {
@@ -55,7 +50,7 @@ export interface GameState {
     winrate: { black: number; white: number }[];
     currentMoveIndex: number | null;
     loading: boolean;
-    gameSource: GameSource;
+    source: GameSource;
     live: boolean;
     loadedValue: number | null;
     analysisConfig: AnalysisConfig;
@@ -129,7 +124,7 @@ export interface WinrateResult {
 export interface GameSummary {
     id: string;
     name: string;
-    source: "upload" | "live";
+    source: GameSource;
     board_size: number;
     komi: number | null;
     black_player: string;

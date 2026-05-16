@@ -201,8 +201,10 @@ const Profile = () => {
         void fetchGames();
     }, [fetchGames]);
 
-    const uploadedGames = games.filter((g) => g.source === "upload");
-    const lives = games.filter((g) => g.source === "live");
+    const uploadedGames = games.filter((g) => g.source === "file");
+    const sampleGames = games.filter((g) => g.source === "sample");
+    const liveGames = games.filter((g) => g.source === "live");
+    const otherGames = games.filter((g) => g.source === "none");
 
     if (loading) {
         return <ProfileSkeleton />;
@@ -239,9 +241,19 @@ const Profile = () => {
                     defaultExpanded={true}
                 />
                 <GameSection
-                    title="Live Games"
-                    games={lives}
+                    title="Sample Games"
+                    games={sampleGames}
                     defaultExpanded={true}
+                />
+                <GameSection
+                    title="Live Games"
+                    games={liveGames}
+                    defaultExpanded={true}
+                />
+                <GameSection
+                    title="Other Games"
+                    games={otherGames}
+                    defaultExpanded={false}
                 />
             </Stack>
         </Container>

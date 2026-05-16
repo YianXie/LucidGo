@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import { forwardRef, useEffect } from "react";
+import { forwardRef } from "react";
 
 type ComparisonReadyIndicatorProps = {
     games: string[];
@@ -12,10 +12,6 @@ const ComparisonReadyIndicator = forwardRef<
     Element,
     ComparisonReadyIndicatorProps
 >(({ games, onCompare }, ref) => {
-    useEffect(() => {
-        console.log(games);
-    }, [games]);
-
     return (
         <Box
             ref={ref}

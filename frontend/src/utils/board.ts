@@ -11,7 +11,7 @@ export function defaultBoard(analysisConfig: AnalysisConfig): GameState {
         winrate: [],
         currentMoveIndex: null,
         loading: false,
-        gameSource: "none",
+        source: "none",
         live: false,
         loadedValue: null,
         analysisConfig: analysisConfig,

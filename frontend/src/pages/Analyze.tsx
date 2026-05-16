@@ -114,22 +114,13 @@ const Demo = () => {
                             const newBoard = defaultBoard(
                                 userSettings.analysis_config
                             );
-                            newBoard.gameData = {
-                                size: data.board_size,
-                                moves: data.moves,
-                                komi: data.komi ?? undefined,
-                                players: {
-                                    black: data.black_player,
-                                    white: data.white_player,
-                                },
-                                winner: data.winner ?? undefined,
-                            };
+                            newBoard.gameData = data.game_data;
                             newBoard.name = data.name;
                             newBoard.gameID = data.id;
                             newBoard.sgfContent = data.sgf_data ?? "";
                             newBoard.currentMoveIndex = 0;
                             newBoard.loading = false;
-                            newBoard.gameSource = "file";
+                            newBoard.source = "file";
                             newBoard.live = false;
                             newBoard.loadedValue = 0;
                             newBoard.analysisConfig =
@@ -153,7 +144,7 @@ const Demo = () => {
             const pristine =
                 only.gameData === null &&
                 only.file === null &&
-                only.gameSource === "none" &&
+                only.source === "none" &&
                 only.analysisData === null &&
                 !only.loading;
             if (!pristine) return prev;
@@ -163,17 +154,17 @@ const Demo = () => {
 
     // Read file / sample content when a board's source changes.
     const fileSignature = games
-        .map((b) => `${b.file?.name ?? ""}:${b.gameSource}`)
+        .map((b) => `${b.file?.name ?? ""}:${b.source}`)
         .join("|");
 
     useEffect(() => {
         games.forEach((board, i) => {
-            if (board.gameSource === "none") return;
+            if (board.source === "none") return;
             if (board.gameData && board.gameData.moves.length > 0) return;
 
-            if (board.gameSource === "sample") {
+            if (board.source === "sample") {
                 getGameData(SGF_SAMPLE, i);
-            } else if (board.gameSource === "file" && board.file) {
+            } else if (board.source === "file" && board.file) {
                 const reader = new FileReader();
                 reader.onload = (e) =>
                     getGameData(e.target?.result as string, i);
@@ -191,23 +182,13 @@ const Demo = () => {
         );
     };
 
-    const saveGame = async (
-        gameIndex: number,
-        source: "upload" | "live",
-        gameData: GameData,
-        boardName: string | null,
-        sgfData: string = ""
-    ) => {
+    const saveGame = async (gameIndex: number, sgfData: string) => {
+        const game = games[gameIndex];
         try {
             const { data } = await api.post<{ id: string }>(GAMES_URL, {
-                name: boardName || `Board ${gameIndex + 1}`,
-                source,
-                board_size: gameData.size,
-                komi: gameData.komi ?? null,
-                black_player: gameData.players?.black ?? "Unknown",
-                white_player: gameData.players?.white ?? "Unknown",
-                winner: gameData.winner ?? "Unknown",
-                moves: gameData.moves,
+                name: game.name || `Board ${gameIndex + 1}`,
+                source: game.source,
+                game_data: game.gameData,
                 sgf_data: sgfData,
             });
             updateGame(gameIndex, { gameID: data.id });
@@ -221,30 +202,23 @@ const Demo = () => {
     const autoSaveEnabled = userSettings.general_settings.auto_save_games;
 
     const saveAnalysisSession = async (
-        savedGameID: string,
-        config: AnalysisConfig,
-        results: AnalysisResult[]
+        gameIndex: number,
+        savedGameID: string = ""
     ): Promise<HistoryAnalysisSession | null> => {
+        const game = games[gameIndex];
+        if (!game.gameID && !savedGameID) {
+            toast.error("No game ID found while saving analysis session!");
+            return null;
+        }
+
         try {
             const { data } = await api.post<HistoryAnalysisSession>(
-                `${GAMES_URL}${savedGameID}/analyses/`,
+                `${GAMES_URL}${game.gameID ?? savedGameID}/analyses/`,
                 {
-                    analysis_config: config,
-                    results,
+                    analysis_config: game.analysisConfig,
+                    results: game.analysisData ?? [],
                 }
             );
-            if (gameID === savedGameID) {
-                setAnalysisSessions((prev) => {
-                    const existing = prev.findIndex((s) => s.id === data.id);
-                    if (existing >= 0) {
-                        const next = prev.slice();
-                        next[existing] = data;
-                        return next;
-                    }
-                    return [data, ...prev];
-                });
-                setSelectedAnalysisSession(data.id);
-            }
             return data;
         } catch (error) {
             console.error("Failed to save analysis session:", error);
@@ -409,8 +383,8 @@ const Demo = () => {
 
             const fullyAnalyzed =
                 analysisResults.length === gameData.moves.length + 1;
-            if (autoSaveEnabled && fullyAnalyzed) {
-                await onSaveGame(gameIndex);
+            if ((autoSaveEnabled || games[gameIndex].gameID) && fullyAnalyzed) {
+                await saveAnalysisSession(gameIndex);
             }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -431,6 +405,7 @@ const Demo = () => {
 
     const loadHistorySession = async (gameIndex: number, sessionID: string) => {
         if (!gameID) return;
+
         updateGame(gameIndex, { loading: true });
         try {
             const { data } = await api.get<HistoryAnalysisSession>(
@@ -449,37 +424,21 @@ const Demo = () => {
         }
     };
 
-    const onSaveGame = async (gameIndex: number) => {
-        const board = games[gameIndex];
-        if (!board) return null;
-        if (!board.gameData) return null;
+    const onSaveGame = async (
+        gameIndex: number,
+        forceSaveAnalysisSession: boolean = false
+    ) => {
+        const game = games[gameIndex];
+        if (!game || !game.gameData) return null;
 
-        const source = board.live ? "live" : "upload";
-        const savedGameID = await saveGame(
-            gameIndex,
-            source,
-            board.gameData,
-            board.name,
-            board.sgfContent
-        );
+        const savedGameID = await saveGame(gameIndex, game.sgfContent);
         if (!savedGameID) {
             toast.error("Failed to save game");
             return null;
         }
+        if (forceSaveAnalysisSession)
+            await saveAnalysisSession(gameIndex, savedGameID);
 
-        const analysisData = board.analysisData;
-        const expectedLen = board.gameData.moves.length + 1;
-        const fullyAnalyzed =
-            analysisData !== null &&
-            analysisData.length === expectedLen &&
-            analysisData.every((r) => r !== null);
-        if (fullyAnalyzed) {
-            await saveAnalysisSession(
-                savedGameID,
-                board.analysisConfig,
-                analysisData as AnalysisResult[]
-            );
-        }
         toast.success("Game saved");
         return savedGameID;
     };
@@ -487,6 +446,7 @@ const Demo = () => {
     const onUnsaveGame = async (gameIndex: number) => {
         const game = games[gameIndex];
         if (!game?.gameID) return;
+
         const savedGameID = game.gameID;
         try {
             await api.delete(`${GAMES_URL}${savedGameID}/`);
@@ -505,17 +465,19 @@ const Demo = () => {
     const onCompare = async () => {
         const savedGameIDs: string[] = [];
         for (const idx of selectedGameIndex) {
-            const board = games[idx];
-            if (board.gameID) {
-                savedGameIDs.push(board.gameID);
+            const game = games[idx];
+
+            // If the game is already saved
+            if (game.gameID) {
+                savedGameIDs.push(game.gameID);
                 continue;
             }
+
             updateGame(idx, { loading: true, loadedValue: null });
             try {
-                const savedGameID = await onSaveGame(idx);
-                if (savedGameID) {
-                    savedGameIDs.push(savedGameID as string);
-                }
+                const savedGameID = await onSaveGame(idx, true);
+                console.log(savedGameID);
+                if (savedGameID) savedGameIDs.push(savedGameID as string);
             } catch (error) {
                 console.error(
                     "Error while saving games for comparison:",

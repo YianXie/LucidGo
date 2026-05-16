@@ -7,7 +7,7 @@ urlpatterns = [
     path("analyze/", views.AnalyzeView.as_view(), name="analyze"),
     path("winrate/", views.WinrateView.as_view(), name="winrate"),
     path("get-game-data/", views.GetGameDataView.as_view(), name="get-game-data"),
-    path("games/", views.GameListCreateView.as_view(), name="game-list-create"),
+    path("games/", views.GameCreateView.as_view(), name="game-create"),
     path("games/<uuid:game_id>/", views.GameDetailView.as_view(), name="game-detail"),
     path(
         "games/<uuid:game_id>/analyses/",
