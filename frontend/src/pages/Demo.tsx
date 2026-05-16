@@ -1,4 +1,5 @@
 import api from "@/api";
+import AnalysisActionButtons from "@/components/board/AnalysisActionButtons";
 import Game from "@/components/board/Game";
 import { type GameBoardHandle } from "@/components/board/GameBoard";
 import AnalysisConfigFields from "@/components/settings/AnalysisConfigFields";
@@ -24,8 +25,6 @@ import {
 } from "@/utils/buildAnalysisRequest";
 import { toGTPFormat } from "@/utils/coordinates";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Grow from "@mui/material/Grow";
 import SwipeableDrawer from "@mui/material/SwipeableDrawer";
 import Typography from "@mui/material/Typography";
 import { useCallback, useRef, useState } from "react";
@@ -362,90 +361,27 @@ const Demo = () => {
                         />
                     )}
                 </Box>
-                <Box
-                    sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 2,
-                        p: 2,
-                        borderTop: 1,
-                        borderColor: "divider",
-                        flexShrink: 0,
-                    }}
-                >
-                    {analysisConfigIsDirty(currentSettingsIndex) && (
-                        <Box sx={{ display: "flex", gap: 1 }}>
-                            <Grow in={true} timeout="auto">
-                                <Button
-                                    variant="outlined"
-                                    color="error"
-                                    onClick={() =>
-                                        onResetAnalysisSettings(
-                                            currentSettingsIndex
-                                        )
-                                    }
-                                    disabled={
-                                        games[currentSettingsIndex].gameData ===
-                                        null
-                                    }
-                                    fullWidth
-                                    sx={{
-                                        "&:hover": {
-                                            backgroundColor:
-                                                "rgba(211, 47, 47, 0.08)",
-                                            borderColor: "#d32f2f",
-                                        },
-                                    }}
-                                >
-                                    Reset
-                                </Button>
-                            </Grow>
-                            <Grow in={true} timeout="auto">
-                                <Button
-                                    variant="contained"
-                                    onClick={() =>
-                                        onSaveAnalysisSettings(
-                                            currentSettingsIndex
-                                        )
-                                    }
-                                    disabled={
-                                        games[currentSettingsIndex].gameData ===
-                                        null
-                                    }
-                                    fullWidth
-                                >
-                                    Save
-                                </Button>
-                            </Grow>
-                        </Box>
-                    )}
-                    <Button
-                        variant="contained"
-                        onClick={() => onGenerateWinrate(currentSettingsIndex)}
-                        disabled={games[currentSettingsIndex].gameData === null}
-                        fullWidth
-                    >
-                        Generate Winrate
-                    </Button>
-                    <Button
-                        variant="contained"
-                        onClick={() =>
-                            onAnalyzeCurrentMove(currentSettingsIndex)
-                        }
-                        disabled={games[currentSettingsIndex].gameData === null}
-                        fullWidth
-                    >
-                        Analyze Current Move
-                    </Button>
-                    <Button
-                        variant="contained"
-                        onClick={() => onAnalyzeAllMoves(currentSettingsIndex)}
-                        disabled={games[currentSettingsIndex].gameData === null}
-                        fullWidth
-                    >
-                        Analyze All Moves
-                    </Button>
-                </Box>
+                <AnalysisActionButtons
+                    isDirty={analysisConfigIsDirty(currentSettingsIndex)}
+                    disabled={
+                        games[currentSettingsIndex].gameData === null
+                    }
+                    onReset={() =>
+                        onResetAnalysisSettings(currentSettingsIndex)
+                    }
+                    onSave={() =>
+                        onSaveAnalysisSettings(currentSettingsIndex)
+                    }
+                    onGenerateWinrate={() =>
+                        onGenerateWinrate(currentSettingsIndex)
+                    }
+                    onAnalyzeCurrentMove={() =>
+                        onAnalyzeCurrentMove(currentSettingsIndex)
+                    }
+                    onAnalyzeAllMoves={() =>
+                        onAnalyzeAllMoves(currentSettingsIndex)
+                    }
+                />
             </SwipeableDrawer>
         </Box>
     );

@@ -1,3 +1,4 @@
+import AnalysisActionButtons from "@/components/board/AnalysisActionButtons";
 import Controls from "@/components/board/Controls";
 import GameBoard, { type GameBoardHandle } from "@/components/board/GameBoard";
 import WinRate from "@/components/board/WinRate";
@@ -18,9 +19,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import HistoryIcon from "@mui/icons-material/History";
 import TuneIcon from "@mui/icons-material/Tune";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
-import Grow from "@mui/material/Grow";
 import IconButton from "@mui/material/IconButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
@@ -541,74 +540,15 @@ const Game = ({
                 </Box>
 
                 {/* Action buttons */}
-                <Box
-                    sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 2,
-                        p: 2,
-                        borderTop: 1,
-                        borderColor: "divider",
-                        flexShrink: 0,
-                    }}
-                >
-                    {analysisConfigIsDirty && (
-                        <Box sx={{ display: "flex", gap: 1 }}>
-                            <Grow in={true} timeout="auto">
-                                <Button
-                                    variant="outlined"
-                                    color="error"
-                                    onClick={onResetAnalysisSettings}
-                                    disabled={gameState.gameData === null}
-                                    fullWidth
-                                    sx={{
-                                        "&:hover": {
-                                            backgroundColor:
-                                                "rgba(211, 47, 47, 0.08)",
-                                            borderColor: "#d32f2f",
-                                        },
-                                    }}
-                                >
-                                    Reset
-                                </Button>
-                            </Grow>
-                            <Grow in={true} timeout="auto">
-                                <Button
-                                    variant="contained"
-                                    onClick={onSaveAnalysisSettings}
-                                    disabled={gameState.gameData === null}
-                                    fullWidth
-                                >
-                                    Save
-                                </Button>
-                            </Grow>
-                        </Box>
-                    )}
-                    <Button
-                        variant="contained"
-                        onClick={onGenerateWinrate}
-                        disabled={gameState.gameData === null}
-                        fullWidth
-                    >
-                        Generate Winrate
-                    </Button>
-                    <Button
-                        variant="contained"
-                        onClick={onAnalyzeCurrentMove}
-                        disabled={gameState.gameData === null}
-                        fullWidth
-                    >
-                        Analyze Current Move
-                    </Button>
-                    <Button
-                        variant="contained"
-                        onClick={onAnalyzeAllMoves}
-                        disabled={gameState.gameData === null}
-                        fullWidth
-                    >
-                        Analyze All Moves
-                    </Button>
-                </Box>
+                <AnalysisActionButtons
+                    isDirty={analysisConfigIsDirty}
+                    disabled={gameState.gameData === null}
+                    onReset={onResetAnalysisSettings}
+                    onSave={onSaveAnalysisSettings}
+                    onGenerateWinrate={onGenerateWinrate}
+                    onAnalyzeCurrentMove={onAnalyzeCurrentMove}
+                    onAnalyzeAllMoves={onAnalyzeAllMoves}
+                />
             </Paper>
         </Stack>
     );

@@ -15,6 +15,34 @@ import Typography from "@mui/material/Typography";
 const fieldRowSx = { display: "flex", alignItems: "center", gap: 2 } as const;
 
 /**
+ * A field label that shows an optional dotted-underline tooltip.
+ */
+const ConfigLabel = ({
+    label,
+    tooltip,
+}: {
+    label: string;
+    tooltip?: string;
+}) => {
+    if (tooltip) {
+        return (
+            <Tooltip title={tooltip} placement="top" arrow>
+                <Typography
+                    variant="body1"
+                    sx={{
+                        textDecoration: "underline",
+                        textDecorationStyle: "dotted",
+                    }}
+                >
+                    {label}
+                </Typography>
+            </Tooltip>
+        );
+    }
+    return <Typography variant="body1">{label}</Typography>;
+};
+
+/**
  * A labeled text/number input field row used in config forms.
  */
 const ConfigTextField = ({
@@ -32,25 +60,9 @@ const ConfigTextField = ({
     inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
     tooltip?: string;
 }) => {
-    const labelElement = tooltip ? (
-        <Tooltip title={tooltip} placement="top" arrow>
-            <Typography
-                variant="body1"
-                sx={{
-                    textDecoration: "underline",
-                    textDecorationStyle: "dotted",
-                }}
-            >
-                {label}
-            </Typography>
-        </Tooltip>
-    ) : (
-        <Typography variant="body1">{label}</Typography>
-    );
-
     return (
         <Box sx={fieldRowSx}>
-            {labelElement}
+            <ConfigLabel label={label} tooltip={tooltip} />
             <TextField
                 variant="standard"
                 type={type}
@@ -78,21 +90,6 @@ const ConfigCheckbox = ({
     tooltip?: string;
     onChange: (checked: boolean) => void;
 }) => {
-    const labelElement = tooltip ? (
-        <Tooltip title={tooltip} placement="top" arrow>
-            <Typography
-                variant="body1"
-                sx={{
-                    textDecoration: "underline",
-                    textDecorationStyle: "dotted",
-                }}
-            >
-                {label}
-            </Typography>
-        </Tooltip>
-    ) : (
-        <Typography variant="body1">{label}</Typography>
-    );
     return (
         <Box sx={{ ...fieldRowSx, gap: 1 }}>
             <Checkbox
@@ -100,7 +97,7 @@ const ConfigCheckbox = ({
                 onChange={(e) => onChange(e.target.checked)}
                 sx={{ width: 16, p: 0 }}
             />
-            {labelElement}
+            <ConfigLabel label={label} tooltip={tooltip} />
         </Box>
     );
 };
@@ -127,25 +124,9 @@ const ConfigSlider = ({
     ariaLabel: string;
     tooltip?: string;
 }) => {
-    const labelElement = tooltip ? (
-        <Tooltip title={tooltip} placement="top" arrow>
-            <Typography
-                variant="body1"
-                sx={{
-                    textDecoration: "underline",
-                    textDecorationStyle: "dotted",
-                }}
-            >
-                {label}
-            </Typography>
-        </Tooltip>
-    ) : (
-        <Typography variant="body1">{label}</Typography>
-    );
-
     return (
         <Box sx={fieldRowSx}>
-            {labelElement}
+            <ConfigLabel label={label} tooltip={tooltip} />
             <Stack
                 direction="row"
                 spacing={2}
@@ -187,25 +168,9 @@ const ConfigSelect = ({
     tooltip?: string;
     labelID?: string;
 }) => {
-    const labelElement = tooltip ? (
-        <Tooltip title={tooltip} placement="top" arrow>
-            <Typography
-                variant="body1"
-                sx={{
-                    textDecoration: "underline",
-                    textDecorationStyle: "dotted",
-                }}
-            >
-                {label}
-            </Typography>
-        </Tooltip>
-    ) : (
-        <Typography variant="body1">{label}</Typography>
-    );
-
     return (
         <Box sx={fieldRowSx}>
-            {labelElement}
+            <ConfigLabel label={label} tooltip={tooltip} />
             <Select
                 variant="standard"
                 value={value}
