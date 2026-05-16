@@ -3,6 +3,7 @@ import SidebarLayout from "@/components/common/SidebarLayout";
 import SidebarLink from "@/components/common/SidebarLink";
 import AnalysisConfigFields from "@/components/settings/AnalysisConfigFields";
 import GeneralSettingsFields from "@/components/settings/GeneralSettingsFields";
+import SettingsSaveResetButtons from "@/components/settings/SettingsSaveResetButtons";
 import { DEFAULT_USER_SETTINGS, USER_SETTINGS_URL } from "@/constants";
 import type {
     AnalysisConfig,
@@ -245,26 +246,12 @@ const Settings = () => {
                 setGeneralSettings={setDraftGeneralSettings}
             />
             <Typography>More settings are coming...</Typography>
-            <Box sx={{ display: "flex", gap: 2, mt: 4 }}>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    sx={{ width: "fit-content", px: 4 }}
-                    onClick={() => void handleSaveGeneralSettings()}
-                    disabled={loading !== null || !generalSettingsDirty}
-                >
-                    Save
-                </Button>
-                <Button
-                    variant="outlined"
-                    color="error"
-                    sx={{ width: "fit-content", px: 4 }}
-                    onClick={() => void handleResetGeneralSettings()}
-                    disabled={loading !== null}
-                >
-                    Reset to Defaults
-                </Button>
-            </Box>
+            <SettingsSaveResetButtons
+                onSave={() => void handleSaveGeneralSettings()}
+                onReset={() => void handleResetGeneralSettings()}
+                saveDisabled={loading !== null || !generalSettingsDirty}
+                resetDisabled={loading !== null}
+            />
         </Box>
     );
 
@@ -274,26 +261,12 @@ const Settings = () => {
                 analysisConfig={draftAnalysisConfig}
                 setAnalysisConfig={setDraftAnalysisConfig}
             />
-            <Box sx={{ display: "flex", gap: 2, mt: 4 }}>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    sx={{ width: "fit-content", px: 4 }}
-                    onClick={() => void handleSaveAnalysisConfig()}
-                    disabled={loading !== null || !analysisConfigDirty}
-                >
-                    Save
-                </Button>
-                <Button
-                    variant="outlined"
-                    color="error"
-                    sx={{ width: "fit-content", px: 4 }}
-                    onClick={() => void handleResetAnalysisConfig()}
-                    disabled={loading !== null}
-                >
-                    Reset to Defaults
-                </Button>
-            </Box>
+            <SettingsSaveResetButtons
+                onSave={() => void handleSaveAnalysisConfig()}
+                onReset={() => void handleResetAnalysisConfig()}
+                saveDisabled={loading !== null || !analysisConfigDirty}
+                resetDisabled={loading !== null}
+            />
         </Box>
     );
 

@@ -1,8 +1,9 @@
 import AuthFormLayout from "@/components/layout/AuthFormLayout";
 import { EMAIL_REGEX } from "@/constants";
+import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
 import TextField from "@mui/material/TextField";
 import { isAxiosError } from "axios";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -10,16 +11,11 @@ import api from "../../api";
 import { useAuth } from "../../contexts/AuthContext";
 
 const Login = () => {
-    const { login, isAuthenticated } = useAuth();
+    const { login } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        if (isAuthenticated) {
-            navigate("/");
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isAuthenticated]);
+    useRedirectIfAuthenticated();
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
