@@ -85,7 +85,7 @@ const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(
             source,
             currentMoveIndex,
             setCurrentMoveIndex,
-            onSourceChange: onsourceChange,
+            onSourceChange,
             onViewSample,
             onLive,
             onFileChange,
@@ -805,7 +805,7 @@ const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(
                         <Upload
                             setFile={(file) => {
                                 onFileChange(file);
-                                onsourceChange("file");
+                                onSourceChange("file");
                             }}
                             accept={".sgf"}
                         />

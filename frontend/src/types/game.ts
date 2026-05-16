@@ -125,11 +125,7 @@ export interface GameSummary {
     id: string;
     name: string;
     source: GameSource;
-    board_size: number;
-    komi: number | null;
-    black_player: string;
-    white_player: string;
-    winner: string;
+    game_data: GameData;
     analysis_count: number;
     last_analyzed_at: string | null;
     created_at: string;

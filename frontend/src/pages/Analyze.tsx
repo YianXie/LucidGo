@@ -383,8 +383,12 @@ const Demo = () => {
 
             const fullyAnalyzed =
                 analysisResults.length === gameData.moves.length + 1;
-            if ((autoSaveEnabled || games[gameIndex].gameID) && fullyAnalyzed) {
-                await saveAnalysisSession(gameIndex);
+            if (fullyAnalyzed) {
+                if (games[gameIndex].gameID) {
+                    await saveAnalysisSession(gameIndex);
+                } else if (autoSaveEnabled) {
+                    await onSaveGame(gameIndex, true);
+                }
             }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -476,7 +480,6 @@ const Demo = () => {
             updateGame(idx, { loading: true, loadedValue: null });
             try {
                 const savedGameID = await onSaveGame(idx, true);
-                console.log(savedGameID);
                 if (savedGameID) savedGameIDs.push(savedGameID as string);
             } catch (error) {
                 console.error(

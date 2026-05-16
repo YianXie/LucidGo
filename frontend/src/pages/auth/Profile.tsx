@@ -66,17 +66,20 @@ const GameCard = ({ game }: { game: GameSummary }) => {
                     useFlexGap
                 >
                     <Typography variant="body2" color="text.secondary">
-                        <strong>Black:</strong> {game.black_player}
+                        <strong>Black:</strong>{" "}
+                        {game.game_data.players?.black ?? "Unknown"}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        <strong>White:</strong> {game.white_player}
+                        <strong>White:</strong>{" "}
+                        {game.game_data.players?.white ?? "Unknown"}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        <strong>Result:</strong> {game.winner}
+                        <strong>Result:</strong>{" "}
+                        {game.game_data.winner ?? "Unknown"}
                     </Typography>
-                    {game.komi != null && (
+                    {game.game_data.komi != null && (
                         <Typography variant="body2" color="text.secondary">
-                            <strong>Komi:</strong> {game.komi}
+                            <strong>Komi:</strong> {game.game_data.komi}
                         </Typography>
                     )}
                 </Stack>

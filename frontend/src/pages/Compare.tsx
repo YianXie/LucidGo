@@ -16,20 +16,16 @@ const Compare = () => {
     const gameIDsText = searchParams.get("gameIDs") ?? "";
     const gameIDs = useMemo(() => gameIDsText.split(","), [gameIDsText]);
 
-    const [game, setGame] = useState<GameState | null>(null);
-    const [analysisSessions, setAnalysisSessions] = useState<
+    const [_game, setGame] = useState<GameState | null>(null);
+    const [_analysisSessions, setAnalysisSessions] = useState<
         HistoryAnalysisSession[][]
     >([]);
-
-    useEffect(() => {
-        console.log("game:", game);
-        console.log("analysisSessions:", analysisSessions);
-    }, [analysisSessions, game]);
 
     useEffect(() => {
         if (gameIDs.length < 2 || gameIDs.length > 5) {
             toast.error("An error has occurred when comparing games.");
             navigate("/");
+            return;
         }
 
         gameIDs.forEach((gameID) => {
@@ -42,21 +38,21 @@ const Compare = () => {
                             data.analysis_sessions,
                         ]);
 
-                        // Since all the games are identical, save only one time
-                        if (!game) {
-                            setGame(() => {
-                                const newBoard = defaultBoard(
-                                    userSettings.analysis_config
-                                );
-                                newBoard.gameData = data.game_data;
-                                newBoard.name = data.name;
-                                newBoard.gameID = data.id;
-                                newBoard.sgfContent = data.sgf_data ?? "";
-                                newBoard.currentMoveIndex = 0;
-                                newBoard.source = "file";
-                                return newBoard;
-                            });
-                        }
+                        // Use the functional updater so only the first resolved
+                        // request sets the shared game state, avoiding races.
+                        setGame((prev) => {
+                            if (prev) return prev;
+                            const newBoard = defaultBoard(
+                                userSettings.analysis_config
+                            );
+                            newBoard.gameData = data.game_data;
+                            newBoard.name = data.name;
+                            newBoard.gameID = data.id;
+                            newBoard.sgfContent = data.sgf_data ?? "";
+                            newBoard.currentMoveIndex = 0;
+                            newBoard.source = "file";
+                            return newBoard;
+                        });
                     });
             } catch (error) {
                 console.error("Failed to load game data:", error);
