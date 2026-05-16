@@ -323,7 +323,12 @@ const Game = ({
                         gameBoardRefs.current[gameIndex] = handle;
                     }}
                     gameData={gameState.gameData}
-                    analysisData={gameState.analysisData}
+                    overlays={[
+                        {
+                            analysisData: gameState.analysisData,
+                            color: "rgba(255, 0, 0, 1)",
+                        },
+                    ]}
                     isLoading={gameState.loading}
                     loadedValue={gameState.loadedValue}
                     live={gameState.live}

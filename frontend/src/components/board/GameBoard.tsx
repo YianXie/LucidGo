@@ -37,9 +37,15 @@ export type GameBoardHandle = {
 
 type TopMoveEntry = AnalysisResult["top_moves"][number];
 
+export type AnalysisOverlay = {
+    analysisData: (AnalysisResult | null)[] | null;
+    color: string;
+    label?: string;
+};
+
 type GameBoardProps = {
     gameData: GameData | null;
-    analysisData: (AnalysisResult | null)[] | null;
+    overlays: AnalysisOverlay[];
     isLoading: boolean;
     loadedValue: number | null;
     live: boolean;
@@ -77,7 +83,7 @@ const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(
     function GameBoard(
         {
             gameData,
-            analysisData,
+            overlays,
             isLoading,
             loadedValue,
             live,
@@ -214,7 +220,7 @@ const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(
             replayMoves,
             boardSize,
             boardImageData,
-            analysisData,
+            overlays,
         ]);
 
         useEffect(() => {
@@ -458,6 +464,122 @@ const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(
             }
         };
 
+        const drawSingleOverlay = (
+            canvasContext: CanvasRenderingContext2D,
+            overlay: AnalysisOverlay,
+            sideToMove: "B" | "W"
+        ) => {
+            const analysisIndex = currentMoveIndex ?? 0;
+            const slice = overlay.analysisData?.[analysisIndex];
+            if (!slice?.top_moves?.length) return;
+
+            const ordered = slice.top_moves
+                .map((entry) => {
+                    const pt = parseGtpBoardPoint(entry.move);
+                    return pt ? { entry, row: pt[0], col: pt[1] } : null;
+                })
+                .filter(
+                    (
+                        x
+                    ): x is {
+                        entry: TopMoveEntry;
+                        row: number;
+                        col: number;
+                    } => x !== null
+                );
+
+            const board = gameRef.current;
+            for (const [index, { entry, row, col }] of ordered.entries()) {
+                const sign = board.get([row, col]);
+                if (sign !== 0 && sign != null) continue;
+
+                const fill = `rgba(255, 0, 0, ${Math.max(0.3, 1 / (index + 1))})`;
+                const [cx, cy] = boardToCanvasCoords(row, col);
+                canvasContext.beginPath();
+                canvasContext.arc(cx, cy, stoneRadius - 2, 0, 2 * Math.PI);
+                canvasContext.fillStyle = fill;
+                canvasContext.fill();
+
+                if (entry.winrate != null) {
+                    const label = formatSuggestedMoveWinrate(
+                        entry.winrate,
+                        sideToMove
+                    );
+                    canvasContext.font = "bold 11px Arial";
+                    canvasContext.textBaseline = "middle";
+                    canvasContext.textAlign = "center";
+                    canvasContext.lineWidth = 3;
+                    canvasContext.strokeStyle = "rgba(0,0,0,0.65)";
+                    canvasContext.strokeText(label, cx, cy);
+                    canvasContext.fillStyle = "#fff";
+                    canvasContext.fillText(label, cx, cy);
+                }
+            }
+        };
+
+        const drawMultiOverlays = (
+            canvasContext: CanvasRenderingContext2D,
+            overlayList: AnalysisOverlay[]
+        ) => {
+            const analysisIndex = currentMoveIndex ?? 0;
+            const board = gameRef.current;
+
+            // Collect each overlay's top-1 (legal) move grouped by board point so
+            // we can fan-offset overlapping markers.
+            const groups = new Map<
+                string,
+                { color: string; row: number; col: number }[]
+            >();
+            overlayList.forEach((overlay) => {
+                const slice = overlay.analysisData?.[analysisIndex];
+                if (!slice?.top_moves?.length) return;
+
+                for (const entry of slice.top_moves) {
+                    const pt = parseGtpBoardPoint(entry.move);
+                    if (!pt) continue;
+                    const [row, col] = pt;
+                    const sign = board.get([row, col]);
+                    if (sign !== 0 && sign != null) continue;
+
+                    const key = `${row},${col}`;
+                    const arr = groups.get(key) ?? [];
+                    arr.push({ color: overlay.color, row, col });
+                    groups.set(key, arr);
+                    break;
+                }
+            });
+
+            const dotRadius = stoneRadius * 0.7;
+            const offsetDistance = stoneRadius * 0.55;
+
+            for (const markers of groups.values()) {
+                const n = markers.length;
+                markers.forEach((marker, i) => {
+                    const [cx, cy] = boardToCanvasCoords(
+                        marker.row,
+                        marker.col
+                    );
+
+                    let drawX = cx;
+                    let drawY = cy;
+                    if (n > 1) {
+                        const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
+                        drawX = cx + Math.cos(angle) * offsetDistance;
+                        drawY = cy + Math.sin(angle) * offsetDistance;
+                    }
+
+                    canvasContext.beginPath();
+                    canvasContext.arc(drawX, drawY, dotRadius, 0, 2 * Math.PI);
+                    canvasContext.fillStyle = marker.color;
+                    canvasContext.fill();
+                    canvasContext.lineWidth = 1.5;
+                    canvasContext.strokeStyle = "rgba(0,0,0,0.6)";
+                    canvasContext.stroke();
+                    canvasContext.closePath();
+                });
+            }
+        };
+
         const redrawBoardAndStones = (
             canvasContext: CanvasRenderingContext2D | null
         ) => {
@@ -471,50 +593,11 @@ const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(
                 analysisIndex,
                 replayMoves
             );
-            const slice = analysisData?.[analysisIndex];
-            if (slice?.top_moves?.length) {
-                const ordered = slice.top_moves
-                    .map((entry) => {
-                        const pt = parseGtpBoardPoint(entry.move);
-                        return pt ? { entry, row: pt[0], col: pt[1] } : null;
-                    })
-                    .filter(
-                        (
-                            x
-                        ): x is {
-                            entry: TopMoveEntry;
-                            row: number;
-                            col: number;
-                        } => x !== null
-                    );
 
-                const board = gameRef.current;
-                for (const [index, { entry, row, col }] of ordered.entries()) {
-                    const sign = board.get([row, col]);
-                    if (sign !== 0 && sign != null) continue;
-
-                    const fill = `rgba(255, 0, 0, ${Math.max(0.3, 1 / (index + 1))})`;
-                    const [cx, cy] = boardToCanvasCoords(row, col);
-                    canvasContext.beginPath();
-                    canvasContext.arc(cx, cy, stoneRadius - 2, 0, 2 * Math.PI);
-                    canvasContext.fillStyle = fill;
-                    canvasContext.fill();
-
-                    if (entry.winrate != null) {
-                        const label = formatSuggestedMoveWinrate(
-                            entry.winrate,
-                            sideToMove
-                        );
-                        canvasContext.font = "bold 11px Arial";
-                        canvasContext.textBaseline = "middle";
-                        canvasContext.textAlign = "center";
-                        canvasContext.lineWidth = 3;
-                        canvasContext.strokeStyle = "rgba(0,0,0,0.65)";
-                        canvasContext.strokeText(label, cx, cy);
-                        canvasContext.fillStyle = "#fff";
-                        canvasContext.fillText(label, cx, cy);
-                    }
-                }
+            if (overlays.length === 1) {
+                drawSingleOverlay(canvasContext, overlays[0], sideToMove);
+            } else if (overlays.length > 1) {
+                drawMultiOverlays(canvasContext, overlays);
             }
         };
 
