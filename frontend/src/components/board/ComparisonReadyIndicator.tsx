@@ -36,14 +36,17 @@ const ComparisonReadyIndicator = forwardRef<
                     color: "white",
                 }}
             >
-                {games.map(
-                    (game, idx) =>
-                        `${game}${idx < games.length - 1 ? " - " : ""}`
-                )}
+                {games.length >= 2
+                    ? games.map(
+                          (game, idx) =>
+                              `${game}${idx < games.length - 1 ? " - " : ""}`
+                      )
+                    : "Select at least 2 games to compare"}
             </Typography>
             <Button
                 variant="contained"
                 onClick={onCompare}
+                disabled={games.length < 2}
                 sx={{
                     backgroundColor: "#9131AB",
                     color: "white",

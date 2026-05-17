@@ -467,6 +467,9 @@ const Demo = () => {
     };
 
     const onCompare = async () => {
+        if (games.length < 2 || games.length > 5)
+            throw new Error("Invalid game selection for comparison!");
+
         const savedGameIDs: string[] = [];
         for (const idx of selectedGameIndex) {
             const game = games[idx];
@@ -901,7 +904,7 @@ const Demo = () => {
             </SwipeableDrawer>
 
             {/* The comparison-ready indicator */}
-            {selectedGameIndex.length >= 2 && (
+            {selectedGameIndex.length > 0 && (
                 <Slide appear={true} in={true} direction="up">
                     <ComparisonReadyIndicator
                         games={games

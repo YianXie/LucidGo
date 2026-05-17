@@ -363,15 +363,11 @@ const Demo = () => {
                 </Box>
                 <AnalysisActionButtons
                     isDirty={analysisConfigIsDirty(currentSettingsIndex)}
-                    disabled={
-                        games[currentSettingsIndex].gameData === null
-                    }
+                    disabled={games[currentSettingsIndex].gameData === null}
                     onReset={() =>
                         onResetAnalysisSettings(currentSettingsIndex)
                     }
-                    onSave={() =>
-                        onSaveAnalysisSettings(currentSettingsIndex)
-                    }
+                    onSave={() => onSaveAnalysisSettings(currentSettingsIndex)}
                     onGenerateWinrate={() =>
                         onGenerateWinrate(currentSettingsIndex)
                     }

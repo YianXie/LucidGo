@@ -278,20 +278,18 @@ const Game = ({
                         )}
                         {onDeleteBoard && (
                             <Tooltip title={"Delete board"} arrow>
-                                <span>
-                                    <IconButton
-                                        onClick={onDeleteBoard}
-                                        sx={{
-                                            color: "error.main",
-                                            "&:hover": {
-                                                backgroundColor: "#ff000010",
-                                            },
-                                        }}
-                                        disabled={numGames === 1}
-                                    >
-                                        <DeleteIcon color="inherit" />
-                                    </IconButton>
-                                </span>
+                                <IconButton
+                                    onClick={onDeleteBoard}
+                                    sx={{
+                                        color: "error.main",
+                                        "&:hover": {
+                                            backgroundColor: "#ff000010",
+                                        },
+                                    }}
+                                    disabled={numGames === 1}
+                                >
+                                    <DeleteIcon color="inherit" />
+                                </IconButton>
                             </Tooltip>
                         )}
                         {onSelectGame && (

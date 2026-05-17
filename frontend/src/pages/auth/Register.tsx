@@ -1,6 +1,6 @@
 import AuthFormLayout from "@/components/layout/AuthFormLayout";
-import { formatErrorPayload } from "@/utils/errorFormatting";
 import useRedirectIfAuthenticated from "@/hooks/useRedirectIfAuthenticated";
+import { formatErrorPayload } from "@/utils/errorFormatting";
 import TextField from "@mui/material/TextField";
 import { isAxiosError } from "axios";
 import { useState } from "react";
